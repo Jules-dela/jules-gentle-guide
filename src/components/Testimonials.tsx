@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { useScrollAnimation } from "@/hooks/use-scroll-animation";
 
 const testimonials = [
   {
@@ -19,15 +20,29 @@ const testimonials = [
 ];
 
 export const Testimonials = () => {
+  const { ref, isVisible } = useScrollAnimation();
+
   return (
-    <section id="testimonials" className="py-20 bg-muted/50">
+    <section 
+      id="testimonials" 
+      ref={ref as React.RefObject<HTMLElement>}
+      className={`py-20 bg-muted/50 transition-all duration-1000 ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+      }`}
+    >
       <div className="container">
         <h2 className="text-3xl lg:text-4xl font-bold mb-12">
           What students say
         </h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((testimonial) => (
-            <Card key={testimonial.name} className="bg-card">
+          {testimonials.map((testimonial, index) => (
+            <Card 
+              key={testimonial.name} 
+              className={`bg-card transition-all duration-700 ${
+                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+              }`}
+              style={{ transitionDelay: `${index * 150}ms` }}
+            >
               <CardContent className="p-6 space-y-4">
                 <div>
                   <p className="font-semibold">{testimonial.name}</p>

@@ -7,9 +7,11 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useScrollAnimation } from "@/hooks/use-scroll-animation";
 
 export const ApplicationForm = () => {
   const { toast } = useToast();
+  const { ref, isVisible } = useScrollAnimation();
   const [furnished, setFurnished] = useState(true);
   const [nearTransport, setNearTransport] = useState(true);
   const [pets, setPets] = useState(false);
@@ -24,7 +26,13 @@ export const ApplicationForm = () => {
   };
 
   return (
-    <section id="apply" className="py-20">
+    <section 
+      id="apply" 
+      ref={ref as React.RefObject<HTMLElement>}
+      className={`py-20 transition-all duration-1000 ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+      }`}
+    >
       <div className="container">
         <div className="mx-auto max-w-4xl">
           <div className="mb-8 text-center space-y-2">
