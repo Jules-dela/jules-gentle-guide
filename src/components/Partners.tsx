@@ -32,7 +32,7 @@ export const Partners = () => {
           {partners.map((partner, index) => (
             <Card 
               key={partner.name}
-              className={`flex items-center justify-center p-8 h-32 bg-card hover:bg-accent transition-all duration-500 ${
+              className={`flex items-center justify-center p-8 h-32 bg-white/80 backdrop-blur-sm hover:bg-white hover:shadow-lg border border-border/50 transition-all duration-500 ${
                 isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
               }`}
               style={{ transitionDelay: `${index * 100}ms` }}

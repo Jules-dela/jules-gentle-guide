@@ -38,7 +38,7 @@ export const Testimonials = () => {
           {testimonials.map((testimonial, index) => (
             <Card 
               key={testimonial.name} 
-              className={`bg-card transition-all duration-700 ${
+              className={`bg-white/80 backdrop-blur-sm border border-border/50 hover:shadow-xl transition-all duration-700 ${
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
               }`}
               style={{ transitionDelay: `${index * 150}ms` }}

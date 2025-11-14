@@ -43,7 +43,7 @@ export const ApplicationForm = () => {
               Answer a few quick questions and we'll match you with the right flats.
             </p>
           </div>
-          <Card className="p-6 lg:p-8">
+          <Card className="p-6 lg:p-8 bg-white/80 backdrop-blur-sm border border-border/50 shadow-xl">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
