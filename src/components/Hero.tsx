@@ -1,13 +1,20 @@
 import { Button } from "@/components/ui/button";
+import { useScrollAnimation } from "@/hooks/use-scroll-animation";
 
 export const Hero = () => {
+  const { ref, isVisible } = useScrollAnimation();
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     element?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <section className="py-20 lg:py-32">
+    <section 
+      ref={ref as React.RefObject<HTMLElement>}
+      className={`py-20 lg:py-32 transition-all duration-1000 ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+      }`}
+    >
       <div className="container">
         <div className="mx-auto max-w-6xl">
           <div className="rounded-3xl bg-secondary p-8 lg:p-16">
