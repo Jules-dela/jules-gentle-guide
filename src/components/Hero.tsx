@@ -22,7 +22,7 @@ export const Hero = () => {
             We help students to find their home
           </h1>
           <p className="text-3xl md:text-5xl lg:text-6xl font-medium text-white drop-shadow-2xl">
-            We <span className="font-extrabold text-white">Find</span> it. You <span className="font-extrabold text-white">Live</span> it.
+            We <span className="font-extrabold text-primary">Find</span> it. You <span className="font-extrabold text-primary">Live</span> it.
           </p>
         </div>
       </section>
