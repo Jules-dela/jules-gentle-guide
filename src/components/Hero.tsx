@@ -16,8 +16,8 @@ export const Hero = () => {
       {/* Full-screen hero with motto */}
       <section className="min-h-screen flex items-center justify-center relative bg-center" style={{
       backgroundImage: `url(${heroBackground})`,
-      backgroundSize: '120%',
-      backgroundPosition: 'center center'
+      backgroundSize: 'cover',
+      backgroundPosition: 'center 40%'
     }}>
         <div className="absolute inset-0 bg-primary/40" />
         <div className="container relative z-10 text-center font-poppins">
