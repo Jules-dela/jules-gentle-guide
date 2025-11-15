@@ -21,11 +21,11 @@ export const Hero = () => {
     }}>
         <div className="absolute inset-0 bg-primary/40" />
         <div className="container relative z-10 text-center font-poppins">
-          <h1 className="text-6xl lg:text-9xl md:text-7xl text-white mb-8 drop-shadow-2xl tracking-tight font-serif font-bold">
+          <h1 className="text-4xl lg:text-6xl md:text-5xl text-white mb-6 drop-shadow-2xl tracking-tight font-serif font-bold">
             We help students to find their home.
           </h1>
-          <p className="text-4xl lg:text-7xl md:text-5xl drop-shadow-2xl font-bold font-serif text-center text-zinc-100">
-            We <span className="font-sans font-black text-5xl lg:text-8xl md:text-6xl text-white bg-primary/20 px-3 rounded-lg">Find</span> it. You <span className="font-black text-5xl lg:text-8xl md:text-6xl text-primary bg-white/20 px-3 rounded-lg">Live</span> it.
+          <p className="text-2xl lg:text-4xl md:text-3xl drop-shadow-2xl font-bold font-serif text-center text-zinc-100">
+            We <span className="font-extrabold text-zinc-100">Find</span> it. You <span className="font-extrabold text-zinc-100">Live</span> it.
           </p>
         </div>
       </section>
