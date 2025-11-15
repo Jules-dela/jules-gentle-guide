@@ -1,5 +1,4 @@
 import { Card } from "@/components/ui/card";
-import { useScrollAnimation } from "@/hooks/use-scroll-animation";
 
 const partners = [
   { name: "ImmoScout24" },
@@ -9,16 +8,8 @@ const partners = [
 ];
 
 export const Partners = () => {
-  const { ref, isVisible } = useScrollAnimation();
-
   return (
-    <section 
-      id="partners" 
-      ref={ref as React.RefObject<HTMLElement>}
-      className={`py-20 transition-all duration-1000 ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-      }`}
-    >
+    <section id="partners" className="py-20">
       <div className="container">
         <div className="mb-12 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
           <h2 className="text-3xl lg:text-4xl font-bold">
@@ -29,19 +20,24 @@ export const Partners = () => {
           </p>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          {partners.map((partner, index) => (
-            <Card 
-              key={partner.name}
-              className={`flex items-center justify-center p-8 h-32 bg-white/80 backdrop-blur-sm hover:bg-white border border-border/50 transition-all duration-500 hover:scale-105 hover:border-primary/30 ${
-                isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-              }`}
-              style={{ transitionDelay: `${index * 100}ms` }}
-            >
-              <p className="text-lg font-medium text-muted-foreground">
-                {partner.name}
-              </p>
-            </Card>
-          ))}
+          {partners.map((partner, index) => {
+            const shapes = [
+              'rounded-3xl',
+              'rounded-tl-3xl rounded-br-3xl',
+              'rounded-tr-3xl rounded-bl-3xl',
+              'rounded-2xl'
+            ];
+            return (
+              <Card 
+                key={partner.name}
+                className={`flex items-center justify-center p-8 h-32 bg-gradient-to-br from-background to-muted/50 border-2 border-primary/20 ${shapes[index]} hover:border-primary/40 transition-all duration-300 hover:shadow-lg`}
+              >
+                <p className="text-lg font-medium text-foreground">
+                  {partner.name}
+                </p>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </section>
