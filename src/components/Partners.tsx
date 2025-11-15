@@ -3,9 +3,9 @@ import { useScrollAnimation } from "@/hooks/use-scroll-animation";
 
 const partners = [
   { name: "ImmoScout24" },
-  { name: "immobilier.ch" },
+  { name: "Immobilier.ch" },
   { name: "Rentola" },
-  { name: "comparis.ch" },
+  { name: "Comparis.ch" },
 ];
 
 export const Partners = () => {
