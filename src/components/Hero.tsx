@@ -1,11 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { useScrollAnimation } from "@/hooks/use-scroll-animation";
 import heroBackground from "@/assets/hero-background.jpg";
 export const Hero = () => {
-  const {
-    ref,
-    isVisible
-  } = useScrollAnimation();
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     element?.scrollIntoView({
@@ -31,7 +26,7 @@ export const Hero = () => {
       </section>
 
       {/* Detailed content section */}
-      <section ref={ref as React.RefObject<HTMLElement>} className={`py-20 lg:py-32 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+      <section className="py-20 lg:py-32">
         <div className="container">
           <div className="mx-auto max-w-6xl">
             <div className="rounded-3xl border overflow-hidden bg-[radial-gradient(ellipse_at_left,hsl(221_39%_85%),hsl(221_39%_95%)_100%)]">

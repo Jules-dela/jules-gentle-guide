@@ -1,5 +1,4 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { useScrollAnimation } from "@/hooks/use-scroll-animation";
 import { Clock, Shield, Target, HandHeart } from "lucide-react";
 const benefits = [{
   title: "Response Within 24 Hours",
@@ -19,32 +18,40 @@ const benefits = [{
   icon: HandHeart
 }];
 export const Testimonials = () => {
-  const {
-    ref,
-    isVisible
-  } = useScrollAnimation();
-  return <section id="testimonials" ref={ref as React.RefObject<HTMLElement>} className={`py-20 bg-muted/50 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+  return <section id="testimonials" className="py-20 bg-muted/50">
       <div className="container">
         <h2 className="text-3xl lg:text-4xl font-bold mb-12">​Your Apartment Search, Simplified.
       </h2>
-        <div className="grid gap-6 md:grid-cols-2">
-          {benefits.map((benefit, index) => <Card key={benefit.title} className={`bg-white/80 backdrop-blur-sm border border-border/50 transition-all duration-700 hover:scale-105 hover:border-primary/30 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{
-          transitionDelay: `${index * 150}ms`
-        }}>
-              <CardContent className="p-6 flex gap-4">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <benefit.icon className="w-5 h-5 text-primary" />
+        <div className="grid gap-8 md:grid-cols-2">
+          {benefits.map((benefit, index) => {
+            const colors = [
+              'bg-blue-500',
+              'bg-green-500', 
+              'bg-purple-500',
+              'bg-orange-500'
+            ];
+            const rotations = [
+              '-rotate-3',
+              'rotate-2',
+              '-rotate-2',
+              'rotate-3'
+            ];
+            return <div key={benefit.title} className="relative">
+              <Card className={`relative overflow-visible bg-background border-2 border-border ${rotations[index]} hover:rotate-0 transition-transform duration-300`}>
+                <div className={`absolute -top-6 -left-6 w-16 h-16 ${colors[index]} rounded-2xl flex items-center justify-center shadow-lg transform rotate-12 z-10`}>
+                  <benefit.icon className="w-8 h-8 text-white" />
+                </div>
+                <CardContent className="p-8 pt-10">
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg">{benefit.title}</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {benefit.description}
+                    </p>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-lg">{benefit.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {benefit.description}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>)}
+                </CardContent>
+              </Card>
+            </div>;
+          })}
         </div>
       </div>
     </section>;
