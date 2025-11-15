@@ -1,23 +1,27 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useScrollAnimation } from "@/hooks/use-scroll-animation";
-import { Check } from "lucide-react";
+import { Clock, Shield, Target, HandHeart } from "lucide-react";
 
 const benefits = [
   {
     title: "Response Within 24 Hours",
-    description: "We know apartment hunting is time-sensitive. You'll hear from us within one business day—guaranteed."
+    description: "We know apartment hunting is time-sensitive. You'll hear from us within one business day—guaranteed.",
+    icon: Clock
   },
   {
     title: "Only Verified Listings",
-    description: "Every apartment we show you has been vetted through our partner platforms. No scams, no surprises."
+    description: "Every apartment we show you has been vetted through our partner platforms. No scams, no surprises.",
+    icon: Shield
   },
   {
     title: "Personalized Matching",
-    description: "Tell us your budget, preferred neighbourhoods, and must-haves. We'll find options that actually fit your needs."
+    description: "Tell us your budget, preferred neighbourhoods, and must-haves. We'll find options that actually fit your needs.",
+    icon: Target
   },
   {
     title: "Full Support Until Move-In",
-    description: "From first viewing to signing the lease, we're with you every step of the way."
+    description: "From first viewing to signing the lease, we're with you every step of the way.",
+    icon: HandHeart
   }
 ];
 
@@ -47,8 +51,8 @@ export const Testimonials = () => {
             >
               <CardContent className="p-6 flex gap-4">
                 <div className="flex-shrink-0">
-                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Check className="w-4 h-4 text-primary" />
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <benefit.icon className="w-5 h-5 text-primary" />
                   </div>
                 </div>
                 <div className="space-y-2">
