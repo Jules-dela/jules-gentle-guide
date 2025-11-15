@@ -21,10 +21,10 @@ export const Hero = () => {
             <div className="px-6 md:px-14 py-14 md:py-20 grid md:grid-cols-2 gap-10 items-center">
               <div className="space-y-8">
                 <div className="space-y-4">
-                  <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-white drop-shadow-lg">
+                  <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-primary drop-shadow-lg">
                     We find it. You live it
                   </h2>
-                  <p className="text-lg text-white/90">
+                  <p className="text-lg text-primary/80">
                     Your perfect student apartment in Lausanne, found for you. We do the searching, you focus on your studies.
                   </p>
                 </div>
@@ -41,26 +41,26 @@ export const Hero = () => {
                     See testimonials
                   </Button>
                 </div>
-                <p className="text-sm text-white/80">
+                <p className="text-sm text-primary/70">
                   Average placement time: under 5 days
                 </p>
               </div>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="mt-1 h-2 w-2 rounded-full bg-white shadow-lg flex-shrink-0" />
-                  <p className="text-white">Your ideal flat, found for you</p>
+                  <div className="mt-1 h-2 w-2 rounded-full bg-primary shadow-lg flex-shrink-0" />
+                  <p className="text-primary">Your ideal flat, found for you</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="mt-1 h-2 w-2 rounded-full bg-white shadow-lg flex-shrink-0" />
-                  <p className="text-white">No paperwork stress — we handle it all</p>
+                  <div className="mt-1 h-2 w-2 rounded-full bg-primary shadow-lg flex-shrink-0" />
+                  <p className="text-primary">No paperwork stress — we handle it all</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="mt-1 h-2 w-2 rounded-full bg-white shadow-lg flex-shrink-0" />
-                  <p className="text-white">Keys waiting when you arrive</p>
+                  <div className="mt-1 h-2 w-2 rounded-full bg-primary shadow-lg flex-shrink-0" />
+                  <p className="text-primary">Keys waiting when you arrive</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="mt-1 h-2 w-2 rounded-full bg-white shadow-lg flex-shrink-0" />
-                  <p className="text-white">A seamless start to student life</p>
+                  <div className="mt-1 h-2 w-2 rounded-full bg-primary shadow-lg flex-shrink-0" />
+                  <p className="text-primary">A seamless start to student life</p>
                 </div>
               </div>
             </div>
