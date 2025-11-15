@@ -1,25 +1,26 @@
 import { Button } from "@/components/ui/button";
 import { useScrollAnimation } from "@/hooks/use-scroll-animation";
 import heroBackground from "@/assets/hero-background.jpg";
-
 export const Hero = () => {
-  const { ref, isVisible } = useScrollAnimation();
+  const {
+    ref,
+    isVisible
+  } = useScrollAnimation();
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
-    element?.scrollIntoView({ behavior: 'smooth' });
+    element?.scrollIntoView({
+      behavior: 'smooth'
+    });
   };
-
-  return (
-    <>
+  return <>
       {/* Full-screen hero with motto */}
-      <section 
-        className="min-h-screen flex items-center justify-center relative bg-cover bg-center"
-        style={{ backgroundImage: `url(${heroBackground})` }}
-      >
+      <section className="min-h-screen flex items-center justify-center relative bg-cover bg-center" style={{
+      backgroundImage: `url(${heroBackground})`
+    }}>
         <div className="absolute inset-0 bg-primary/40" />
         <div className="container relative z-10 text-center font-poppins">
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 drop-shadow-2xl tracking-tight">
-            We help students to find their home
+            We help students to find their home.
           </h1>
           <p className="text-3xl md:text-5xl lg:text-6xl font-semibold text-white drop-shadow-2xl">
             We <span className="font-extrabold text-primary">Find</span> it. You <span className="font-extrabold text-primary">Live</span> it.
@@ -28,12 +29,7 @@ export const Hero = () => {
       </section>
 
       {/* Detailed content section */}
-      <section 
-        ref={ref as React.RefObject<HTMLElement>}
-        className={`py-20 lg:py-32 transition-all duration-1000 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}
-      >
+      <section ref={ref as React.RefObject<HTMLElement>} className={`py-20 lg:py-32 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
         <div className="container">
           <div className="mx-auto max-w-6xl">
             <div className="rounded-3xl border overflow-hidden bg-[radial-gradient(ellipse_at_left,hsl(221_39%_85%),hsl(221_39%_95%)_100%)]">
@@ -51,12 +47,7 @@ export const Hero = () => {
                     <Button size="lg" onClick={() => scrollToSection('apply')} className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl border-2 border-primary/20">
                       Get matched
                     </Button>
-                    <Button 
-                      size="lg" 
-                      variant="outline" 
-                      onClick={() => scrollToSection('testimonials')}
-                      className="border-2 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 backdrop-blur-sm shadow-lg bg-white/50"
-                    >
+                    <Button size="lg" variant="outline" onClick={() => scrollToSection('testimonials')} className="border-2 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 backdrop-blur-sm shadow-lg bg-white/50">
                       See testimonials
                     </Button>
                   </div>
@@ -87,6 +78,5 @@ export const Hero = () => {
           </div>
         </div>
       </section>
-    </>
-  );
+    </>;
 };
