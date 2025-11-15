@@ -1,21 +1,23 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useScrollAnimation } from "@/hooks/use-scroll-animation";
+import { Check } from "lucide-react";
 
-const testimonials = [
+const benefits = [
   {
-    name: "Zoë B.",
-    role: "Design intern — Paris",
-    quote: "Unikey found me a bright studio near the metro within three days. Clear communication and zero stress."
+    title: "Response Within 24 Hours",
+    description: "We know apartment hunting is time-sensitive. You'll hear from us within one business day—guaranteed."
   },
   {
-    name: "Charles V.",
-    role: "Software intern — Berlin",
-    quote: "As an international student I was nervous. They handled the process end-to-end and the landlord was lovely."
+    title: "Only Verified Listings",
+    description: "Every apartment we show you has been vetted through our partner platforms. No scams, no surprises."
   },
   {
-    name: "Sofia L.",
-    role: "Marketing intern — Lisbon",
-    quote: "The apartment was exactly as described and the paperwork was simple. Highly recommend."
+    title: "Personalized Matching",
+    description: "Tell us your budget, preferred neighbourhoods, and must-haves. We'll find options that actually fit your needs."
+  },
+  {
+    title: "Full Support Until Move-In",
+    description: "From first viewing to signing the lease, we're with you every step of the way."
   }
 ];
 
@@ -32,25 +34,29 @@ export const Testimonials = () => {
     >
       <div className="container">
         <h2 className="text-3xl lg:text-4xl font-bold mb-12">
-          What students say
+          What You Can Expect When You Work With Unikey
         </h2>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((testimonial, index) => (
+        <div className="grid gap-6 md:grid-cols-2">
+          {benefits.map((benefit, index) => (
             <Card 
-              key={testimonial.name} 
+              key={benefit.title} 
               className={`bg-white/80 backdrop-blur-sm border border-border/50 transition-all duration-700 hover:scale-105 hover:border-primary/30 ${
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
               }`}
               style={{ transitionDelay: `${index * 150}ms` }}
             >
-              <CardContent className="p-6 space-y-4">
-                <div>
-                  <p className="font-semibold">{testimonial.name}</p>
-                  <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+              <CardContent className="p-6 flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
                 </div>
-                <p className="text-foreground leading-relaxed">
-                  "{testimonial.quote}"
-                </p>
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-lg">{benefit.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {benefit.description}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           ))}
