@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useScrollAnimation } from "@/hooks/use-scroll-animation";
+import heroBackground from "@/assets/hero-background.jpg";
 
 export const Hero = () => {
   const { ref, isVisible } = useScrollAnimation();
@@ -17,8 +18,9 @@ export const Hero = () => {
     >
       <div className="container">
         <div className="mx-auto max-w-6xl">
-          <div className="rounded-3xl border overflow-hidden bg-[radial-gradient(ellipse_at_left,hsl(221_39%_85%),hsl(221_39%_95%)_100%)]">
-            <div className="px-6 md:px-14 py-14 md:py-20 grid md:grid-cols-2 gap-10 items-center">
+          <div className="rounded-3xl border overflow-hidden relative bg-cover bg-center" style={{ backgroundImage: `url(${heroBackground})` }}>
+            <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/90 to-white/85 backdrop-blur-sm" />
+            <div className="relative px-6 md:px-14 py-14 md:py-20 grid md:grid-cols-2 gap-10 items-center z-10">
               <div className="space-y-8">
                 <div className="space-y-4">
                   <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-primary drop-shadow-lg">
