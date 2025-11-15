@@ -20,17 +20,11 @@ export const Partners = () => {
           </p>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          {partners.map((partner, index) => {
-            const shapes = [
-              'rounded-3xl',
-              'rounded-tl-3xl rounded-br-3xl',
-              'rounded-tr-3xl rounded-bl-3xl',
-              'rounded-2xl'
-            ];
+          {partners.map((partner) => {
             return (
               <Card 
                 key={partner.name}
-                className={`flex items-center justify-center p-8 h-32 bg-gradient-to-br from-background to-muted/50 border-2 border-primary/20 ${shapes[index]} hover:border-primary/40 transition-all duration-300 hover:shadow-lg`}
+                className="flex items-center justify-center p-8 h-32 bg-gradient-to-br from-background via-background to-muted/20 border border-border/50 hover:border-primary/30 hover:shadow-md transition-all duration-300"
               >
                 <p className="text-lg font-medium text-foreground">
                   {partner.name}

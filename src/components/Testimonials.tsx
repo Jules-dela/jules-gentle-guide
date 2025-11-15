@@ -22,35 +22,26 @@ export const Testimonials = () => {
       <div className="container">
         <h2 className="text-3xl lg:text-4xl font-bold mb-12">​Your Apartment Search, Simplified.
       </h2>
-        <div className="grid gap-8 md:grid-cols-2">
-          {benefits.map((benefit, index) => {
-            const colors = [
-              'bg-blue-500',
-              'bg-green-500', 
-              'bg-purple-500',
-              'bg-orange-500'
-            ];
-            const rotations = [
-              '-rotate-3',
-              'rotate-2',
-              '-rotate-2',
-              'rotate-3'
-            ];
-            return <div key={benefit.title} className="relative">
-              <Card className={`relative overflow-visible bg-background border-2 border-border ${rotations[index]} hover:rotate-0 transition-transform duration-300`}>
-                <div className={`absolute -top-6 -left-6 w-16 h-16 ${colors[index]} rounded-2xl flex items-center justify-center shadow-lg transform rotate-12 z-10`}>
-                  <benefit.icon className="w-8 h-8 text-white" />
-                </div>
-                <CardContent className="p-8 pt-10">
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg">{benefit.title}</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {benefit.description}
-                    </p>
+        <div className="grid gap-6 md:grid-cols-2">
+          {benefits.map((benefit) => {
+            return <Card key={benefit.title} className="relative overflow-hidden bg-gradient-to-br from-background to-muted/30 border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all duration-300">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16" />
+                <CardContent className="p-6 relative">
+                  <div className="flex gap-4 items-start">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+                        <benefit.icon className="w-6 h-6 text-primary" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="font-semibold text-lg">{benefit.title}</h3>
+                      <p className="text-muted-foreground leading-relaxed text-sm">
+                        {benefit.description}
+                      </p>
+                    </div>
                   </div>
                 </CardContent>
-              </Card>
-            </div>;
+              </Card>;
           })}
         </div>
       </div>
