@@ -17,7 +17,7 @@ export const Hero = () => {
     >
       <div className="container">
         <div className="mx-auto max-w-6xl">
-          <div className="rounded-3xl border overflow-hidden bg-[radial-gradient(ellipse_at_top_left,hsl(var(--muted)),transparent_50%)]">
+          <div className="rounded-3xl border overflow-hidden bg-[radial-gradient(ellipse_at_left,hsl(221_39%_85%),hsl(221_39%_95%)_100%)]">
             <div className="px-6 md:px-14 py-14 md:py-20 grid md:grid-cols-2 gap-10 items-center">
               <div className="space-y-8">
                 <div className="space-y-4">
@@ -29,14 +29,14 @@ export const Hero = () => {
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-4">
-                  <Button size="lg" onClick={() => scrollToSection('apply')} className="bg-white text-primary hover:bg-white/90 shadow-lg">
+                  <Button size="lg" onClick={() => scrollToSection('apply')} className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl border-2 border-primary/20">
                     Get matched
                   </Button>
                   <Button 
                     size="lg" 
                     variant="outline" 
                     onClick={() => scrollToSection('testimonials')}
-                    className="border-white/30 text-white hover:bg-white/10 hover:text-white backdrop-blur-sm"
+                    className="border-2 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 backdrop-blur-sm shadow-lg bg-white/50"
                   >
                     See testimonials
                   </Button>
