@@ -17,11 +17,11 @@ export const Hero = () => {
         style={{ backgroundImage: `url(${heroBackground})` }}
       >
         <div className="absolute inset-0 bg-primary/40" />
-        <div className="container relative z-10 text-center font-montserrat">
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-semibold text-white mb-6 drop-shadow-2xl tracking-tight">
+        <div className="container relative z-10 text-center font-poppins">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 drop-shadow-2xl tracking-tight">
             We help students to find their home
           </h1>
-          <p className="text-3xl md:text-5xl lg:text-6xl font-medium text-white drop-shadow-2xl">
+          <p className="text-3xl md:text-5xl lg:text-6xl font-semibold text-white drop-shadow-2xl">
             We <span className="font-extrabold text-primary">Find</span> it. You <span className="font-extrabold text-primary">Live</span> it.
           </p>
         </div>
