@@ -17,10 +17,8 @@ export const Hero = () => {
     >
       <div className="container">
         <div className="mx-auto max-w-6xl">
-          <div className="relative rounded-3xl overflow-hidden backdrop-blur-xl bg-gradient-hero shadow-2xl border border-white/20">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
-            <div className="relative p-8 lg:p-16">
-            <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+          <div className="rounded-3xl border overflow-hidden bg-[radial-gradient(ellipse_at_top_left,hsl(var(--muted)),transparent_50%)]">
+            <div className="px-6 md:px-14 py-14 md:py-20 grid md:grid-cols-2 gap-10 items-center">
               <div className="space-y-8">
                 <div className="space-y-4">
                   <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-white drop-shadow-lg">
@@ -67,9 +65,8 @@ export const Hero = () => {
               </div>
             </div>
           </div>
-        </div>
-        </div>
-      </div>
+            </div>
+          </div>
     </section>
   );
 };
