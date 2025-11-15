@@ -41,7 +41,7 @@ export const Header = () => {
             Get matched
           </Button>
           <Button onClick={() => scrollToSection('apply')}>
-            Start now
+            Live it.
           </Button>
         </div>
       </div>
