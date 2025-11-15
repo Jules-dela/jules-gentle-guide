@@ -42,7 +42,7 @@ export const Hero = () => {
                   </div>
                   <div className="flex flex-wrap gap-4">
                     <Button size="lg" onClick={() => scrollToSection('apply')} className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl border-2 border-primary/20">
-                      Get matched
+                      Find my home
                     </Button>
                     <Button size="lg" variant="outline" onClick={() => scrollToSection('testimonials')} className="border-2 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 backdrop-blur-sm shadow-lg bg-white/50">
                       See testimonials
