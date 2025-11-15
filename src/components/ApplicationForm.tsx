@@ -180,7 +180,7 @@ export const ApplicationForm = () => {
               </div>
 
               <Button type="submit" size="lg" className="w-full">
-                Submit application
+                Find my home
               </Button>
             </form>
           </Card>
