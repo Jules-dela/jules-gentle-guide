@@ -24,7 +24,7 @@ export const Header = () => {
         </div>
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={() => scrollToSection('apply')} className="hidden sm:inline-flex">
-            Get matched
+            Find my home
           </Button>
           <Button onClick={() => scrollToSection('apply')}>Live it
         </Button>
