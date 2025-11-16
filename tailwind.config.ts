@@ -61,6 +61,11 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        navy: {
+          DEFAULT: "hsl(var(--navy))",
+          light: "hsl(var(--navy-light))",
+        },
+        "grey-light": "hsl(var(--grey-light))",
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',
