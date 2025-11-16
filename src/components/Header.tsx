@@ -26,8 +26,6 @@ export const Header = () => {
           <Button variant="ghost" onClick={() => scrollToSection('apply')} className="hidden sm:inline-flex">
             Find my home
           </Button>
-          <Button onClick={() => scrollToSection('apply')}>Live it
-        </Button>
         </div>
       </div>
     </header>;
