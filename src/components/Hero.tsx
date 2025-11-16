@@ -48,7 +48,7 @@ export const Hero = () => {
             onClick={() => scrollToSection('testimonials')} 
             className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#1E3A8A] font-medium text-[16px] px-10 py-4 h-auto rounded-lg transition-all duration-300"
           >
-            See testimonials
+            Our services
           </Button>
         </div>
 
