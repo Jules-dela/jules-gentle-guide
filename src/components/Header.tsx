@@ -41,7 +41,7 @@ export const Header = () => {
               onClick={() => scrollToSection('testimonials')} 
               className="text-[16px] font-normal text-white hover:opacity-80 transition-opacity duration-300"
             >
-              Testimonials
+              Services
             </button>
             <button 
               onClick={() => scrollToSection('apply')} 
