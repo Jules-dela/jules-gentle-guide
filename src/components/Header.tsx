@@ -1,32 +1,57 @@
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+
 export const Header = () => {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     element?.scrollIntoView({
       behavior: 'smooth'
     });
   };
-  return <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-8">
-          <h1 className="text-2xl font-bold">UNIKEY</h1>
-          <nav className="hidden md:flex items-center gap-6">
-            <button onClick={() => scrollToSection('partners')} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+
+  return (
+    <header 
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled ? 'bg-white/10 backdrop-blur-md' : 'bg-transparent'
+      }`}
+    >
+      <div className="px-5 md:px-20 py-4">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <h1 className="text-[18px] font-bold text-white">UNIKEY</h1>
+          
+          {/* Navigation Links */}
+          <nav className="flex items-center gap-8">
+            <button 
+              onClick={() => scrollToSection('partners')} 
+              className="text-[16px] font-normal text-white hover:opacity-80 transition-opacity duration-300"
+            >
               Partners
             </button>
-            <button onClick={() => scrollToSection('testimonials')} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Services
+            <button 
+              onClick={() => scrollToSection('testimonials')} 
+              className="text-[16px] font-normal text-white hover:opacity-80 transition-opacity duration-300"
+            >
+              Testimonials
             </button>
-            <button onClick={() => scrollToSection('apply')} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <button 
+              onClick={() => scrollToSection('apply')} 
+              className="text-[16px] font-normal text-white hover:opacity-80 transition-opacity duration-300"
+            >
               Apply
             </button>
           </nav>
         </div>
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => scrollToSection('apply')} className="hidden sm:inline-flex">
-            Find my home
-          </Button>
-        </div>
       </div>
-    </header>;
+    </header>
+  );
 };
