@@ -81,7 +81,7 @@ export const Hero = () => {
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce text-center">
         <span className="text-white/60 text-xs uppercase tracking-wider">Scroll to explore</span>
         <ArrowDown className="w-4 h-4 text-white/60" />
       </div>
