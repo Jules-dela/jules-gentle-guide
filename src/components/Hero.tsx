@@ -55,7 +55,7 @@ export const Hero = () => {
         {/* Trust signal */}
         <div className="flex items-center gap-2 text-white/75 text-[16px]">
           <Check className="w-4 h-4" />
-          <span>Average placement time: under 5 days</span>
+          <span>Reponse in 24 hours</span>
         </div>
       </div>
 
