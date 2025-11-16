@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
+import { Menu, X } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 export const Header = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,6 +23,7 @@ export const Header = () => {
     element?.scrollIntoView({
       behavior: 'smooth'
     });
+    setOpen(false);
   };
 
   return (
@@ -29,8 +37,8 @@ export const Header = () => {
           {/* Logo */}
           <h1 className="text-[18px] font-bold text-white">UNIKEY</h1>
           
-          {/* Navigation Links */}
-          <nav className="flex items-center gap-8">
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-8">
             <button 
               onClick={() => scrollToSection('partners')} 
               className="text-[16px] font-normal text-white hover:opacity-80 transition-opacity duration-300"
@@ -50,6 +58,37 @@ export const Header = () => {
               Apply
             </button>
           </nav>
+
+          {/* Mobile Hamburger Menu */}
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild className="md:hidden">
+              <button className="text-white">
+                <Menu className="w-6 h-6" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="bg-[#1E3A8A] border-l border-white/10">
+              <nav className="flex flex-col gap-6 mt-8">
+                <button 
+                  onClick={() => scrollToSection('partners')} 
+                  className="text-[18px] font-normal text-white hover:opacity-80 transition-opacity duration-300 text-left"
+                >
+                  Partners
+                </button>
+                <button 
+                  onClick={() => scrollToSection('testimonials')} 
+                  className="text-[18px] font-normal text-white hover:opacity-80 transition-opacity duration-300 text-left"
+                >
+                  Services
+                </button>
+                <button 
+                  onClick={() => scrollToSection('apply')} 
+                  className="text-[18px] font-normal text-white hover:opacity-80 transition-opacity duration-300 text-left"
+                >
+                  Apply
+                </button>
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>
