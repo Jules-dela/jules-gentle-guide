@@ -7,13 +7,13 @@ export const Benefits = () => {
   ];
 
   return (
-    <section className="bg-[#F8F9FA] px-20 py-[60px]">
+    <section className="bg-[#F8F9FA] px-5 md:px-20 py-[40px] md:py-[60px]">
       <div className="max-w-[1400px] mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 md:gap-x-10 gap-y-6 md:gap-y-8">
           {benefits.map((benefit, index) => (
             <div key={index} className="flex items-start gap-3">
               <div className="w-2 h-2 rounded-full bg-[#1E3A8A] mt-2 flex-shrink-0" />
-              <p className="text-[20px] font-medium text-[#1E3A8A] leading-[1.6]">
+              <p className="text-[16px] md:text-[20px] font-medium text-[#1E3A8A] leading-[1.6]">
                 {benefit}
               </p>
             </div>

@@ -29,21 +29,21 @@ export const ApplicationForm = () => {
     <section 
       id="apply" 
       ref={ref as React.RefObject<HTMLElement>}
-      className={`py-20 transition-all duration-1000 ${
+      className={`py-12 md:py-20 transition-all duration-1000 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
       }`}
     >
-      <div className="container">
+      <div className="container px-5 md:px-6">
         <div className="mx-auto max-w-4xl">
-          <div className="mb-8 text-center space-y-2">
-            <h2 className="text-3xl lg:text-4xl font-bold">
+          <div className="mb-6 md:mb-8 text-center space-y-2">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold">
               Tell us about your stay
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-sm md:text-base text-muted-foreground px-4">
               Answer a few quick questions and we'll match you with the right flats.
             </p>
           </div>
-          <Card className="p-6 lg:p-8 bg-white/80 backdrop-blur-sm border border-border/50 shadow-xl">
+          <Card className="p-5 md:p-6 lg:p-8 bg-white/80 backdrop-blur-sm border border-border/50 shadow-xl">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
@@ -166,21 +166,21 @@ export const ApplicationForm = () => {
                 </div>
               </div>
 
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="flex items-center justify-between rounded-lg border border-border p-4">
-                  <Label htmlFor="furnished" className="cursor-pointer">Furnished</Label>
+              <div className="grid gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
+                <div className="flex items-center justify-between rounded-lg border border-border p-3 md:p-4">
+                  <Label htmlFor="furnished" className="cursor-pointer text-sm md:text-base">Furnished</Label>
                   <Switch id="furnished" checked={furnished} onCheckedChange={setFurnished} />
                 </div>
-                <div className="flex items-center justify-between rounded-lg border border-border p-4">
-                  <Label htmlFor="transport" className="cursor-pointer">Near transport</Label>
+                <div className="flex items-center justify-between rounded-lg border border-border p-3 md:p-4">
+                  <Label htmlFor="transport" className="cursor-pointer text-sm md:text-base">Near transport</Label>
                   <Switch id="transport" checked={nearTransport} onCheckedChange={setNearTransport} />
                 </div>
-                <div className="flex items-center justify-between rounded-lg border border-border p-4">
-                  <Label htmlFor="pets" className="cursor-pointer">Pets</Label>
+                <div className="flex items-center justify-between rounded-lg border border-border p-3 md:p-4">
+                  <Label htmlFor="pets" className="cursor-pointer text-sm md:text-base">Pets</Label>
                   <Switch id="pets" checked={pets} onCheckedChange={setPets} />
                 </div>
-                <div className="flex items-center justify-between rounded-lg border border-border p-4">
-                  <Label htmlFor="smoking" className="cursor-pointer text-sm">No smoking policy enforced</Label>
+                <div className="flex items-center justify-between rounded-lg border border-border p-3 md:p-4 col-span-2 lg:col-span-1">
+                  <Label htmlFor="smoking" className="cursor-pointer text-xs md:text-sm">No smoking policy enforced</Label>
                   <Switch id="smoking" checked={noSmoking} onCheckedChange={setNoSmoking} />
                 </div>
               </div>
