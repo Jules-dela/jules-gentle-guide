@@ -35,25 +35,33 @@ export const Header = () => {
       <div className="px-5 md:px-20 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <h1 className="text-[18px] font-bold text-white">UNIKEY</h1>
+          <h1 className={`text-[18px] font-bold transition-colors duration-300 ${
+            scrolled ? 'text-[#1E3A8A]' : 'text-white'
+          }`}>UNIKEY</h1>
           
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-8">
             <button 
               onClick={() => scrollToSection('partners')} 
-              className="text-[16px] font-normal text-white hover:opacity-80 transition-opacity duration-300"
+              className={`text-[16px] font-normal hover:opacity-80 transition-all duration-300 ${
+                scrolled ? 'text-[#1E3A8A]' : 'text-white'
+              }`}
             >
               Partners
             </button>
             <button 
               onClick={() => scrollToSection('testimonials')} 
-              className="text-[16px] font-normal text-white hover:opacity-80 transition-opacity duration-300"
+              className={`text-[16px] font-normal hover:opacity-80 transition-all duration-300 ${
+                scrolled ? 'text-[#1E3A8A]' : 'text-white'
+              }`}
             >
               Services
             </button>
             <button 
               onClick={() => scrollToSection('apply')} 
-              className="text-[16px] font-normal text-white hover:opacity-80 transition-opacity duration-300"
+              className={`text-[16px] font-normal hover:opacity-80 transition-all duration-300 ${
+                scrolled ? 'text-[#1E3A8A]' : 'text-white'
+              }`}
             >
               Apply
             </button>
@@ -62,7 +70,9 @@ export const Header = () => {
           {/* Mobile Hamburger Menu */}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild className="md:hidden">
-              <button className="text-white">
+              <button className={`transition-colors duration-300 ${
+                scrolled ? 'text-[#1E3A8A]' : 'text-white'
+              }`}>
                 <Menu className="w-6 h-6" />
               </button>
             </SheetTrigger>
