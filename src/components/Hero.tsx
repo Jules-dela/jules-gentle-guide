@@ -33,7 +33,7 @@ export const Hero = () => {
         <p 
           className="text-[20px] font-normal text-white/85 max-w-[600px] mb-10"
         >
-          Found for you. We do the searching, you focus on your studies.
+          We do the searching, you focus on your studies. We find it. You live it.
         </p>
 
         {/* CTA Buttons */}
