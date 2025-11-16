@@ -146,6 +146,7 @@ export const ApplicationForm = () => {
                     <SelectContent>
                       <SelectItem value="studio">Studio</SelectItem>
                       <SelectItem value="apartment">Apartment</SelectItem>
+                      <SelectItem value="house">House</SelectItem>
                       <SelectItem value="shared">Shared</SelectItem>
                     </SelectContent>
                   </Select>
