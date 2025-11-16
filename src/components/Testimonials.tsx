@@ -1,4 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Shield, Target, HandHeart } from "lucide-react";
 const benefits = [{
   title: "Response Within 24 Hours",
@@ -22,26 +21,19 @@ export const Testimonials = () => {
       <div className="container">
         <h2 className="text-3xl lg:text-4xl font-bold mb-12">​Your Apartment Search, Simplified.
       </h2>
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-8 md:grid-cols-2">
           {benefits.map((benefit) => {
-            return <Card key={benefit.title} className="relative overflow-hidden bg-gradient-to-br from-background to-muted/30 border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all duration-300">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16" />
-                <CardContent className="p-6 relative">
-                  <div className="flex gap-4 items-start">
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
-                        <benefit.icon className="w-6 h-6 text-primary" />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="font-semibold text-lg">{benefit.title}</h3>
-                      <p className="text-muted-foreground leading-relaxed text-sm">
-                        {benefit.description}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>;
+            return <div key={benefit.title} className="flex gap-4 items-start">
+                <div className="flex-shrink-0">
+                  <benefit.icon className="w-8 h-8 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-lg">{benefit.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed text-sm">
+                    {benefit.description}
+                  </p>
+                </div>
+              </div>;
           })}
         </div>
       </div>
