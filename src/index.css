@@ -40,6 +40,10 @@ All colors MUST be HSL.
     --gradient-primary: linear-gradient(135deg, hsl(221 39% 35%) 0%, hsl(221 50% 45%) 100%);
     --gradient-secondary: linear-gradient(135deg, hsl(221 30% 92%) 0%, hsl(221 20% 96%) 100%);
     --gradient-hero: linear-gradient(90deg, hsla(0, 0%, 100%, 0.3) 0%, hsla(221, 39%, 85%, 0.25) 100%);
+    
+    --navy: 221 83% 27%;
+    --navy-light: 221 70% 35%;
+    --grey-light: 220 9% 96%;
   }
 
   .dark {
