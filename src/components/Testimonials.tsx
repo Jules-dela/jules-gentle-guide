@@ -17,19 +17,19 @@ const benefits = [{
   icon: HandHeart
 }];
 export const Testimonials = () => {
-  return <section id="testimonials" className="py-20 bg-muted/50">
-      <div className="container">
-        <h2 className="text-3xl lg:text-4xl font-bold mb-12">​Your Apartment Search, Simplified.
+  return <section id="testimonials" className="py-24 bg-muted/50">
+      <div className="container max-w-6xl">
+        <h2 className="text-3xl lg:text-4xl font-bold mb-16 text-center">​Your Apartment Search, Simplified.
       </h2>
-        <div className="grid gap-8 md:grid-cols-2">
+        <div className="grid gap-12 md:grid-cols-2 md:gap-x-16 md:gap-y-12">
           {benefits.map((benefit) => {
-            return <div key={benefit.title} className="flex gap-4 items-start">
-                <div className="flex-shrink-0">
-                  <benefit.icon className="w-8 h-8 text-primary" />
+            return <div key={benefit.title} className="flex gap-5 items-start">
+                <div className="flex-shrink-0 mt-1">
+                  <benefit.icon className="w-10 h-10 text-primary" />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-lg">{benefit.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed text-sm">
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-xl">{benefit.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">
                     {benefit.description}
                   </p>
                 </div>
