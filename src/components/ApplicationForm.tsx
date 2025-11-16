@@ -90,9 +90,21 @@ export const ApplicationForm = () => {
                       <SelectValue placeholder="Select range" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="500-800">500-800 CHF</SelectItem>
-                      <SelectItem value="800-1200">800-1200 CHF</SelectItem>
-                      <SelectItem value="1200+">1200+ CHF</SelectItem>
+                      <SelectItem value="700-900">700-900 CHF</SelectItem>
+                      <SelectItem value="900-1100">900-1100 CHF</SelectItem>
+                      <SelectItem value="1100-1300">1100-1300 CHF</SelectItem>
+                      <SelectItem value="1300-1500">1300-1500 CHF</SelectItem>
+                      <SelectItem value="1500-1700">1500-1700 CHF</SelectItem>
+                      <SelectItem value="1700-1900">1700-1900 CHF</SelectItem>
+                      <SelectItem value="1900-2100">1900-2100 CHF</SelectItem>
+                      <SelectItem value="2100-2300">2100-2300 CHF</SelectItem>
+                      <SelectItem value="2300-2500">2300-2500 CHF</SelectItem>
+                      <SelectItem value="2500-2700">2500-2700 CHF</SelectItem>
+                      <SelectItem value="2700-2900">2700-2900 CHF</SelectItem>
+                      <SelectItem value="2900-3100">2900-3100 CHF</SelectItem>
+                      <SelectItem value="3100-3300">3100-3300 CHF</SelectItem>
+                      <SelectItem value="3300-3500">3300-3500 CHF</SelectItem>
+                      <SelectItem value="3500+">3500+ CHF</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
