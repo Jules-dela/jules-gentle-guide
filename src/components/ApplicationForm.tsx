@@ -1,13 +1,15 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useScrollAnimation } from "@/hooks/use-scroll-animation";
 
@@ -52,6 +54,10 @@ const applicationSchema = z.object({
     .max(1000, { message: "Notes must be less than 1000 characters" })
     .optional()
     .or(z.literal("")),
+  privacyAccepted: z.boolean()
+    .refine((val) => val === true, {
+      message: "You must accept the Privacy Policy to submit the form",
+    }),
 });
 
 type ApplicationFormData = z.infer<typeof applicationSchema>;
@@ -78,6 +84,7 @@ export const ApplicationForm = () => {
       pets: false,
       noSmoking: false,
       notes: "",
+      privacyAccepted: false,
     },
   });
 
@@ -390,6 +397,35 @@ export const ApplicationForm = () => {
                         />
                       </FormControl>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="privacyAccepted"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-sm font-normal cursor-pointer">
+                          I have read and agree to the{" "}
+                          <Link 
+                            to="/privacy-policy" 
+                            className="text-primary underline hover:opacity-80"
+                            target="_blank"
+                          >
+                            Privacy Policy
+                          </Link>
+                          {" "}*
+                        </FormLabel>
+                        <FormMessage />
+                      </div>
                     </FormItem>
                   )}
                 />

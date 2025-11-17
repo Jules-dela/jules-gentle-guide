@@ -4,6 +4,7 @@ import { Benefits } from "@/components/Benefits";
 import { Partners } from "@/components/Partners";
 import { Testimonials } from "@/components/Testimonials";
 import { ApplicationForm } from "@/components/ApplicationForm";
+import { Footer } from "@/components/Footer";
 
 const Index = () => {
   return (
@@ -16,6 +17,7 @@ const Index = () => {
         <Testimonials />
         <ApplicationForm />
       </main>
+      <Footer />
     </div>
   );
 };
