@@ -51,7 +51,7 @@ export const PartnerBanner = () => {
                 <img
                   src={partner.logo}
                   alt={`${partner.name} logo`}
-                  className="h-9 md:h-12 w-auto object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
+                  className="h-10 md:h-14 w-auto object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
                 />
               </div>
               {index < duplicatedPartners.length - 1 && (
