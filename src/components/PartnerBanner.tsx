@@ -1,13 +1,22 @@
+import homegate from "@/assets/partners/homegate.png";
+import immoscout24 from "@/assets/partners/immoscout24.png";
+import comparis from "@/assets/partners/comparis.png";
+import flatfox from "@/assets/partners/flatfox.png";
+import neho from "@/assets/partners/neho.png";
+import wincasa from "@/assets/partners/wincasa.png";
+import fmel from "@/assets/partners/fmel.png";
+import rentola from "@/assets/partners/rentola.png";
+
 export const PartnerBanner = () => {
   const partners = [
-    "Homegate",
-    "Immoscout24",
-    "Comparis",
-    "Flatfox",
-    "Neho",
-    "Wincasa",
-    "FMEL",
-    "Rentola"
+    { name: "Homegate", logo: homegate },
+    { name: "Immoscout24", logo: immoscout24 },
+    { name: "Comparis", logo: comparis },
+    { name: "Flatfox", logo: flatfox },
+    { name: "Neho", logo: neho },
+    { name: "Wincasa", logo: wincasa },
+    { name: "FMEL", logo: fmel },
+    { name: "Rentola", logo: rentola }
   ];
 
   // Duplicate partners array to create seamless loop
@@ -35,15 +44,15 @@ export const PartnerBanner = () => {
         <div className="flex items-center gap-12 md:gap-20 animate-scroll-rtl motion-reduce:animate-none motion-reduce:justify-center motion-reduce:flex-wrap">
           {duplicatedPartners.map((partner, index) => (
             <div
-              key={`${partner}-${index}`}
+              key={`${partner.name}-${index}`}
               className="flex items-center gap-12 md:gap-20 flex-shrink-0"
             >
-              <div className="flex items-center justify-center group transition-all duration-300">
-                <span 
-                  className="text-lg md:text-2xl font-semibold text-[hsl(var(--navy))] opacity-70 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap tracking-wide"
-                >
-                  {partner}
-                </span>
+              <div className="flex items-center justify-center group transition-all duration-300 px-4">
+                <img
+                  src={partner.logo}
+                  alt={`${partner.name} logo`}
+                  className="h-7 md:h-10 w-auto object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
+                />
               </div>
               {index < duplicatedPartners.length - 1 && (
                 <div className="w-[1px] h-6 md:h-8 bg-border/30 flex-shrink-0" />
