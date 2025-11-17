@@ -75,6 +75,7 @@ export const ApplicationForm = () => {
                       <SelectValue placeholder="Select neighbourhood" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="no-preference">No preference</SelectItem>
                       <SelectItem value="chailly">Chailly</SelectItem>
                       <SelectItem value="cite-flon">Cité/Flon</SelectItem>
                       <SelectItem value="renens">Renens</SelectItem>
