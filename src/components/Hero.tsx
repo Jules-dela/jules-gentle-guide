@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowDown, Check } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 export const Hero = () => {
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -36,11 +36,6 @@ export const Hero = () => {
           </Button>
         </div>
 
-        {/* Trust signal */}
-        <div className="flex items-center gap-2 text-white/75 text-[14px] md:text-[16px]">
-          <Check className="w-4 h-4" />
-          <span>Reponse in 24 hours</span>
-        </div>
       </div>
 
       {/* Scroll indicator */}
