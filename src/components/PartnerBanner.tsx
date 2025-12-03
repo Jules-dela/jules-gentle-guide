@@ -23,7 +23,7 @@ export const PartnerBanner = () => {
   const duplicatedPartners = [...partners, ...partners, ...partners];
 
   return (
-    <section className="relative w-full overflow-hidden bg-background py-12 md:py-16">
+    <section id="partners" className="relative w-full overflow-hidden bg-background py-12 md:py-16">
       {/* Section Header */}
       <div className="container mb-8 md:mb-10">
         <h2 className="text-center text-base md:text-lg font-medium text-[hsl(var(--navy))]">
