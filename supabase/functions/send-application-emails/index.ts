@@ -139,7 +139,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "Unikey <noreply@uni-key.ch>",
-        to: ["hello@uni-key.ch"],
+        to: ["contact@uni-key.ch"],
         subject: `🏠 New Housing Application from ${data.name}`,
         html: adminEmailHtml,
       }),
