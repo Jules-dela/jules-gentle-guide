@@ -7,7 +7,7 @@ export const Hero = () => {
       behavior: 'smooth'
     });
   };
-  return <section className="min-h-screen relative bg-[#1E3A8A] overflow-hidden flex items-start">
+  return <section className="min-h-screen relative bg-[#1E3A8A] overflow-hidden flex items-center md:items-start">
       {/* Circular gradient background element */}
       <div className="absolute bottom-0 right-0 w-[300px] h-[300px] md:w-[600px] md:h-[600px] rounded-full translate-x-1/2 translate-y-1/2 opacity-30" style={{
       background: 'radial-gradient(circle, rgba(43, 74, 138, 0.3) 0%, transparent 70%)',
@@ -15,7 +15,7 @@ export const Hero = () => {
     }} />
 
       {/* Main content */}
-      <div className="relative z-10 px-5 md:px-20 pt-[100px] md:pt-[120px] pb-[60px] md:pb-[80px] w-full">
+      <div className="relative z-10 px-5 md:px-20 pt-0 md:pt-[120px] pb-0 md:pb-[80px] w-full">
         {/* Headline */}
         <h1 className="text-[32px] sm:text-[42px] md:text-[60px] font-semibold text-white leading-[1.15] tracking-[-0.02em] max-w-[900px] mb-4 md:mb-6">
           Your perfect student apartment in Lausanne.
