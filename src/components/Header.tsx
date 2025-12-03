@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   Sheet,
   SheetContent,
@@ -35,9 +36,15 @@ export const Header = () => {
       <div className="px-5 md:px-20 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <h1 className={`text-[18px] font-bold transition-colors duration-300 ${
-            scrolled ? 'text-[#1E3A8A]' : 'text-white'
-          }`}>UNIKEY</h1>
+          <Link 
+            to="/" 
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className={`text-[18px] font-bold transition-colors duration-300 ${
+              scrolled ? 'text-[#1E3A8A]' : 'text-white'
+            }`}
+          >
+            UNIKEY
+          </Link>
           
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-8">
