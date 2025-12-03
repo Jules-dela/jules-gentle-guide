@@ -84,49 +84,66 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Build confirmation email for applicant
     const applicantEmailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: #1E3A8A; padding: 32px; text-align: center;">
-          <h1 style="color: white; margin: 0;">Welcome to Unikey</h1>
-        </div>
-        
-        <div style="padding: 32px;">
-          <p style="font-size: 18px; color: #374151;">Dear ${data.name},</p>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #F8FAFC;">
+        <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: white;">
           
-          <p style="color: #4B5563; line-height: 1.6;">
-            Thank you for choosing <strong>Unikey</strong> to help you find your perfect student apartment in Lausanne!
-          </p>
+          <!-- Header with Logo -->
+          <div style="background: #1E3A8A; padding: 40px 32px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 32px; font-weight: 700; letter-spacing: 3px;">UNIKEY</h1>
+            <p style="color: rgba(255,255,255,0.8); margin: 8px 0 0 0; font-size: 14px; font-weight: 400;">Student Housing Made Simple</p>
+          </div>
           
-          <p style="color: #4B5563; line-height: 1.6;">
-            We have received your application and our team will review your preferences shortly. 
-            We'll be in touch within the next few business days with personalized housing options that match your criteria.
-          </p>
+          <!-- Main Content -->
+          <div style="padding: 40px 32px;">
+            <p style="font-size: 18px; color: #1E3A8A; font-weight: 600; margin: 0 0 24px 0;">Dear ${data.name},</p>
+            
+            <p style="color: #374151; line-height: 1.7; font-size: 15px; margin: 0 0 20px 0;">
+              Thank you for choosing <strong style="color: #1E3A8A;">Unikey</strong> to help you find your perfect student apartment in Lausanne!
+            </p>
+            
+            <p style="color: #374151; line-height: 1.7; font-size: 15px; margin: 0 0 32px 0;">
+              We have received your application and our team will review your preferences shortly. 
+              We'll be in touch within the next few business days with personalized housing options that match your criteria.
+            </p>
 
-          <div style="background: #F3F4F6; padding: 24px; border-radius: 8px; margin: 24px 0;">
-            <h3 style="color: #1E3A8A; margin-top: 0;">What happens next?</h3>
-            <ol style="color: #4B5563; line-height: 1.8;">
-              <li>Our team reviews your preferences</li>
-              <li>We search for matching properties across our partner network</li>
-              <li>We contact you with curated housing options</li>
-            </ol>
+            <!-- Steps Box -->
+            <div style="background: linear-gradient(135deg, #F0F4FF 0%, #E8EEFF 100%); padding: 28px; border-radius: 12px; margin: 0 0 32px 0; border-left: 4px solid #1E3A8A;">
+              <h3 style="color: #1E3A8A; margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">What happens next?</h3>
+              <ol style="color: #374151; line-height: 2; margin: 0; padding-left: 20px; font-size: 14px;">
+                <li style="padding-left: 8px;">Our team reviews your preferences</li>
+                <li style="padding-left: 8px;">We search for matching properties across our partner network</li>
+                <li style="padding-left: 8px;">We contact you with curated housing options</li>
+              </ol>
+            </div>
+
+            <p style="color: #374151; line-height: 1.7; font-size: 15px; margin: 0 0 32px 0;">
+              If you have any questions in the meantime, feel free to reach out to us at 
+              <a href="mailto:contact@uni-key.ch" style="color: #1E3A8A; font-weight: 500; text-decoration: none;">contact@uni-key.ch</a>
+            </p>
+
+            <p style="color: #374151; margin: 0; font-size: 15px;">
+              Best regards,<br>
+              <strong style="color: #1E3A8A;">The Unikey Team</strong>
+            </p>
           </div>
 
-          <p style="color: #4B5563; line-height: 1.6;">
-            If you have any questions in the meantime, feel free to reach out to us at 
-            <a href="mailto:hello@uni-key.ch" style="color: #1E3A8A;">hello@uni-key.ch</a>
-          </p>
-
-          <p style="color: #4B5563; margin-top: 32px;">
-            Best regards,<br>
-            <strong>The Unikey Team</strong>
-          </p>
+          <!-- Footer -->
+          <div style="background: #1E3A8A; padding: 24px 32px; text-align: center;">
+            <p style="color: rgba(255,255,255,0.9); font-size: 13px; margin: 0; font-weight: 500;">
+              We do the searching, you focus on your studies.
+            </p>
+            <p style="color: rgba(255,255,255,0.6); font-size: 11px; margin: 12px 0 0 0;">
+              © 2024 Unikey | <a href="https://uni-key.ch" style="color: rgba(255,255,255,0.6);">uni-key.ch</a>
+            </p>
+          </div>
         </div>
-
-        <div style="background: #F9FAFB; padding: 24px; text-align: center; border-top: 1px solid #E5E7EB;">
-          <p style="color: #9CA3AF; font-size: 12px; margin: 0;">
-            Unikey - We do the searching, you focus on your studies.
-          </p>
-        </div>
-      </div>
+      </body>
+      </html>
     `;
 
     // Send notification email to admin using Resend API directly
