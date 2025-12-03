@@ -108,7 +108,7 @@ const handler = async (req: Request): Promise<Response> => {
             
             <p style="color: #374151; line-height: 1.7; font-size: 15px; margin: 0 0 32px 0;">
               We have received your application and our team will review your preferences shortly. 
-              We'll be in touch within the next few business days with personalized housing options that match your criteria.
+              We'll be in touch within the next 24 hours with personalized housing options that match your criteria.
             </p>
 
             <!-- Steps Box -->
