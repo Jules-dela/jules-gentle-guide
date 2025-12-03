@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { BackToTop } from "@/components/BackToTop";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -510,6 +511,7 @@ const PrivacyPolicy = () => {
       </main>
 
       <Footer />
+      <BackToTop />
     </div>
   );
 };
