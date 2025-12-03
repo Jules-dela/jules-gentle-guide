@@ -14,7 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      housing_applications: {
+        Row: {
+          budget: string | null
+          created_at: string
+          duration: string | null
+          email: string
+          furnished: boolean | null
+          id: string
+          name: string
+          near_transport: boolean | null
+          neighbourhood: string | null
+          notes: string | null
+          pets_allowed: boolean | null
+          phone: string | null
+          privacy_accepted: boolean | null
+          property_type: string | null
+          roommate_preference: string | null
+          rooms: string | null
+          smoking_allowed: boolean | null
+          university: string
+        }
+        Insert: {
+          budget?: string | null
+          created_at?: string
+          duration?: string | null
+          email: string
+          furnished?: boolean | null
+          id?: string
+          name: string
+          near_transport?: boolean | null
+          neighbourhood?: string | null
+          notes?: string | null
+          pets_allowed?: boolean | null
+          phone?: string | null
+          privacy_accepted?: boolean | null
+          property_type?: string | null
+          roommate_preference?: string | null
+          rooms?: string | null
+          smoking_allowed?: boolean | null
+          university: string
+        }
+        Update: {
+          budget?: string | null
+          created_at?: string
+          duration?: string | null
+          email?: string
+          furnished?: boolean | null
+          id?: string
+          name?: string
+          near_transport?: boolean | null
+          neighbourhood?: string | null
+          notes?: string | null
+          pets_allowed?: boolean | null
+          phone?: string | null
+          privacy_accepted?: boolean | null
+          property_type?: string | null
+          roommate_preference?: string | null
+          rooms?: string | null
+          smoking_allowed?: boolean | null
+          university?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

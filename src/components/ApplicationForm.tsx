@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -12,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useScrollAnimation } from "@/hooks/use-scroll-animation";
+import { supabase } from "@/integrations/supabase/client";
 
 // Validation schema with security best practices
 const applicationSchema = z.object({
@@ -65,6 +67,7 @@ type ApplicationFormData = z.infer<typeof applicationSchema>;
 export const ApplicationForm = () => {
   const { toast } = useToast();
   const { ref, isVisible } = useScrollAnimation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
@@ -88,15 +91,79 @@ export const ApplicationForm = () => {
     },
   });
 
-  const onSubmit = (data: ApplicationFormData) => {
-    // Data is already validated by zod schema
-    toast({
-      title: "Application submitted!",
-      description: "We'll match you with the perfect apartment soon.",
-    });
+  const onSubmit = async (data: ApplicationFormData) => {
+    setIsSubmitting(true);
     
-    // Reset form after successful submission
-    form.reset();
+    try {
+      // Save to database
+      const { error: dbError } = await supabase
+        .from("housing_applications")
+        .insert({
+          name: data.name,
+          email: data.email,
+          phone: data.phone || null,
+          university: data.university || null,
+          neighbourhood: data.neighbourhood,
+          budget: data.budget,
+          rooms: data.rooms,
+          duration: data.duration,
+          property_type: data.type,
+          roommate_preference: data.roommates,
+          furnished: data.furnished,
+          near_transport: data.nearTransport,
+          pets_allowed: data.pets,
+          smoking_allowed: data.noSmoking,
+          notes: data.notes || null,
+          privacy_accepted: data.privacyAccepted,
+        });
+
+      if (dbError) {
+        console.error("Database error:", dbError);
+        throw new Error("Failed to save application");
+      }
+
+      // Send email notifications
+      const { error: emailError } = await supabase.functions.invoke("send-application-emails", {
+        body: {
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          university: data.university,
+          neighbourhood: data.neighbourhood,
+          budget: data.budget,
+          rooms: data.rooms,
+          duration: data.duration,
+          propertyType: data.type,
+          roommatePreference: data.roommates,
+          furnished: data.furnished,
+          nearTransport: data.nearTransport,
+          petsAllowed: data.pets,
+          smokingAllowed: data.noSmoking,
+          notes: data.notes,
+        },
+      });
+
+      if (emailError) {
+        console.error("Email error:", emailError);
+        // Don't throw - application is saved, just log the email error
+      }
+
+      toast({
+        title: "Application submitted!",
+        description: "We'll match you with the perfect apartment soon. Check your email for confirmation.",
+      });
+      
+      form.reset();
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit application. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -413,16 +480,12 @@ export const ApplicationForm = () => {
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel className="text-sm font-normal cursor-pointer">
-                          I have read and agree to the{" "}
-                          <Link 
-                            to="/privacy-policy" 
-                            className="text-primary underline hover:opacity-80"
-                            target="_blank"
-                          >
+                        <FormLabel className="text-sm font-normal">
+                          I have read and accept the{" "}
+                          <Link to="/privacy" className="text-primary underline hover:text-primary/80">
                             Privacy Policy
                           </Link>
-                          {" "}*
+                          . I consent to the processing of my personal data in accordance with Swiss Federal Act on Data Protection (FADP) and GDPR.
                         </FormLabel>
                         <FormMessage />
                       </div>
@@ -430,8 +493,8 @@ export const ApplicationForm = () => {
                   )}
                 />
 
-                <Button type="submit" size="lg" className="w-full">
-                  Find my home
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? "Submitting..." : "Find my home"}
                 </Button>
               </form>
             </Form>
