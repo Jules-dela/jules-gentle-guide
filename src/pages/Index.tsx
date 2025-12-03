@@ -6,6 +6,7 @@ import { Partners } from "@/components/Partners";
 import { Testimonials } from "@/components/Testimonials";
 import { ApplicationForm } from "@/components/ApplicationForm";
 import { Footer } from "@/components/Footer";
+import { BackToTop } from "@/components/BackToTop";
 
 const Index = () => {
   return (
@@ -19,6 +20,7 @@ const Index = () => {
         <ApplicationForm />
       </main>
       <Footer />
+      <BackToTop />
     </div>
   );
 };
