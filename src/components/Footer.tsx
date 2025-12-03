@@ -21,7 +21,11 @@ export const Footer = () => {
           <div>
             <h3 className="text-lg font-bold mb-4">Quick Links</h3>
             <nav className="flex flex-col gap-2">
-              <Link to="/" className="text-sm opacity-90 hover:opacity-100 transition-opacity">
+              <Link 
+                to="/" 
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="text-sm opacity-90 hover:opacity-100 transition-opacity"
+              >
                 Home
               </Link>
               <a href="/#partners" className="text-sm opacity-90 hover:opacity-100 transition-opacity">
