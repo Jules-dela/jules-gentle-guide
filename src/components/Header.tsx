@@ -20,11 +20,21 @@ export const Header = () => {
   }, []);
 
   const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    element?.scrollIntoView({
-      behavior: 'smooth'
-    });
     setOpen(false);
+    // Small delay to let the mobile menu close first
+    setTimeout(() => {
+      const element = document.getElementById(id);
+      if (element) {
+        const headerOffset = 80; // Account for fixed header
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
   };
 
   return (
