@@ -55,8 +55,8 @@ export const Footer = () => {
               <p className="mb-1">
                 <strong>Email:</strong>
               </p>
-              <a href="mailto:contact@unikey.ch" className="hover:opacity-100 transition-opacity">
-                contact@unikey.ch
+              <a href="mailto:contact@uni-key.ch" className="hover:opacity-100 transition-opacity">
+                contact@uni-key.ch
               </a>
             </div>
           </div>
