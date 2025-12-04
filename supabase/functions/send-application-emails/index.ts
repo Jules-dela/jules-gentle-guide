@@ -155,7 +155,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Unikey <noreply@uni-key.ch>",
+        from: "Unikey <contact@uni-key.ch>",
         to: ["contact@uni-key.ch"],
         subject: `🏠 New Housing Application from ${data.name}`,
         html: adminEmailHtml,
@@ -174,7 +174,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Unikey <noreply@uni-key.ch>",
+        from: "Unikey <contact@uni-key.ch>",
         to: [data.email],
         subject: "Welcome to Unikey - We received your application!",
         html: applicantEmailHtml,
