@@ -33,7 +33,7 @@ export type Database = {
           roommate_preference: string | null
           rooms: string | null
           smoking_allowed: boolean | null
-          university: string
+          university: string | null
         }
         Insert: {
           budget?: string | null
@@ -53,7 +53,7 @@ export type Database = {
           roommate_preference?: string | null
           rooms?: string | null
           smoking_allowed?: boolean | null
-          university: string
+          university?: string | null
         }
         Update: {
           budget?: string | null
@@ -73,7 +73,7 @@ export type Database = {
           roommate_preference?: string | null
           rooms?: string | null
           smoking_allowed?: boolean | null
-          university?: string
+          university?: string | null
         }
         Relationships: []
       }
