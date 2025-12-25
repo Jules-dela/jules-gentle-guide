@@ -63,9 +63,16 @@ export const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-6 border-t border-primary-foreground/20 text-center">
+        <div className="pt-6 border-t border-primary-foreground/20 flex items-center justify-center">
           <p className="text-sm opacity-80">
-            © {new Date().getFullYear()} Unikey. All rights reserved.
+            © {new Date().getFullYear()}{" "}
+            <Link 
+              to="/auth" 
+              className="hover:opacity-100 transition-opacity"
+            >
+              Unikey
+            </Link>
+            . All rights reserved.
           </p>
         </div>
       </div>
