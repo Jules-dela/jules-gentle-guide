@@ -482,7 +482,7 @@ export const ApplicationForm = () => {
                       <div className="space-y-1 leading-none">
                         <FormLabel className="text-sm font-normal">
                           I have read and accept the{" "}
-                          <Link to="/privacy" className="text-primary underline hover:text-primary/80">
+                          <Link to="/privacy-policy" className="text-primary underline hover:text-primary/80">
                             Privacy Policy
                           </Link>
                           . I consent to the processing of my personal data in accordance with Swiss Federal Act on Data Protection (FADP) and GDPR.
