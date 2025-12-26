@@ -33,7 +33,9 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const data: ApplicationData = await req.json();
-    console.log("Received application data:", data);
+    
+    // Log minimal, non-PII data for debugging
+    console.log("Processing application submission");
 
     // Format boolean preferences for email
     const formatBoolean = (value?: boolean) => value ? "Yes" : "No";
@@ -163,7 +165,8 @@ const handler = async (req: Request): Promise<Response> => {
     });
     
     const adminResult = await adminEmailResponse.json();
-    console.log("Admin email response:", adminResult);
+    // Log only status, not full response details
+    console.log("Admin email sent:", adminResult.id ? "success" : "failed");
 
     // Send confirmation email to applicant
     console.log("Sending confirmation email to applicant...");
@@ -182,23 +185,26 @@ const handler = async (req: Request): Promise<Response> => {
     });
     
     const applicantResult = await applicantEmailResponse.json();
-    console.log("Applicant email response:", applicantResult);
+    // Log only status, not full response details
+    console.log("Applicant email sent:", applicantResult.id ? "success" : "failed");
 
+    // Return minimal success response (no internal details)
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        adminEmail: adminResult, 
-        applicantEmail: applicantResult 
-      }),
+      JSON.stringify({ success: true }),
       {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   } catch (error: any) {
-    console.error("Error in send-application-emails function:", error);
+    // Log full error server-side for debugging
+    console.error("Function error:", error);
+    
+    // Return generic error to client (no internal details)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: "Failed to process application. Please try again or contact support." 
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -206,5 +212,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
   }
 };
+
+serve(handler);
 
 serve(handler);
