@@ -1,12 +1,23 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+
+// Initialize Supabase client with service role for rate limit table access
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Rate limit configuration
+const RATE_LIMIT_MAX_REQUESTS = 5; // Max submissions per time window
+const RATE_LIMIT_WINDOW_HOURS = 1; // Time window in hours
 
 // HTML escape function to prevent injection attacks
 function escapeHtml(text: string): string {
@@ -18,6 +29,70 @@ function escapeHtml(text: string): string {
     "'": '&#039;'
   };
   return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+// Extract client IP from request headers
+function getClientIP(req: Request): string {
+  return req.headers.get('cf-connecting-ip') ||
+         req.headers.get('x-real-ip') ||
+         req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+         'unknown';
+}
+
+// Check and enforce rate limiting
+async function checkRateLimit(ip: string): Promise<{ allowed: boolean; error?: string }> {
+  try {
+    const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_HOURS * 60 * 60 * 1000).toISOString();
+    
+    const { count, error: countError } = await supabase
+      .from('rate_limit_submissions')
+      .select('*', { count: 'exact', head: true })
+      .eq('ip_address', ip)
+      .gte('created_at', windowStart);
+    
+    if (countError) {
+      console.error('Rate limit check failed:', countError);
+      // Fail open but log the issue
+      return { allowed: true };
+    }
+    
+    if (count !== null && count >= RATE_LIMIT_MAX_REQUESTS) {
+      console.log(`Rate limit exceeded for IP: ${ip.substring(0, 8)}... (${count} requests)`);
+      return { 
+        allowed: false, 
+        error: 'Too many submissions. Please try again later.' 
+      };
+    }
+    
+    return { allowed: true };
+  } catch (error) {
+    console.error('Rate limit check error:', error);
+    // Fail open on errors
+    return { allowed: true };
+  }
+}
+
+// Record a submission for rate limiting
+async function recordSubmission(ip: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('rate_limit_submissions')
+      .insert({ ip_address: ip });
+    
+    if (error) {
+      console.error('Failed to record submission for rate limiting:', error);
+    }
+    
+    // Clean up old entries (older than 24 hours) - best effort
+    const cleanupCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    await supabase
+      .from('rate_limit_submissions')
+      .delete()
+      .lt('created_at', cleanupCutoff);
+      
+  } catch (error) {
+    console.error('Rate limit recording error:', error);
+  }
 }
 
 // Server-side validation schema
@@ -48,6 +123,20 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Rate limiting check
+    const clientIP = getClientIP(req);
+    const rateLimitResult = await checkRateLimit(clientIP);
+    
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({ error: rateLimitResult.error }),
+        { 
+          status: 429, 
+          headers: { "Content-Type": "application/json", ...corsHeaders } 
+        }
+      );
+    }
+
     const rawData = await req.json();
     
     // Validate input server-side
@@ -61,6 +150,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
     
     const data = validationResult.data;
+    
+    // Record this submission for rate limiting (after validation passes)
+    await recordSubmission(clientIP);
     
     // Log minimal, non-PII data for debugging
     console.log("Processing application submission");
