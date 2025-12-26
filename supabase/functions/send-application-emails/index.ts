@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -7,23 +8,38 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface ApplicationData {
-  name: string;
-  email: string;
-  phone?: string;
-  university: string;
-  neighbourhood?: string;
-  budget?: string;
-  rooms?: string;
-  duration?: string;
-  propertyType?: string;
-  roommatePreference?: string;
-  furnished?: boolean;
-  nearTransport?: boolean;
-  petsAllowed?: boolean;
-  smokingAllowed?: boolean;
-  notes?: string;
+// HTML escape function to prevent injection attacks
+function escapeHtml(text: string): string {
+  const map: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, m => map[m]);
 }
+
+// Server-side validation schema
+const applicationSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(100, "Name too long"),
+  email: z.string().trim().email("Invalid email").max(255, "Email too long"),
+  phone: z.string().trim().max(20, "Phone too long").optional().nullable(),
+  university: z.string().trim().max(100, "University name too long").optional().nullable(),
+  neighbourhood: z.string().max(100, "Neighbourhood too long").optional().nullable(),
+  budget: z.string().max(50, "Budget too long").optional().nullable(),
+  rooms: z.string().max(20, "Rooms too long").optional().nullable(),
+  duration: z.string().max(50, "Duration too long").optional().nullable(),
+  propertyType: z.string().max(50, "Property type too long").optional().nullable(),
+  roommatePreference: z.string().max(50, "Roommate preference too long").optional().nullable(),
+  furnished: z.boolean().optional().nullable(),
+  nearTransport: z.boolean().optional().nullable(),
+  petsAllowed: z.boolean().optional().nullable(),
+  smokingAllowed: z.boolean().optional().nullable(),
+  notes: z.string().trim().max(2000, "Notes too long").optional().nullable(),
+});
+
+type ApplicationData = z.infer<typeof applicationSchema>;
 
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
@@ -32,15 +48,32 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const data: ApplicationData = await req.json();
+    const rawData = await req.json();
+    
+    // Validate input server-side
+    const validationResult = applicationSchema.safeParse(rawData);
+    if (!validationResult.success) {
+      console.log("Validation failed:", validationResult.error.issues.length, "issues");
+      return new Response(
+        JSON.stringify({ error: "Invalid input data. Please check your form and try again." }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    
+    const data = validationResult.data;
     
     // Log minimal, non-PII data for debugging
     console.log("Processing application submission");
 
     // Format boolean preferences for email
-    const formatBoolean = (value?: boolean) => value ? "Yes" : "No";
+    const formatBoolean = (value?: boolean | null) => value ? "Yes" : "No";
+    
+    // Helper to safely escape and display optional fields
+    const safeField = (value: string | null | undefined, fallback: string): string => {
+      return value ? escapeHtml(value) : fallback;
+    };
 
-    // Build admin notification email HTML
+    // Build admin notification email HTML with escaped user input
     const adminEmailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #1E3A8A; border-bottom: 2px solid #1E3A8A; padding-bottom: 10px;">
@@ -49,20 +82,20 @@ const handler = async (req: Request): Promise<Response> => {
         
         <h2 style="color: #374151; margin-top: 24px;">Contact Information</h2>
         <table style="width: 100%; border-collapse: collapse;">
-          <tr><td style="padding: 8px 0; color: #6B7280;">Name:</td><td style="padding: 8px 0; font-weight: bold;">${data.name}</td></tr>
-          <tr><td style="padding: 8px 0; color: #6B7280;">Email:</td><td style="padding: 8px 0;"><a href="mailto:${data.email}">${data.email}</a></td></tr>
-          <tr><td style="padding: 8px 0; color: #6B7280;">Phone:</td><td style="padding: 8px 0;">${data.phone || "Not provided"}</td></tr>
-          <tr><td style="padding: 8px 0; color: #6B7280;">University:</td><td style="padding: 8px 0;">${data.university || "Not specified"}</td></tr>
+          <tr><td style="padding: 8px 0; color: #6B7280;">Name:</td><td style="padding: 8px 0; font-weight: bold;">${escapeHtml(data.name)}</td></tr>
+          <tr><td style="padding: 8px 0; color: #6B7280;">Email:</td><td style="padding: 8px 0;"><a href="mailto:${escapeHtml(data.email)}">${escapeHtml(data.email)}</a></td></tr>
+          <tr><td style="padding: 8px 0; color: #6B7280;">Phone:</td><td style="padding: 8px 0;">${safeField(data.phone, "Not provided")}</td></tr>
+          <tr><td style="padding: 8px 0; color: #6B7280;">University:</td><td style="padding: 8px 0;">${safeField(data.university, "Not specified")}</td></tr>
         </table>
 
         <h2 style="color: #374151; margin-top: 24px;">Housing Preferences</h2>
         <table style="width: 100%; border-collapse: collapse;">
-          <tr><td style="padding: 8px 0; color: #6B7280;">Neighbourhood:</td><td style="padding: 8px 0;">${data.neighbourhood || "No preference"}</td></tr>
-          <tr><td style="padding: 8px 0; color: #6B7280;">Budget:</td><td style="padding: 8px 0;">${data.budget || "Not specified"}</td></tr>
-          <tr><td style="padding: 8px 0; color: #6B7280;">Rooms:</td><td style="padding: 8px 0;">${data.rooms || "Not specified"}</td></tr>
-          <tr><td style="padding: 8px 0; color: #6B7280;">Duration:</td><td style="padding: 8px 0;">${data.duration || "Not specified"}</td></tr>
-          <tr><td style="padding: 8px 0; color: #6B7280;">Property Type:</td><td style="padding: 8px 0;">${data.propertyType || "Not specified"}</td></tr>
-          <tr><td style="padding: 8px 0; color: #6B7280;">Roommate Preference:</td><td style="padding: 8px 0;">${data.roommatePreference || "Not specified"}</td></tr>
+          <tr><td style="padding: 8px 0; color: #6B7280;">Neighbourhood:</td><td style="padding: 8px 0;">${safeField(data.neighbourhood, "No preference")}</td></tr>
+          <tr><td style="padding: 8px 0; color: #6B7280;">Budget:</td><td style="padding: 8px 0;">${safeField(data.budget, "Not specified")}</td></tr>
+          <tr><td style="padding: 8px 0; color: #6B7280;">Rooms:</td><td style="padding: 8px 0;">${safeField(data.rooms, "Not specified")}</td></tr>
+          <tr><td style="padding: 8px 0; color: #6B7280;">Duration:</td><td style="padding: 8px 0;">${safeField(data.duration, "Not specified")}</td></tr>
+          <tr><td style="padding: 8px 0; color: #6B7280;">Property Type:</td><td style="padding: 8px 0;">${safeField(data.propertyType, "Not specified")}</td></tr>
+          <tr><td style="padding: 8px 0; color: #6B7280;">Roommate Preference:</td><td style="padding: 8px 0;">${safeField(data.roommatePreference, "Not specified")}</td></tr>
         </table>
 
         <h2 style="color: #374151; margin-top: 24px;">Additional Preferences</h2>
@@ -75,7 +108,7 @@ const handler = async (req: Request): Promise<Response> => {
 
         ${data.notes ? `
           <h2 style="color: #374151; margin-top: 24px;">Additional Notes</h2>
-          <p style="background: #F3F4F6; padding: 16px; border-radius: 8px;">${data.notes}</p>
+          <p style="background: #F3F4F6; padding: 16px; border-radius: 8px;">${escapeHtml(data.notes)}</p>
         ` : ""}
 
         <p style="color: #9CA3AF; font-size: 12px; margin-top: 32px; border-top: 1px solid #E5E7EB; padding-top: 16px;">
@@ -84,7 +117,7 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
-    // Build confirmation email for applicant
+    // Build confirmation email for applicant with escaped user input
     const applicantEmailHtml = `
       <!DOCTYPE html>
       <html>
@@ -102,7 +135,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <!-- Main Content -->
           <div style="padding: 40px 32px;">
-            <p style="font-size: 18px; color: #1E3A8A; font-weight: 600; margin: 0 0 24px 0;">Dear ${data.name},</p>
+            <p style="font-size: 18px; color: #1E3A8A; font-weight: 600; margin: 0 0 24px 0;">Dear ${escapeHtml(data.name)},</p>
             
             <p style="color: #374151; line-height: 1.7; font-size: 15px; margin: 0 0 20px 0;">
               Thank you for choosing <strong style="color: #1E3A8A;">Unikey</strong> to help you find your perfect student apartment in Lausanne!
@@ -159,7 +192,7 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "Unikey <contact@uni-key.ch>",
         to: ["contact@uni-key.ch"],
-        subject: `🏠 New Housing Application from ${data.name}`,
+        subject: `🏠 New Housing Application from ${escapeHtml(data.name)}`,
         html: adminEmailHtml,
       }),
     });
@@ -212,7 +245,5 @@ const handler = async (req: Request): Promise<Response> => {
     );
   }
 };
-
-serve(handler);
 
 serve(handler);
