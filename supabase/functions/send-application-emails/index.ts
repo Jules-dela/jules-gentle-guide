@@ -112,6 +112,8 @@ const applicationSchema = z.object({
   petsAllowed: z.boolean().optional().nullable(),
   smokingAllowed: z.boolean().optional().nullable(),
   notes: z.string().trim().max(2000, "Notes too long").optional().nullable(),
+  // Honeypot field - must be empty for legitimate submissions
+  website: z.string().max(0).optional().nullable(),
 });
 
 type ApplicationData = z.infer<typeof applicationSchema>;
@@ -150,6 +152,16 @@ const handler = async (req: Request): Promise<Response> => {
     }
     
     const data = validationResult.data;
+
+    // Honeypot check - if website field has any content, it's a bot
+    if (rawData.website && rawData.website.length > 0) {
+      console.log("Honeypot triggered - bot detected");
+      // Return fake success to not reveal detection
+      return new Response(
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
     
     // Record this submission for rate limiting (after validation passes)
     await recordSubmission(clientIP);
