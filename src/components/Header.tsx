@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Sheet,
   SheetContent,
@@ -10,6 +10,8 @@ import {
 export const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,6 +23,13 @@ export const Header = () => {
 
   const scrollToSection = (id: string) => {
     setOpen(false);
+    
+    // If not on home page, navigate there first with the section hash
+    if (location.pathname !== '/') {
+      navigate(`/#${id}`);
+      return;
+    }
+    
     // Small delay to let the mobile menu close first
     setTimeout(() => {
       const element = document.getElementById(id);
