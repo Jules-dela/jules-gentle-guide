@@ -60,6 +60,8 @@ const applicationSchema = z.object({
     .refine((val) => val === true, {
       message: "You must accept the Privacy Policy to submit the form",
     }),
+  // Honeypot field - should always be empty for legitimate submissions
+  website: z.string().max(0, { message: "" }).optional().or(z.literal("")),
 });
 
 type ApplicationFormData = z.infer<typeof applicationSchema>;
@@ -88,10 +90,22 @@ export const ApplicationForm = () => {
       noSmoking: false,
       notes: "",
       privacyAccepted: false,
+      website: "", // Honeypot field
     },
   });
 
   const onSubmit = async (data: ApplicationFormData) => {
+    // Check honeypot field - if filled, silently reject (bot detected)
+    if (data.website && data.website.length > 0) {
+      // Fake success for bots - don't reveal detection
+      toast({
+        title: "Application submitted!",
+        description: "We'll match you with the perfect apartment soon. Check your email for confirmation.",
+      });
+      form.reset();
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -492,6 +506,26 @@ export const ApplicationForm = () => {
                     </FormItem>
                   )}
                 />
+
+                {/* Honeypot field - hidden from real users, bots will fill this */}
+                <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+                  <FormField
+                    control={form.control}
+                    name="website"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Website</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            tabIndex={-1}
+                            autoComplete="off"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting ? "Submitting..." : "Find my home"}
