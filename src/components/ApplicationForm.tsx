@@ -97,7 +97,6 @@ export const ApplicationForm = () => {
   const onSubmit = async (data: ApplicationFormData) => {
     // Check honeypot field - if filled, silently reject (bot detected)
     if (data.website && data.website.length > 0) {
-      // Fake success for bots - don't reveal detection
       toast({
         title: "Application submitted!",
         description: "We'll match you with the perfect apartment soon. Check your email for confirmation.",
@@ -136,8 +135,8 @@ export const ApplicationForm = () => {
         throw new Error("Failed to save application");
       }
 
-      // Send email notifications
-      const { error: emailError } = await supabase.functions.invoke("send-application-emails", {
+      // Create portal account and case via edge function
+      const { data: result, error: emailError } = await supabase.functions.invoke("send-application-emails", {
         body: {
           name: data.name,
           email: data.email,
@@ -158,13 +157,15 @@ export const ApplicationForm = () => {
       });
 
       if (emailError) {
-        console.error("Email error:", emailError);
-        // Don't throw - application is saved, just log the email error
+        console.error("Portal creation error:", emailError);
       }
 
+      // Show success with portal info
       toast({
-        title: "Application submitted!",
-        description: "We'll match you with the perfect apartment soon. Check your email for confirmation.",
+        title: "🎉 Application submitted!",
+        description: result?.isNewUser 
+          ? "Check your email for your portal login credentials!"
+          : "Your case has been created. Check your email for details.",
       });
       
       form.reset();
