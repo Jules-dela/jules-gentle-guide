@@ -34,11 +34,13 @@ export default function Auth() {
     },
   });
 
-  // Redirect authenticated admins to dashboard
+  // Redirect authenticated users to appropriate dashboard
   useEffect(() => {
     if (!loading && user) {
       if (isAdmin) {
         navigate("/admin");
+      } else {
+        navigate("/portal");
       }
     }
   }, [user, isAdmin, loading, navigate]);
