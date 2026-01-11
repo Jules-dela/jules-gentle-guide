@@ -14,6 +14,129 @@ export type Database = {
   }
   public: {
     Tables: {
+      case_documents: {
+        Row: {
+          case_id: string
+          created_at: string
+          document_type: string
+          file_url: string | null
+          id: string
+          label: string
+          rejection_reason: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          validated_at: string | null
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          document_type: string
+          file_url?: string | null
+          id?: string
+          label: string
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          validated_at?: string | null
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          document_type?: string
+          file_url?: string | null
+          id?: string
+          label?: string
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          validated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_documents_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      case_status_history: {
+        Row: {
+          case_id: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          status: Database["public"]["Enums"]["case_status"]
+        }
+        Insert: {
+          case_id: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status: Database["public"]["Enums"]["case_status"]
+        }
+        Update: {
+          case_id?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["case_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_status_history_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cases: {
+        Row: {
+          client_id: string
+          close_reason: string | null
+          closed_at: string | null
+          created_at: string
+          id: string
+          initial_criteria: Json | null
+          staff_notes: string | null
+          status: Database["public"]["Enums"]["case_status"]
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          close_reason?: string | null
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          initial_criteria?: Json | null
+          staff_notes?: string | null
+          status?: Database["public"]["Enums"]["case_status"]
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          close_reason?: string | null
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          initial_criteria?: Json | null
+          staff_notes?: string | null
+          status?: Database["public"]["Enums"]["case_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cases_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       housing_applications: {
         Row: {
           budget: string | null
@@ -77,6 +200,154 @@ export type Database = {
         }
         Relationships: []
       }
+      key_handover: {
+        Row: {
+          case_id: string
+          confirmed_by_client: boolean | null
+          contact_person: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          location: string | null
+          notes: string | null
+          scheduled_date: string | null
+          scheduled_time: string | null
+        }
+        Insert: {
+          case_id: string
+          confirmed_by_client?: boolean | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+        }
+        Update: {
+          case_id?: string
+          confirmed_by_client?: boolean | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "key_handover_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: true
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          client_type: Database["public"]["Enums"]["client_type"] | null
+          company_school: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string | null
+          user_id: string
+        }
+        Insert: {
+          client_type?: Database["public"]["Enums"]["client_type"] | null
+          company_school?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          phone?: string | null
+          user_id: string
+        }
+        Update: {
+          client_type?: Database["public"]["Enums"]["client_type"] | null
+          company_school?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      property_proposals: {
+        Row: {
+          address: string | null
+          agency_info: string | null
+          case_id: string
+          charges: number | null
+          client_status: Database["public"]["Enums"]["proposal_status"] | null
+          created_at: string
+          description: string | null
+          id: string
+          neighbourhood: string | null
+          photos: string[] | null
+          property_type: string | null
+          rejection_notes: string | null
+          rejection_reasons: string[] | null
+          rent: number | null
+          rooms: number | null
+          size_sqm: number | null
+          tags: string[] | null
+        }
+        Insert: {
+          address?: string | null
+          agency_info?: string | null
+          case_id: string
+          charges?: number | null
+          client_status?: Database["public"]["Enums"]["proposal_status"] | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          neighbourhood?: string | null
+          photos?: string[] | null
+          property_type?: string | null
+          rejection_notes?: string | null
+          rejection_reasons?: string[] | null
+          rent?: number | null
+          rooms?: number | null
+          size_sqm?: number | null
+          tags?: string[] | null
+        }
+        Update: {
+          address?: string | null
+          agency_info?: string | null
+          case_id?: string
+          charges?: number | null
+          client_status?: Database["public"]["Enums"]["proposal_status"] | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          neighbourhood?: string | null
+          photos?: string[] | null
+          property_type?: string | null
+          rejection_notes?: string | null
+          rejection_reasons?: string[] | null
+          rent?: number | null
+          rooms?: number | null
+          size_sqm?: number | null
+          tags?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_proposals_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rate_limit_submissions: {
         Row: {
           created_at: string
@@ -116,6 +387,38 @@ export type Database = {
         }
         Relationships: []
       }
+      visit_videos: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          proposal_id: string
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          proposal_id: string
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          proposal_id?: string
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_videos_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "property_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -131,6 +434,18 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      case_status:
+        | "request_received"
+        | "search_in_progress"
+        | "proposals_available"
+        | "visit_in_progress"
+        | "documents_preparation"
+        | "application_review"
+        | "key_handover_scheduled"
+        | "closed"
+      client_type: "student" | "employee" | "other"
+      document_status: "missing" | "uploaded" | "validated" | "rejected"
+      proposal_status: "pending" | "liked" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -259,6 +574,19 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      case_status: [
+        "request_received",
+        "search_in_progress",
+        "proposals_available",
+        "visit_in_progress",
+        "documents_preparation",
+        "application_review",
+        "key_handover_scheduled",
+        "closed",
+      ],
+      client_type: ["student", "employee", "other"],
+      document_status: ["missing", "uploaded", "validated", "rejected"],
+      proposal_status: ["pending", "liked", "rejected"],
     },
   },
 } as const
