@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Sheet,
   SheetContent,
@@ -12,6 +15,10 @@ export const Header = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, isAdmin } = useAuth();
+
+  const portalHref = user ? (isAdmin ? "/admin" : "/portal") : "/auth";
+  const portalLabel = user ? "Dashboard" : "Login";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -91,6 +98,19 @@ export const Header = () => {
             >
               Apply
             </button>
+
+            <Link to={portalHref} className="ml-2">
+              <Button
+                size="sm"
+                variant="secondary"
+                className={cn(
+                  "h-9 px-4",
+                  !scrolled && "bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+                )}
+              >
+                {portalLabel}
+              </Button>
+            </Link>
           </nav>
 
           {/* Mobile Hamburger Menu */}
@@ -104,6 +124,12 @@ export const Header = () => {
             </SheetTrigger>
             <SheetContent side="right" className="bg-[#1E3A8A] border-l border-white/10">
               <nav className="flex flex-col gap-6 mt-8">
+                <Link to={portalHref} onClick={() => setOpen(false)}>
+                  <Button variant="secondary" className="w-full justify-start">
+                    {portalLabel}
+                  </Button>
+                </Link>
+
                 <button 
                   onClick={() => scrollToSection('partners')} 
                   className="text-[18px] font-normal text-white hover:opacity-80 transition-opacity duration-300 text-left"
