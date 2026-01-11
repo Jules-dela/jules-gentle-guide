@@ -1,0 +1,310 @@
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import type { 
+  Profile, 
+  Case, 
+  PropertyProposal, 
+  CaseDocument, 
+  KeyHandover,
+  CaseStatusHistory,
+  InitialCriteria
+} from '@/types/portal';
+
+interface UseClientPortalReturn {
+  profile: Profile | null;
+  activeCase: Case | null;
+  proposals: PropertyProposal[];
+  documents: CaseDocument[];
+  keyHandover: KeyHandover | null;
+  statusHistory: CaseStatusHistory[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+  updateProposalFeedback: (
+    proposalId: string, 
+    status: 'liked' | 'rejected',
+    rejectionReasons?: string[],
+    rejectionNotes?: string
+  ) => Promise<{ error: Error | null }>;
+  uploadDocument: (documentId: string, file: File) => Promise<{ error: Error | null }>;
+  confirmKeyHandover: () => Promise<{ error: Error | null }>;
+}
+
+export function useClientPortal(): UseClientPortalReturn {
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [activeCase, setActiveCase] = useState<Case | null>(null);
+  const [proposals, setProposals] = useState<PropertyProposal[]>([]);
+  const [documents, setDocuments] = useState<CaseDocument[]>([]);
+  const [keyHandover, setKeyHandover] = useState<KeyHandover | null>(null);
+  const [statusHistory, setStatusHistory] = useState<CaseStatusHistory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Fetch profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError) {
+        if (profileError.code === 'PGRST116') {
+          // No profile found - user needs to complete setup
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
+        throw profileError;
+      }
+
+      // Cast the profile data to include proper types
+      const typedProfile: Profile = {
+        ...profileData,
+        client_type: profileData.client_type as Profile['client_type'],
+      };
+      setProfile(typedProfile);
+
+      // Fetch active case
+      const { data: caseData, error: caseError } = await supabase
+        .from('cases')
+        .select('*')
+        .eq('client_id', profileData.id)
+        .neq('status', 'closed')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (caseError) throw caseError;
+
+      if (caseData) {
+        const typedCase: Case = {
+          ...caseData,
+          status: caseData.status as Case['status'],
+          initial_criteria: caseData.initial_criteria as unknown as InitialCriteria | null,
+        };
+        setActiveCase(typedCase);
+
+        // Fetch related data in parallel
+        const [proposalsRes, documentsRes, keyHandoverRes, historyRes] = await Promise.all([
+          supabase
+            .from('property_proposals')
+            .select('*')
+            .eq('case_id', caseData.id)
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('case_documents')
+            .select('*')
+            .eq('case_id', caseData.id)
+            .order('created_at', { ascending: true }),
+          supabase
+            .from('key_handover')
+            .select('*')
+            .eq('case_id', caseData.id)
+            .maybeSingle(),
+          supabase
+            .from('case_status_history')
+            .select('*')
+            .eq('case_id', caseData.id)
+            .order('created_at', { ascending: true }),
+        ]);
+
+        if (proposalsRes.error) throw proposalsRes.error;
+        if (documentsRes.error) throw documentsRes.error;
+        if (keyHandoverRes.error) throw keyHandoverRes.error;
+        if (historyRes.error) throw historyRes.error;
+
+        // Cast proposals data
+        const typedProposals: PropertyProposal[] = (proposalsRes.data || []).map(p => ({
+          ...p,
+          client_status: p.client_status as PropertyProposal['client_status'],
+          tags: p.tags || [],
+          photos: p.photos || [],
+          rejection_reasons: p.rejection_reasons || [],
+        }));
+        setProposals(typedProposals);
+
+        // Cast documents data
+        const typedDocuments: CaseDocument[] = (documentsRes.data || []).map(d => ({
+          ...d,
+          status: d.status as CaseDocument['status'],
+        }));
+        setDocuments(typedDocuments);
+
+        setKeyHandover(keyHandoverRes.data);
+
+        // Cast history data
+        const typedHistory: CaseStatusHistory[] = (historyRes.data || []).map(h => ({
+          ...h,
+          status: h.status as CaseStatusHistory['status'],
+        }));
+        setStatusHistory(typedHistory);
+      } else {
+        setActiveCase(null);
+        setProposals([]);
+        setDocuments([]);
+        setKeyHandover(null);
+        setStatusHistory([]);
+      }
+    } catch (err) {
+      console.error('Error fetching portal data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load portal data');
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Set up realtime subscriptions
+  useEffect(() => {
+    if (!activeCase) return;
+
+    const channel = supabase
+      .channel('portal-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'cases',
+          filter: `id=eq.${activeCase.id}`,
+        },
+        () => fetchData()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'property_proposals',
+          filter: `case_id=eq.${activeCase.id}`,
+        },
+        () => fetchData()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'case_documents',
+          filter: `case_id=eq.${activeCase.id}`,
+        },
+        () => fetchData()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeCase, fetchData]);
+
+  const updateProposalFeedback = async (
+    proposalId: string,
+    status: 'liked' | 'rejected',
+    rejectionReasons?: string[],
+    rejectionNotes?: string
+  ) => {
+    try {
+      const { error } = await supabase
+        .from('property_proposals')
+        .update({
+          client_status: status,
+          rejection_reasons: rejectionReasons || [],
+          rejection_notes: rejectionNotes || null,
+        })
+        .eq('id', proposalId);
+
+      if (error) throw error;
+      await fetchData();
+      return { error: null };
+    } catch (err) {
+      return { error: err instanceof Error ? err : new Error('Failed to update feedback') };
+    }
+  };
+
+  const uploadDocument = async (documentId: string, file: File) => {
+    if (!activeCase) {
+      return { error: new Error('No active case found') };
+    }
+
+    try {
+      // Upload file to storage
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${activeCase.id}/${documentId}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('client-documents')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('client-documents')
+        .getPublicUrl(filePath);
+
+      // Update document record
+      const { error: updateError } = await supabase
+        .from('case_documents')
+        .update({
+          file_url: urlData.publicUrl,
+          status: 'uploaded',
+        })
+        .eq('id', documentId);
+
+      if (updateError) throw updateError;
+      await fetchData();
+      return { error: null };
+    } catch (err) {
+      return { error: err instanceof Error ? err : new Error('Failed to upload document') };
+    }
+  };
+
+  const confirmKeyHandover = async () => {
+    if (!keyHandover) {
+      return { error: new Error('No key handover found') };
+    }
+
+    try {
+      const { error } = await supabase
+        .from('key_handover')
+        .update({ confirmed_by_client: true })
+        .eq('id', keyHandover.id);
+
+      if (error) throw error;
+      await fetchData();
+      return { error: null };
+    } catch (err) {
+      return { error: err instanceof Error ? err : new Error('Failed to confirm handover') };
+    }
+  };
+
+  return {
+    profile,
+    activeCase,
+    proposals,
+    documents,
+    keyHandover,
+    statusHistory,
+    loading,
+    error,
+    refetch: fetchData,
+    updateProposalFeedback,
+    uploadDocument,
+    confirmKeyHandover,
+  };
+}

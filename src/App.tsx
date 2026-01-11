@@ -8,6 +8,10 @@ import Index from "./pages/Index";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
+import PortalDashboard from "./pages/PortalDashboard";
+import PortalProposals from "./pages/PortalProposals";
+import PortalDocuments from "./pages/PortalDocuments";
+import PortalHandover from "./pages/PortalHandover";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +28,10 @@ const App = () => (
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/portal" element={<PortalDashboard />} />
+            <Route path="/portal/proposals" element={<PortalProposals />} />
+            <Route path="/portal/documents" element={<PortalDocuments />} />
+            <Route path="/portal/handover" element={<PortalHandover />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
