@@ -3,23 +3,23 @@ import { motion, useScroll, useTransform, useInView } from "framer-motion";
 
 const cards = [
   {
-    title: "Response Within 24 Hours",
-    description: "We know apartment hunting is time-sensitive. You'll hear from us within one business day—guaranteed.",
+    title: "Precision Sourcing",
+    description: "We monitor the market 24/7. Access verified listings and 'hidden' gems in Lausanne before the crowds do.",
     bgColor: "bg-[hsl(220,20%,97%)]",
   },
   {
-    title: "Only Verified Listings",
-    description: "Every apartment we show you has been vetted through our partner platforms. No scams, no surprises.",
+    title: "Professional Viewings",
+    description: "We visit every property for you. Get high-definition video tours and neighborhood reports without leaving your home.",
     bgColor: "bg-[hsl(210,30%,96%)]",
   },
   {
-    title: "Personalized Matching",
-    description: "Tell us your budget, preferred neighbourhoods, and must-haves. We'll find options that actually fit your needs.",
+    title: "The Gold-Standard Dossier",
+    description: "Don't get rejected for paperwork. We build a perfect Swiss-standard application dossier that gets you to the top of the pile.",
     bgColor: "bg-[hsl(215,25%,95%)]",
   },
   {
-    title: "Full Support Until Move-In",
-    description: "From first viewing to signing the lease, we're with you every step of the way.",
+    title: "Key-in-Hand Arrival",
+    description: "From lease signing to the final inspection (État des Lieux), we handle the stress. You just show up and unlock your new life.",
     bgColor: "bg-[hsl(225,20%,94%)]",
   },
 ];
