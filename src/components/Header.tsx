@@ -42,8 +42,20 @@ export const Header = () => {
       const element = document.getElementById(id);
       if (element) {
         const headerOffset = 80; // Account for fixed header
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        const elementRect = element.getBoundingClientRect();
+        const elementHeight = elementRect.height;
+        const viewportHeight = window.innerHeight;
+        
+        let offsetPosition;
+        
+        // Center the form section in the viewport
+        if (id === 'apply') {
+          const availableHeight = viewportHeight - headerOffset;
+          const centerOffset = Math.max(0, (availableHeight - elementHeight) / 2);
+          offsetPosition = elementRect.top + window.pageYOffset - headerOffset - centerOffset;
+        } else {
+          offsetPosition = elementRect.top + window.pageYOffset - headerOffset;
+        }
         
         window.scrollTo({
           top: offsetPosition,
