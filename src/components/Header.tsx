@@ -41,26 +41,22 @@ export const Header = () => {
     setTimeout(() => {
       const element = document.getElementById(id);
       if (element) {
-        const headerOffset = 80; // Account for fixed header
-        const elementRect = element.getBoundingClientRect();
-        const elementHeight = elementRect.height;
-        const viewportHeight = window.innerHeight;
-        
-        let offsetPosition;
-        
-        // Center the form section in the viewport
+        // Use scrollIntoView for 'apply' to center it like the Hero button does
         if (id === 'apply') {
-          const availableHeight = viewportHeight - headerOffset;
-          const centerOffset = Math.max(0, (availableHeight - elementHeight) / 2);
-          offsetPosition = elementRect.top + window.pageYOffset - headerOffset - centerOffset;
+          element.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
         } else {
-          offsetPosition = elementRect.top + window.pageYOffset - headerOffset;
+          const headerOffset = 80; // Account for fixed header
+          const elementRect = element.getBoundingClientRect();
+          const offsetPosition = elementRect.top + window.pageYOffset - headerOffset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
         }
-        
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
-        });
       }
     }, 100);
   };
