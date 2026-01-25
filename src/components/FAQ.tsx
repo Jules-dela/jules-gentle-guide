@@ -124,27 +124,27 @@ export const FAQ = () => {
 
               {/* Contact Info */}
               <div className="relative z-10 space-y-4">
-                <a 
-                  href="tel:+41211234567"
+              <a 
+                  href="tel:+41783304112"
                   className="flex items-center gap-4 group"
                 >
                   <div className="w-12 h-12 rounded-full bg-background border border-border/50 flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-colors">
                     <Phone className="w-5 h-5 text-muted-foreground group-hover:text-primary-foreground transition-colors" />
                   </div>
                   <span className="text-foreground font-medium group-hover:text-primary transition-colors">
-                    +41 21 123 45 67
+                    +41 78 330 41 12
                   </span>
                 </a>
                 
                 <a 
-                  href="mailto:hello@unikey.ch"
+                  href="mailto:contact@uni-key.ch"
                   className="flex items-center gap-4 group"
                 >
                   <div className="w-12 h-12 rounded-full bg-background border border-border/50 flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-colors">
                     <Mail className="w-5 h-5 text-muted-foreground group-hover:text-primary-foreground transition-colors" />
                   </div>
                   <span className="text-foreground font-medium group-hover:text-primary transition-colors">
-                    hello@unikey.ch
+                    contact@uni-key.ch
                   </span>
                 </a>
               </div>
