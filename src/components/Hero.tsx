@@ -11,9 +11,9 @@ export const Hero = () => {
   };
 
   return (
-    <AuroraBackground className="flex items-center md:items-start">
+    <AuroraBackground className="flex items-center justify-center">
       {/* Main content */}
-      <div className="relative z-10 px-5 md:px-20 pt-0 md:pt-[120px] pb-0 md:pb-[80px] w-full">
+      <div className="relative z-10 px-5 md:px-20 w-full flex flex-col items-center text-center">
         {/* Headline */}
         <h1 className="text-[32px] sm:text-[42px] md:text-[60px] font-semibold text-white leading-[1.15] tracking-[-0.02em] max-w-[900px] mb-4 md:mb-6">
           Your perfect student apartment in Lausanne.
