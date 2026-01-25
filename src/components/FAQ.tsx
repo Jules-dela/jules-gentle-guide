@@ -4,28 +4,28 @@ import { ChevronDown, Phone, Mail } from "lucide-react";
 
 const faqItems = [
   {
-    question: "How does the apartment search process work?",
-    answer: "Once you submit your preferences through our form, our team reviews your criteria and begins searching for matching properties across our partner platforms. We'll send you curated proposals within 24-48 hours, and you can review them directly in your client portal."
+    question: "What exactly does Unikey handle for me?",
+    answer: "We do it all: from finding the flat, assembling the documents, managing communication with the landlord/agency, securing the lease and even guiding you through the move in!"
   },
   {
-    question: "What areas do you cover in Switzerland?",
-    answer: "We primarily focus on the Lausanne region, including areas popular with students from EHL, EPFL, and UNIL. This includes neighborhoods like Lausanne city center, Renens, Prilly, Pully, and surrounding communes with good transport links to universities."
+    question: "How fast can you find me a flat in Lausanne?",
+    answer: "Depending on availability and responsiveness of the landlords, the whole process will take between 3-6 weeks."
   },
   {
-    question: "How much does your service cost?",
-    answer: "Our service fee is a one-time payment upon successful placement. We only charge when you sign a lease for an apartment we've found for you. There are no upfront costs or hidden fees—you only pay for results."
+    question: "Can you help if I'm not in Switzerland yet?",
+    answer: "Of course! We can run the whole process remotely through virtual viewings, digital applications, e-signing, and pre-arrival handover. Only caveat: to sign you need to have your Swiss permit."
   },
   {
-    question: "What documents will I need to apply for an apartment?",
-    answer: "Typically, you'll need proof of identity (passport/ID), proof of income or scholarship, a debt collection certificate (available from your commune), and references from previous landlords if applicable. We'll guide you through the entire documentation process."
+    question: "Can you negotiate rent or terms on my behalf?",
+    answer: "We negotiate wherever feasible: rent, start dates, furnished items, minor repairs, and special clauses to get you the best, fairest deal."
   },
   {
-    question: "How long does it usually take to find an apartment?",
-    answer: "The timeline varies depending on your criteria and market availability. On average, students find suitable housing within 2-4 weeks. However, we recommend starting your search at least 2 months before your desired move-in date, especially during peak seasons (August-September)."
+    question: "When is the best time to start looking for housing?",
+    answer: "The earlier the better! It's hard to find apartments for specific dates in Lausanne, the earlier you send your application, the more time we have to evaluate the options and find the best fit for you!"
   },
   {
-    question: "Can you help with furnished apartments?",
-    answer: "Absolutely! We can filter our search to include only furnished or partially furnished apartments based on your preferences. Just indicate this requirement in your application form, and we'll prioritize properties that match."
+    question: "How is Unikey different from a traditional agency?",
+    answer: "We work for students, not just listings. Personalized matching, fast response (within 24h), bilingual paperwork support, remote-friendly process, and end-to-end care until move-in."
   }
 ];
 
