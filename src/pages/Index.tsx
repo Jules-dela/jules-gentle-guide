@@ -5,7 +5,7 @@ import { Hero } from "@/components/Hero";
 import { PartnerBanner } from "@/components/PartnerBanner";
 import { StickyStackingCards } from "@/components/StickyStackingCards";
 import { FAQ } from "@/components/FAQ";
-import { ApplicationForm } from "@/components/ApplicationForm";
+import { CriteriaForm } from "@/components/CriteriaForm";
 import { Footer } from "@/components/Footer";
 import { BackToTop } from "@/components/BackToTop";
 
@@ -39,7 +39,7 @@ const Index = () => {
         <PartnerBanner />
         <StickyStackingCards />
         <FAQ />
-        <ApplicationForm />
+        <CriteriaForm />
       </main>
       <Footer />
       <BackToTop />
