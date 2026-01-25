@@ -104,7 +104,9 @@ All colors MUST be HSL.
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .animate-scroll-rtl,
-  .animate-aurora {
+  .animate-aurora,
+  .animate-aurora-fast,
+  .animate-pulse-slow {
     animation: none;
   }
 }
