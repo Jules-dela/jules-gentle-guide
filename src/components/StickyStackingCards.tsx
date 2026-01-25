@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useInView } from "framer-motion";
 
 const cards = [
   {
@@ -101,14 +101,23 @@ const Card = ({ card, index, totalCards }: CardProps) => {
 };
 
 export const StickyStackingCards = () => {
+  const headingRef = useRef<HTMLDivElement>(null);
+  const isHeadingInView = useInView(headingRef, { once: true, margin: "-100px" });
+
   return (
     <section id="features" className="py-24 md:py-32">
       <div className="container max-w-6xl">
-        <div className="text-center mb-16">
+        <motion.div 
+          ref={headingRef}
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          animate={isHeadingInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             Your Apartment Search, Simplified.
           </h2>
-        </div>
+        </motion.div>
 
         <div className="relative">
           {cards.map((card, index) => (
