@@ -42,6 +42,7 @@ const Card = ({ card, index, totalCards }: CardProps) => {
 
   // Calculate top offset for stacking effect
   const topOffset = 100 + index * 20;
+  const isReversed = index % 2 === 1;
 
   return (
     <motion.div
@@ -56,8 +57,8 @@ const Card = ({ card, index, totalCards }: CardProps) => {
     >
       <div className="p-8 md:p-12 lg:p-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-          {/* Left Side - Content */}
-          <div className="space-y-6">
+          {/* Content */}
+          <div className={`space-y-6 ${isReversed ? 'lg:order-2' : 'lg:order-1'}`}>
             <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground leading-tight">
               {card.title}
             </h3>
@@ -66,13 +67,25 @@ const Card = ({ card, index, totalCards }: CardProps) => {
             </p>
           </div>
 
-          {/* Right Side - Placeholder */}
-          <div className="order-first lg:order-last">
+          {/* Placeholder with gradient overlay */}
+          <div className={`order-first ${isReversed ? 'lg:order-1' : 'lg:order-2'}`}>
             <div 
-              className="aspect-[4/3] rounded-2xl bg-primary flex items-center justify-center"
+              className="aspect-[4/3] rounded-2xl bg-gradient-to-br from-primary via-primary to-navy-light relative overflow-hidden flex items-center justify-center"
             >
-              <div className="text-center p-8">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-primary-foreground/20 flex items-center justify-center">
+              {/* Subtle pattern overlay */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute inset-0" style={{
+                  backgroundImage: `radial-gradient(circle at 25% 25%, hsl(var(--primary-foreground)) 1px, transparent 1px),
+                                    radial-gradient(circle at 75% 75%, hsl(var(--primary-foreground)) 1px, transparent 1px)`,
+                  backgroundSize: '24px 24px'
+                }} />
+              </div>
+              {/* Glow effect */}
+              <div className="absolute top-1/4 right-1/4 w-32 h-32 bg-primary-foreground/10 rounded-full blur-3xl" />
+              <div className="absolute bottom-1/4 left-1/4 w-24 h-24 bg-primary-foreground/5 rounded-full blur-2xl" />
+              
+              <div className="text-center p-8 relative z-10">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-primary-foreground/20 backdrop-blur-sm flex items-center justify-center border border-primary-foreground/10">
                   <div className="w-8 h-8 rounded-lg bg-primary-foreground/30" />
                 </div>
                 <p className="text-sm text-primary-foreground/70">
