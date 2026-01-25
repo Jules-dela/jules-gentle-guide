@@ -13,7 +13,7 @@ const faqItems = [
   },
   {
     question: "How much does your service cost?",
-    answer: "Our service fee is a one-time payment upon successful placement. We only charge when you sign a lease for an apartment we've found for you. There are no upfront costs or hidden fees—you only pay for results."
+    answer: "Our service is strictly success-based. We believe in results, which is why we require zero upfront payments or prepayments. Our fee is equivalent to one month's rent and is only due once you have successfully signed the lease for your new home. If we don't find your perfect match, you don't pay a cent."
   },
   {
     question: "What documents will I need to apply for an apartment?",
