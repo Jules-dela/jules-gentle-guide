@@ -103,7 +103,7 @@ export const FAQ = () => {
             {/* Left Side - Sticky Header */}
             <div className="lg:sticky lg:top-32 lg:self-start space-y-8 relative">
               {/* Large FAQ Watermark */}
-              <div className="absolute -left-4 top-0 text-[120px] md:text-[160px] font-bold text-foreground/[0.07] leading-none select-none pointer-events-none">
+              <div className="absolute -left-4 top-0 text-[120px] md:text-[160px] font-bold text-foreground/10 leading-none select-none pointer-events-none">
                 FAQ
               </div>
               
