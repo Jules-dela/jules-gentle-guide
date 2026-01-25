@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import { ChevronDown, Phone, Mail } from "lucide-react";
 
 const faqItems = [
@@ -85,6 +85,8 @@ const FAQItem = ({ index, question, answer, isOpen, onToggle }: FAQItemProps) =>
 
 export const FAQ = () => {
   const [openItems, setOpenItems] = useState<number[]>([]);
+  const headingRef = useRef<HTMLDivElement>(null);
+  const isHeadingInView = useInView(headingRef, { once: true, margin: "-100px" });
 
   const toggleItem = (index: number) => {
     setOpenItems(prev => 
@@ -109,14 +111,20 @@ export const FAQ = () => {
                 FAQ
               </div>
               
-              <div className="relative z-10">
+              <motion.div 
+                ref={headingRef}
+                className="relative z-10"
+                initial={{ opacity: 0, y: 30 }}
+                animate={isHeadingInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+              >
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
                   Questions & Answers
                 </h2>
                 <p className="text-muted-foreground text-lg leading-relaxed">
                   Everything you need to know about our apartment search service. Can't find what you're looking for? Reach out to us directly.
                 </p>
-              </div>
+              </motion.div>
 
               {/* Contact Info */}
               <div className="relative z-10 space-y-4">
