@@ -21,7 +21,7 @@ export const Hero = () => {
 
         {/* Subheadline */}
         <p className="text-[16px] md:text-[20px] font-normal text-white/85 max-w-[600px] mb-8 md:mb-10">
-          We do the searching, you focus on your studies. We find it. You live it.
+          We find it. You live it.
         </p>
 
         {/* CTA Buttons */}
