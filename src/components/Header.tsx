@@ -83,7 +83,7 @@ export const Header = () => {
               Partners
             </button>
             <button 
-              onClick={() => scrollToSection('testimonials')} 
+              onClick={() => scrollToSection('features')} 
               className={`text-[16px] font-normal hover:opacity-80 transition-all duration-300 ${
                 scrolled ? 'text-[#1E3A8A]' : 'text-white'
               }`}
@@ -137,7 +137,7 @@ export const Header = () => {
                   Partners
                 </button>
                 <button 
-                  onClick={() => scrollToSection('testimonials')} 
+                  onClick={() => scrollToSection('features')} 
                   className="text-[18px] font-normal text-white hover:opacity-80 transition-opacity duration-300 text-left"
                 >
                   Services
