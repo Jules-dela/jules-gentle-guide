@@ -69,13 +69,13 @@ const Card = ({ card, index, totalCards }: CardProps) => {
           {/* Right Side - Placeholder */}
           <div className="order-first lg:order-last">
             <div 
-              className="aspect-[4/3] rounded-2xl border-2 border-dashed border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center"
+              className="aspect-[4/3] rounded-2xl bg-primary flex items-center justify-center"
             >
               <div className="text-center p-8">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <div className="w-8 h-8 rounded-lg bg-primary/20" />
+                <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-primary-foreground/20 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-lg bg-primary-foreground/30" />
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-primary-foreground/70">
                   Mockup placeholder
                 </p>
               </div>
