@@ -66,13 +66,10 @@ export const Hero = () => {
         {/* Animated Subheadline */}
         <AnimatedSlogan />
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 md:gap-5 mb-5">
-          <Button onClick={() => scrollToSection('apply')} className="bg-white text-navy hover:bg-white/95 font-medium text-[14px] md:text-[16px] px-8 md:px-10 py-3 md:py-4 h-auto rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all duration-300 w-full sm:w-auto">
-            Get matched
-          </Button>
-          <Button onClick={() => scrollToSection('testimonials')} className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-navy font-medium text-[14px] md:text-[16px] px-8 md:px-10 py-3 md:py-4 h-auto rounded-lg transition-all duration-300 w-full sm:w-auto">
-            Our services
+        {/* CTA Button */}
+        <div className="flex justify-center mb-5">
+          <Button onClick={() => scrollToSection('apply')} className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-navy font-medium text-[14px] md:text-[16px] px-8 md:px-10 py-3 md:py-4 h-auto rounded-lg transition-all duration-300">
+            Find my home
           </Button>
         </div>
       </div>
