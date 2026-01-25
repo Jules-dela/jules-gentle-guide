@@ -23,10 +23,6 @@ const faqItems = [
     question: "How long does it usually take to find an apartment?",
     answer: "The timeline varies depending on your criteria and market availability. On average, students find suitable housing within 2-4 weeks. However, we recommend starting your search at least 2 months before your desired move-in date, especially during peak seasons (August-September)."
   },
-  {
-    question: "Can you help with furnished apartments?",
-    answer: "Absolutely! We can filter our search to include only furnished or partially furnished apartments based on your preferences. Just indicate this requirement in your application form, and we'll prioritize properties that match."
-  }
 ];
 
 interface FAQItemProps {
