@@ -105,11 +105,34 @@ export default {
             backgroundPosition: "50% 50%, 50% 50%",
           },
         },
+        "aurora-fast": {
+          "0%": {
+            backgroundPosition: "0% 0%, 100% 100%",
+          },
+          "50%": {
+            backgroundPosition: "100% 100%, 0% 0%",
+          },
+          "100%": {
+            backgroundPosition: "0% 0%, 100% 100%",
+          },
+        },
+        "pulse-slow": {
+          "0%, 100%": {
+            opacity: "0.4",
+            transform: "scale(1)",
+          },
+          "50%": {
+            opacity: "0.7",
+            transform: "scale(1.1)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "aurora": "aurora 60s linear infinite",
+        "aurora": "aurora 30s linear infinite",
+        "aurora-fast": "aurora-fast 15s ease-in-out infinite",
+        "pulse-slow": "pulse-slow 8s ease-in-out infinite",
       },
     },
   },
