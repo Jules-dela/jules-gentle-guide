@@ -1,6 +1,50 @@
 import { Button } from "@/components/ui/button";
-import { ArrowDown } from "lucide-react";
 import { AuroraBackground } from "@/components/ui/aurora-background";
+import { motion } from "framer-motion";
+
+const AnimatedSlogan = () => {
+  const words = ["We", "find", "it.", "You", "live", "it."];
+  
+  const container = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.5,
+      },
+    },
+  };
+
+  const wordAnimation = {
+    hidden: { opacity: 0.3 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.4,
+        ease: "easeOut" as const,
+      },
+    },
+  };
+
+  return (
+    <motion.p
+      className="text-[16px] md:text-[20px] font-normal text-white max-w-[600px] mb-8 md:mb-10"
+      variants={container}
+      initial="hidden"
+      animate="visible"
+    >
+      {words.map((word, index) => (
+        <motion.span
+          key={index}
+          variants={wordAnimation}
+          className="inline-block mr-[0.35em]"
+        >
+          {word}
+        </motion.span>
+      ))}
+    </motion.p>
+  );
+};
 
 export const Hero = () => {
   const scrollToSection = (id: string) => {
@@ -19,10 +63,8 @@ export const Hero = () => {
           Your perfect student apartment in Lausanne.
         </h1>
 
-        {/* Subheadline */}
-        <p className="text-[16px] md:text-[20px] font-normal text-white/85 max-w-[600px] mb-8 md:mb-10">
-          We find it. You live it.
-        </p>
+        {/* Animated Subheadline */}
+        <AnimatedSlogan />
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 md:gap-5 mb-5">
