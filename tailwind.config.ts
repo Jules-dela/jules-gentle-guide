@@ -203,6 +203,33 @@ export default {
             transform: "translate(-30%, 20%)",
           },
         },
+        "float-slow": {
+          "0%, 100%": {
+            transform: "translate(0%, 0%) scale(1)",
+          },
+          "50%": {
+            transform: "translate(5%, -8%) scale(1.05)",
+          },
+        },
+        "float-slower": {
+          "0%, 100%": {
+            transform: "translate(0%, 0%) scale(1)",
+          },
+          "33%": {
+            transform: "translate(-8%, 5%) scale(1.08)",
+          },
+          "66%": {
+            transform: "translate(3%, -3%) scale(0.98)",
+          },
+        },
+        "shimmer": {
+          "0%": {
+            backgroundPosition: "-200% 0",
+          },
+          "100%": {
+            backgroundPosition: "200% 0",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -216,6 +243,9 @@ export default {
         "mesh-blob-3": "mesh-blob-3 35s ease-in-out infinite",
         "mesh-blob-4": "mesh-blob-4 55s ease-in-out infinite",
         "mesh-accent": "mesh-accent 30s ease-in-out infinite",
+        "float-slow": "float-slow 20s ease-in-out infinite",
+        "float-slower": "float-slower 30s ease-in-out infinite",
+        "shimmer": "shimmer 5s ease-in-out infinite",
       },
     },
   },
