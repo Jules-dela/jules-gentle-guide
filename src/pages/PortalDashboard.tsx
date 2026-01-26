@@ -6,7 +6,7 @@ import { Footer } from '@/components/Footer';
 import { TrackerProgressBar } from '@/components/portal/TrackerProgressBar';
 import { CriteriaSummary } from '@/components/portal/CriteriaSummary';
 import { ResearchGallery } from '@/components/portal/ResearchGallery';
-import { ViewingRoom } from '@/components/portal/ViewingRoom';
+import { VisitReport } from '@/components/portal/VisitReport';
 import { Loader2 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 
@@ -62,7 +62,7 @@ export default function PortalDashboard() {
           )}
           
           {currentStage === 3 && (
-            <ViewingRoom 
+            <VisitReport 
               key="stage-3" 
               onComplete={handleNextStep} 
               onReject={handleBackToResearch}
