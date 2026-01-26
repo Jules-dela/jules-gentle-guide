@@ -5,6 +5,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { TrackerProgressBar } from '@/components/portal/TrackerProgressBar';
 import { CriteriaSummary } from '@/components/portal/CriteriaSummary';
+import { ResearchGallery } from '@/components/portal/ResearchGallery';
 import { Loader2 } from 'lucide-react';
 
 export default function PortalDashboard() {
@@ -50,14 +51,7 @@ export default function PortalDashboard() {
         )}
         
         {currentStage === 2 && (
-          <div className="max-w-2xl mx-auto text-center py-20">
-            <h2 className="text-2xl font-bold text-foreground mb-4">
-              🔍 Research Stage
-            </h2>
-            <p className="text-muted-foreground">
-              Apartment search logic will be built here.
-            </p>
-          </div>
+          <ResearchGallery onComplete={handleNextStep} />
         )}
         
         {currentStage > 2 && (
