@@ -39,18 +39,35 @@ export const GlowingButton = ({ children, onClick, className }: GlowingButtonPro
         }}
       />
       
-      {/* Button */}
+      {/* Button with shimmer effect */}
       <Button
         onClick={onClick}
         className={cn(
-          "relative bg-[#020617] border-0 text-white font-medium",
+          "relative bg-[#020617] border-0 text-white font-medium overflow-hidden",
           "px-8 md:px-10 py-3 md:py-4 h-auto rounded-lg",
           "hover:bg-[#0a1628] transition-colors duration-300",
           "text-[14px] md:text-[16px]",
           className
         )}
       >
-        {children}
+        {/* Shimmer overlay */}
+        <motion.div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)",
+            backgroundSize: "200% 100%",
+          }}
+          animate={{
+            backgroundPosition: ["-100% 0%", "200% 0%"],
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            repeatDelay: 5,
+            ease: "easeInOut",
+          }}
+        />
+        <span className="relative z-10">{children}</span>
       </Button>
     </motion.div>
   );

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ParticleNetwork } from "@/components/ui/particle-network";
+import { GlassHeroBackground } from "@/components/ui/glass-hero-background";
 import { GlowingButton } from "@/components/ui/glowing-button";
 import { ScrollIndicator } from "@/components/ui/scroll-indicator";
 
@@ -70,27 +70,43 @@ export const Hero = () => {
   };
 
   return (
-    <ParticleNetwork particleCount={100} connectionDistance={120} mouseRadius={180}>
+    <GlassHeroBackground>
       <div className="container mx-auto px-4 md:px-6 text-center">
-        {/* Badge */}
+        {/* Badge with glassmorphism */}
         <motion.div
           custom={0}
           variants={fadeUpVariants}
           initial="hidden"
           animate="visible"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.05] border border-white/[0.1] mb-8 md:mb-10 backdrop-blur-sm"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 md:mb-10"
+          style={{
+            background: "rgba(255, 255, 255, 0.06)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            boxShadow: "0 4px 24px rgba(0, 122, 255, 0.1)",
+          }}
         >
           <span className="w-2 h-2 rounded-full bg-[#007AFF] animate-pulse shadow-[0_0_10px_rgba(0,122,255,0.8)]" />
           <span className="text-sm text-white/70 tracking-wide">UniKey</span>
         </motion.div>
 
-        {/* Title */}
+        {/* Title with glassmorphism glow */}
         <motion.div
           custom={1}
           variants={fadeUpVariants}
           initial="hidden"
           animate="visible"
+          className="relative"
         >
+          {/* Subtle glow behind text */}
+          <div 
+            className="absolute inset-0 -z-10"
+            style={{
+              background: "radial-gradient(ellipse 60% 40% at 50% 50%, rgba(0,122,255,0.15) 0%, transparent 70%)",
+              filter: "blur(40px)",
+            }}
+          />
           <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-6 md:mb-8">
             <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80">
               Your perfect student
@@ -126,6 +142,6 @@ export const Hero = () => {
       </div>
 
       <ScrollIndicator />
-    </ParticleNetwork>
+    </GlassHeroBackground>
   );
 };
