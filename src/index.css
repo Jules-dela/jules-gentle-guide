@@ -112,7 +112,10 @@ All colors MUST be HSL.
   .animate-mesh-blob-2,
   .animate-mesh-blob-3,
   .animate-mesh-blob-4,
-  .animate-mesh-accent {
+  .animate-mesh-accent,
+  .animate-float-slow,
+  .animate-float-slower,
+  .animate-shimmer {
     animation: none;
   }
 }
