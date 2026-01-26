@@ -44,10 +44,18 @@ export const Footer = () => {
           <div>
             <h3 className="text-lg font-bold mb-4">Legal & Contact</h3>
             <nav className="flex flex-col gap-2 mb-4">
-              <Link to="/privacy-policy" className="text-sm opacity-90 hover:opacity-100 transition-opacity">
+              <Link 
+                to="/privacy-policy" 
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="text-sm opacity-90 hover:opacity-100 transition-opacity"
+              >
                 Privacy Policy
               </Link>
-              <Link to="/privacy-policy" className="text-sm opacity-90 hover:opacity-100 transition-opacity">
+              <Link 
+                to="/privacy-policy" 
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="text-sm opacity-90 hover:opacity-100 transition-opacity"
+              >
                 Data Protection
               </Link>
             </nav>
