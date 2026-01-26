@@ -136,71 +136,75 @@ export default {
         },
         "mesh-blob-1": {
           "0%": {
-            transform: "translate(0%, 0%) scale(1)",
+            transform: "translate(0%, 0%) rotate(0deg)",
           },
-          "25%": {
-            transform: "translate(10%, 15%) scale(1.1)",
+          "33%": {
+            transform: "translate(8%, 12%) rotate(3deg)",
           },
-          "50%": {
-            transform: "translate(5%, 25%) scale(1)",
-          },
-          "75%": {
-            transform: "translate(-5%, 10%) scale(1.05)",
+          "66%": {
+            transform: "translate(-5%, 8%) rotate(-2deg)",
           },
           "100%": {
-            transform: "translate(0%, 0%) scale(1)",
+            transform: "translate(0%, 0%) rotate(0deg)",
           },
         },
         "mesh-blob-2": {
           "0%": {
-            transform: "translate(0%, 0%) scale(1)",
+            transform: "translate(0%, 0%) rotate(0deg)",
           },
-          "33%": {
-            transform: "translate(-15%, -10%) scale(1.15)",
+          "25%": {
+            transform: "translate(-12%, -8%) rotate(-3deg)",
           },
-          "66%": {
-            transform: "translate(-5%, -20%) scale(0.95)",
+          "50%": {
+            transform: "translate(-8%, -15%) rotate(2deg)",
+          },
+          "75%": {
+            transform: "translate(5%, -5%) rotate(-1deg)",
           },
           "100%": {
-            transform: "translate(0%, 0%) scale(1)",
+            transform: "translate(0%, 0%) rotate(0deg)",
           },
         },
         "mesh-blob-3": {
           "0%": {
             transform: "translate(0%, 0%) scale(1)",
-            opacity: "0.8",
+            opacity: "1",
           },
           "50%": {
-            transform: "translate(20%, -15%) scale(1.2)",
-            opacity: "1",
+            transform: "translate(15%, -10%) scale(1.15)",
+            opacity: "0.8",
           },
           "100%": {
             transform: "translate(0%, 0%) scale(1)",
-            opacity: "0.8",
+            opacity: "1",
           },
         },
         "mesh-blob-4": {
           "0%": {
-            transform: "translate(0%, 0%) scale(1)",
+            transform: "translate(0%, 0%) rotate(0deg)",
           },
           "40%": {
-            transform: "translate(-10%, 20%) scale(1.1)",
+            transform: "translate(-8%, 15%) rotate(4deg)",
           },
           "80%": {
-            transform: "translate(5%, 5%) scale(0.95)",
+            transform: "translate(10%, 5%) rotate(-2deg)",
           },
           "100%": {
-            transform: "translate(0%, 0%) scale(1)",
+            transform: "translate(0%, 0%) rotate(0deg)",
           },
         },
         "mesh-accent": {
           "0%, 100%": {
-            opacity: "0.6",
-            transform: "translate(0%, 0%)",
+            transform: "translate(0%, 0%) scale(1)",
+            opacity: "0.8",
           },
-          "50%": {
+          "33%": {
+            transform: "translate(-20%, 15%) scale(1.1)",
             opacity: "1",
-            transform: "translate(-30%, 20%)",
+          },
+          "66%": {
+            transform: "translate(10%, -10%) scale(0.9)",
+            opacity: "0.7",
           },
         },
       },
@@ -210,12 +214,12 @@ export default {
         "aurora": "aurora 30s linear infinite",
         "aurora-fast": "aurora-fast 15s ease-in-out infinite",
         "pulse-slow": "pulse-slow 8s ease-in-out infinite",
-        "mesh-gradient-1": "mesh-gradient-1 40s ease-in-out infinite",
-        "mesh-blob-1": "mesh-blob-1 45s ease-in-out infinite",
-        "mesh-blob-2": "mesh-blob-2 50s ease-in-out infinite",
-        "mesh-blob-3": "mesh-blob-3 35s ease-in-out infinite",
-        "mesh-blob-4": "mesh-blob-4 55s ease-in-out infinite",
-        "mesh-accent": "mesh-accent 30s ease-in-out infinite",
+        "mesh-gradient-1": "mesh-gradient-1 25s ease-in-out infinite",
+        "mesh-blob-1": "mesh-blob-1 20s ease-in-out infinite",
+        "mesh-blob-2": "mesh-blob-2 25s ease-in-out infinite",
+        "mesh-blob-3": "mesh-blob-3 18s ease-in-out infinite",
+        "mesh-blob-4": "mesh-blob-4 22s ease-in-out infinite",
+        "mesh-accent": "mesh-accent 15s ease-in-out infinite",
       },
     },
   },

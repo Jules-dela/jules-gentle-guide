@@ -26,10 +26,10 @@ export const MeshGradientBackground = ({
       const x = ((e.clientX - rect.left) / rect.width) * 100;
       const y = ((e.clientY - rect.top) / rect.height) * 100;
       
-      // Subtle effect - only move 10% toward cursor
+      // Subtle effect - move toward cursor
       setMousePosition({
-        x: 50 + (x - 50) * 0.1,
-        y: 50 + (y - 50) * 0.1,
+        x: 50 + (x - 50) * 0.15,
+        y: 50 + (y - 50) * 0.15,
       });
     };
 
@@ -41,111 +41,78 @@ export const MeshGradientBackground = ({
     <div
       ref={containerRef}
       className={cn(
-        "relative flex flex-col min-h-screen overflow-hidden",
+        "relative flex flex-col min-h-screen overflow-hidden bg-navy",
         className
       )}
-      style={{
-        backgroundColor: '#001A33', // Deep Navy base
-      }}
       {...props}
     >
-      {/* Mesh gradient layers */}
+      {/* Animated mesh gradient blobs */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Base gradient layer */}
+        {/* Large blob 1 - top left, moves diagonally */}
         <div 
-          className="absolute inset-0 animate-mesh-gradient-1"
+          className="absolute w-[120%] h-[120%] -top-[30%] -left-[20%] animate-mesh-blob-1"
           style={{
-            background: `
-              radial-gradient(ellipse 80% 60% at 20% 30%, rgba(0, 51, 102, 0.8) 0%, transparent 50%),
-              radial-gradient(ellipse 70% 50% at 80% 70%, rgba(0, 51, 102, 0.6) 0%, transparent 50%),
-              radial-gradient(ellipse 60% 80% at 50% 50%, rgba(0, 26, 51, 0.9) 0%, transparent 60%)
-            `,
-          }}
-        />
-
-        {/* Moving mesh blob 1 */}
-        <div 
-          className="absolute w-[800px] h-[800px] animate-mesh-blob-1"
-          style={{
-            top: '-10%',
-            left: '-10%',
-            background: 'radial-gradient(circle, rgba(0, 51, 102, 0.7) 0%, transparent 60%)',
-            filter: 'blur(60px)',
-          }}
-        />
-
-        {/* Moving mesh blob 2 */}
-        <div 
-          className="absolute w-[700px] h-[700px] animate-mesh-blob-2"
-          style={{
-            bottom: '-15%',
-            right: '-10%',
-            background: 'radial-gradient(circle, rgba(0, 51, 102, 0.6) 0%, transparent 55%)',
-            filter: 'blur(80px)',
-          }}
-        />
-
-        {/* Electric blue accent blob */}
-        <div 
-          className="absolute w-[500px] h-[500px] animate-mesh-blob-3"
-          style={{
-            top: '40%',
-            left: '30%',
-            background: 'radial-gradient(circle, rgba(0, 122, 255, 0.15) 0%, transparent 50%)',
+            background: 'radial-gradient(ellipse 50% 40% at 30% 40%, hsla(221, 83%, 35%, 0.8) 0%, transparent 70%)',
             filter: 'blur(40px)',
           }}
         />
 
-        {/* Secondary royal blue blob */}
+        {/* Large blob 2 - bottom right, counter-movement */}
         <div 
-          className="absolute w-[600px] h-[600px] animate-mesh-blob-4"
+          className="absolute w-[100%] h-[100%] -bottom-[20%] -right-[10%] animate-mesh-blob-2"
           style={{
-            top: '10%',
-            right: '20%',
-            background: 'radial-gradient(circle, rgba(0, 51, 102, 0.5) 0%, transparent 55%)',
-            filter: 'blur(70px)',
+            background: 'radial-gradient(ellipse 45% 50% at 70% 60%, hsla(221, 83%, 32%, 0.9) 0%, transparent 65%)',
+            filter: 'blur(50px)',
+          }}
+        />
+
+        {/* Accent blob - electric blue glow */}
+        <div 
+          className="absolute w-[80%] h-[80%] top-[10%] left-[20%] animate-mesh-blob-3"
+          style={{
+            background: 'radial-gradient(ellipse 40% 35% at 50% 50%, hsla(217, 91%, 60%, 0.25) 0%, transparent 60%)',
+            filter: 'blur(30px)',
+          }}
+        />
+
+        {/* Secondary blob - creates depth */}
+        <div 
+          className="absolute w-[90%] h-[90%] top-[5%] right-[0%] animate-mesh-blob-4"
+          style={{
+            background: 'radial-gradient(ellipse 35% 45% at 60% 30%, hsla(221, 70%, 40%, 0.6) 0%, transparent 60%)',
+            filter: 'blur(45px)',
+          }}
+        />
+
+        {/* Floating accent - cyan/teal highlight */}
+        <div 
+          className="absolute w-[60%] h-[60%] bottom-[20%] left-[30%] animate-mesh-accent"
+          style={{
+            background: 'radial-gradient(ellipse 50% 50% at 50% 50%, hsla(200, 90%, 55%, 0.15) 0%, transparent 55%)',
+            filter: 'blur(35px)',
           }}
         />
 
         {/* Mouse-following glow */}
         {enableMouseFollow && (
           <div 
-            className="absolute w-[400px] h-[400px] transition-all duration-1000 ease-out pointer-events-none"
+            className="absolute w-[500px] h-[500px] transition-all duration-700 ease-out pointer-events-none"
             style={{
               left: `${mousePosition.x}%`,
               top: `${mousePosition.y}%`,
               transform: 'translate(-50%, -50%)',
-              background: 'radial-gradient(circle, rgba(0, 122, 255, 0.12) 0%, transparent 50%)',
-              filter: 'blur(30px)',
+              background: 'radial-gradient(circle, hsla(217, 91%, 65%, 0.2) 0%, transparent 50%)',
+              filter: 'blur(25px)',
             }}
           />
         )}
-
-        {/* Subtle electric teal accent */}
-        <div 
-          className="absolute w-[300px] h-[300px] animate-mesh-accent"
-          style={{
-            bottom: '30%',
-            left: '60%',
-            background: 'radial-gradient(circle, rgba(0, 122, 255, 0.1) 0%, transparent 50%)',
-            filter: 'blur(50px)',
-          }}
-        />
       </div>
 
-      {/* Subtle noise texture overlay for depth */}
-      <div 
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-        }}
-      />
-
-      {/* Vignette overlay */}
+      {/* Vignette overlay for depth */}
       <div 
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at center, transparent 0%, rgba(0, 26, 51, 0.4) 70%, rgba(0, 26, 51, 0.7) 100%)',
+          background: 'radial-gradient(ellipse 80% 60% at 50% 50%, transparent 0%, hsla(221, 83%, 20%, 0.3) 60%, hsla(221, 83%, 15%, 0.6) 100%)',
         }}
       />
 
