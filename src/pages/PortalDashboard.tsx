@@ -1,16 +1,15 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useClientPortal } from '@/hooks/useClientPortal';
-import { PortalLayout } from '@/components/portal/PortalLayout';
-import { TimelineTracker } from '@/components/portal/TimelineTracker';
-import { CaseSummary } from '@/components/portal/CaseSummary';
+import { Header } from '@/components/Header';
+import { TrackerProgressBar } from '@/components/portal/TrackerProgressBar';
+import { CriteriaSummary } from '@/components/portal/CriteriaSummary';
 import { Loader2 } from 'lucide-react';
 
 export default function PortalDashboard() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { activeCase, profile, loading, error } = useClientPortal();
+  const [currentStage, setCurrentStage] = useState(1);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -18,9 +17,13 @@ export default function PortalDashboard() {
     }
   }, [user, authLoading, navigate]);
 
-  if (authLoading || loading) {
+  const handleNextStep = () => {
+    setCurrentStage((prev) => Math.min(prev + 1, 5));
+  };
+
+  if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -28,34 +31,45 @@ export default function PortalDashboard() {
 
   if (!user) return null;
 
-  if (!profile || !activeCase) {
-    return (
-      <PortalLayout>
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-bold mb-2">No Active Case</h1>
-          <p className="text-muted-foreground">
-            You don't have an active housing search. Please submit a request to get started.
-          </p>
-        </div>
-      </PortalLayout>
-    );
-  }
-
   return (
-    <PortalLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Welcome back, {profile.name}!</h1>
-          <p className="text-muted-foreground">Track your housing search progress below.</p>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <TimelineTracker currentStatus={activeCase.status} />
-          {activeCase.initial_criteria && (
-            <CaseSummary criteria={activeCase.initial_criteria} createdAt={activeCase.created_at} />
-          )}
-        </div>
-      </div>
-    </PortalLayout>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
+      {/* Reuse Landing Page Header */}
+      <Header />
+      
+      {/* Spacer for fixed header */}
+      <div className="h-[72px]" />
+      
+      {/* Progress Tracker */}
+      <TrackerProgressBar currentStage={currentStage} />
+      
+      {/* Main Content Area */}
+      <main className="container mx-auto px-4 py-12">
+        {currentStage === 1 && (
+          <CriteriaSummary onNextStep={handleNextStep} />
+        )}
+        
+        {currentStage === 2 && (
+          <div className="max-w-2xl mx-auto text-center py-20">
+            <h2 className="text-2xl font-bold text-foreground mb-4">
+              🔍 Research Stage
+            </h2>
+            <p className="text-muted-foreground">
+              Apartment search logic will be built here.
+            </p>
+          </div>
+        )}
+        
+        {currentStage > 2 && (
+          <div className="max-w-2xl mx-auto text-center py-20">
+            <h2 className="text-2xl font-bold text-foreground mb-4">
+              Stage {currentStage} - Coming Soon
+            </h2>
+            <p className="text-muted-foreground">
+              This stage will be implemented next.
+            </p>
+          </div>
+        )}
+      </main>
+    </div>
   );
 }
