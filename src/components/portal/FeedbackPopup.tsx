@@ -148,7 +148,7 @@ export function FeedbackPopup({ isOpen, onClose, onSubmit }: FeedbackPopupProps)
                           placeholder="Tell us more about what didn't work..."
                           value={otherText}
                           onChange={(e) => setOtherText(e.target.value)}
-                          className="mb-4 resize-none rounded-2xl border-muted focus:border-primary focus:ring-primary/20"
+                          className="mb-4 resize-none rounded-2xl border-0 bg-muted/50 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
                           rows={3}
                         />
                       </motion.div>
