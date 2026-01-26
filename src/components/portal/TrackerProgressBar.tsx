@@ -19,12 +19,13 @@ export function TrackerProgressBar({ currentStage }: TrackerProgressBarProps) {
     <div className="sticky top-[72px] z-40 bg-white/95 backdrop-blur-md border-b border-border shadow-sm">
       <div className="container mx-auto px-4 py-6">
         <div className="relative flex items-center justify-between max-w-3xl mx-auto">
-          {/* Background line */}
-          <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-muted -translate-y-1/2 z-0" />
+          {/* Background line - starts and ends at icon centers */}
+          <div className="absolute top-1/2 left-6 right-6 h-0.5 bg-muted -translate-y-1/2 z-0" />
           
           {/* Animated progress line */}
           <motion.div
-            className="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 z-10"
+            className="absolute top-1/2 left-6 h-0.5 bg-primary -translate-y-1/2 z-10"
+            style={{ width: `calc(${((currentStage - 1) / (stages.length - 1)) * 100}% - ${currentStage === 1 ? 0 : 0}px)` }}
             initial={{ width: '0%' }}
             animate={{ width: `${((currentStage - 1) / (stages.length - 1)) * 100}%` }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}
