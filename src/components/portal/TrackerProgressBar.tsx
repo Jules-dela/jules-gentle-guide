@@ -20,7 +20,7 @@ export function TrackerProgressBar({ currentStage }: TrackerProgressBarProps) {
       <div className="container mx-auto px-4 py-6">
         <div className="relative max-w-3xl mx-auto">
           {/* Background line - positioned between first and last icon centers */}
-          <div className="absolute top-5 md:top-6 left-[10%] right-[10%] h-0.5 bg-muted z-0" />
+          <div className="absolute top-5 md:top-6 left-[10%] right-[10%] h-0.5 bg-muted-foreground/30 z-0" />
           
           {/* Animated progress line */}
           <motion.div
