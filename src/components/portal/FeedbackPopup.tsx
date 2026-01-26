@@ -11,12 +11,12 @@ interface FeedbackPopupProps {
 }
 
 const feedbackTags = [
-  'Too expensive',
-  'Wrong location',
-  'Too small',
-  "Style doesn't match",
-  'Not enough light',
-  'No balcony',
+  { label: 'Price', icon: '💰' },
+  { label: 'Location', icon: '📍' },
+  { label: 'Layout', icon: '🏠' },
+  { label: 'Too small', icon: '📐' },
+  { label: 'No outdoor space', icon: '🌳' },
+  { label: 'Other', icon: '💬' },
 ];
 
 export function FeedbackPopup({ isOpen, onClose, onSubmit }: FeedbackPopupProps) {
@@ -94,16 +94,17 @@ export function FeedbackPopup({ isOpen, onClose, onSubmit }: FeedbackPopupProps)
                   <div className="flex flex-wrap gap-2 mb-6">
                     {feedbackTags.map((tag) => (
                       <button
-                        key={tag}
-                        onClick={() => toggleTag(tag)}
+                        key={tag.label}
+                        onClick={() => toggleTag(tag.label)}
                         className={cn(
-                          'px-4 py-2 rounded-full text-sm font-medium transition-all duration-200',
-                          selectedTags.includes(tag)
-                            ? 'bg-primary text-primary-foreground'
+                          'px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2',
+                          selectedTags.includes(tag.label)
+                            ? 'bg-primary text-primary-foreground shadow-md'
                             : 'bg-muted text-muted-foreground hover:bg-muted/80'
                         )}
                       >
-                        {tag}
+                        <span>{tag.icon}</span>
+                        {tag.label}
                       </button>
                     ))}
                   </div>

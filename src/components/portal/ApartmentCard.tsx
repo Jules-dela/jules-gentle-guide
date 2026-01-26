@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, MapPin, Bed, Banknote } from 'lucide-react';
+import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MapPin, Bed, Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface Apartment {
   id: string;
-  image: string;
+  images: string[];
   rent: number;
   rooms: number;
   location: string;
@@ -23,23 +23,86 @@ interface ApartmentCardProps {
 
 export function ApartmentCard({ apartment, onLike, onDislike }: ApartmentCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === apartment.images.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === 0 ? apartment.images.length - 1 : prev - 1
+    );
+  };
 
   return (
     <motion.div
       className="w-full max-w-2xl mx-auto bg-white rounded-[40px] shadow-xl overflow-hidden"
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -50 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
+      initial={{ opacity: 0, y: 60, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -40, scale: 0.9 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
     >
-      {/* Main Image */}
-      <div className="relative h-64 md:h-80 overflow-hidden">
-        <img
-          src={apartment.image}
-          alt={`Apartment in ${apartment.location}`}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+      {/* Image Carousel */}
+      <div className="relative h-64 md:h-80 overflow-hidden group">
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={currentImageIndex}
+            src={apartment.images[currentImageIndex]}
+            alt={`Apartment photo ${currentImageIndex + 1}`}
+            className="w-full h-full object-cover"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+          />
+        </AnimatePresence>
+        
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+        
+        {/* Navigation Arrows */}
+        {apartment.images.length > 1 && (
+          <>
+            <button
+              onClick={prevImage}
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white shadow-lg"
+            >
+              <ChevronLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <button
+              onClick={nextImage}
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white shadow-lg"
+            >
+              <ChevronRight className="w-5 h-5 text-foreground" />
+            </button>
+          </>
+        )}
+        
+        {/* Image Counter */}
+        <div className="absolute bottom-4 right-4 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-sm">
+          <span className="text-white text-sm font-medium">
+            {currentImageIndex + 1}/{apartment.images.length}
+          </span>
+        </div>
+        
+        {/* Dot Indicators */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+          {apartment.images.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentImageIndex(index)}
+              className={cn(
+                'w-2 h-2 rounded-full transition-all duration-300',
+                index === currentImageIndex 
+                  ? 'bg-white w-6' 
+                  : 'bg-white/50 hover:bg-white/75'
+              )}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Content */}
