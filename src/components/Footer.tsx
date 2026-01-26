@@ -51,13 +51,6 @@ export const Footer = () => {
               >
                 Privacy Policy
               </Link>
-              <Link 
-                to="/privacy-policy" 
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="text-sm opacity-90 hover:opacity-100 transition-opacity"
-              >
-                Data Protection
-              </Link>
             </nav>
             <div className="text-sm opacity-90">
               <p className="mb-1">
