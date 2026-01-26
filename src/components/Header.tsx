@@ -17,6 +17,12 @@ export const Header = () => {
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
 
+  // Detect if we're on a page with light background (portal, auth, admin, privacy)
+  const isLightBgPage = location.pathname.startsWith('/portal') || 
+                        location.pathname.startsWith('/auth') || 
+                        location.pathname.startsWith('/admin') ||
+                        location.pathname === '/privacy-policy';
+
   const portalHref = user ? (isAdmin ? "/admin" : "/portal") : "/auth";
   const portalLabel = user ? "Dashboard" : "Login";
 
@@ -61,11 +67,16 @@ export const Header = () => {
     }, 100);
   };
 
+  // Use dark text on light background pages OR when scrolled on home page
+  const useDarkText = isLightBgPage || scrolled;
+
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/10 backdrop-blur-md' : 'bg-transparent'
-      }`}
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        scrolled && "bg-white/95 backdrop-blur-md shadow-sm",
+        isLightBgPage && !scrolled && "bg-white/95 backdrop-blur-md"
+      )}
     >
       <div className="px-5 md:px-20 py-4">
         <div className="flex items-center justify-between">
@@ -73,9 +84,10 @@ export const Header = () => {
           <Link 
             to="/" 
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className={`text-[18px] font-bold transition-colors duration-300 ${
-              scrolled ? 'text-[#1E3A8A]' : 'text-white'
-            }`}
+            className={cn(
+              "text-[18px] font-bold transition-colors duration-300",
+              useDarkText ? "text-primary" : "text-white"
+            )}
           >
             UNIKEY
           </Link>
@@ -84,25 +96,28 @@ export const Header = () => {
           <nav className="hidden md:flex items-center gap-8">
             <button 
               onClick={() => scrollToSection('partners')} 
-              className={`text-[16px] font-normal hover:opacity-80 transition-all duration-300 ${
-                scrolled ? 'text-[#1E3A8A]' : 'text-white'
-              }`}
+              className={cn(
+                "text-[16px] font-normal hover:opacity-80 transition-all duration-300",
+                useDarkText ? "text-primary" : "text-white"
+              )}
             >
               Partners
             </button>
             <button 
               onClick={() => scrollToSection('features')} 
-              className={`text-[16px] font-normal hover:opacity-80 transition-all duration-300 ${
-                scrolled ? 'text-[#1E3A8A]' : 'text-white'
-              }`}
+              className={cn(
+                "text-[16px] font-normal hover:opacity-80 transition-all duration-300",
+                useDarkText ? "text-primary" : "text-white"
+              )}
             >
               Services
             </button>
             <button 
               onClick={() => scrollToSection('apply')} 
-              className={`text-[16px] font-normal hover:opacity-80 transition-all duration-300 ${
-                scrolled ? 'text-[#1E3A8A]' : 'text-white'
-              }`}
+              className={cn(
+                "text-[16px] font-normal hover:opacity-80 transition-all duration-300",
+                useDarkText ? "text-primary" : "text-white"
+              )}
             >
               Apply
             </button>
@@ -113,7 +128,7 @@ export const Header = () => {
                 variant="secondary"
                 className={cn(
                   "h-9 px-4",
-                  !scrolled && "bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+                  !useDarkText && "bg-primary-foreground text-primary hover:bg-primary-foreground/90"
                 )}
               >
                 {portalLabel}
@@ -124,9 +139,10 @@ export const Header = () => {
           {/* Mobile Hamburger Menu */}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild className="md:hidden">
-              <button className={`transition-colors duration-300 ${
-                scrolled ? 'text-[#1E3A8A]' : 'text-white'
-              }`}>
+              <button className={cn(
+                "transition-colors duration-300",
+                useDarkText ? "text-primary" : "text-white"
+              )}>
                 <Menu className="w-6 h-6" />
               </button>
             </SheetTrigger>
