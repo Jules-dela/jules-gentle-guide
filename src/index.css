@@ -106,7 +106,13 @@ All colors MUST be HSL.
   .animate-scroll-rtl,
   .animate-aurora,
   .animate-aurora-fast,
-  .animate-pulse-slow {
+  .animate-pulse-slow,
+  .animate-mesh-gradient-1,
+  .animate-mesh-blob-1,
+  .animate-mesh-blob-2,
+  .animate-mesh-blob-3,
+  .animate-mesh-blob-4,
+  .animate-mesh-accent {
     animation: none;
   }
 }

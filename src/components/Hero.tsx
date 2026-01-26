@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { AuroraBackground } from "@/components/ui/aurora-background";
+import { MeshGradientBackground } from "@/components/ui/mesh-gradient-background";
 import { motion } from "framer-motion";
 
 const AnimatedSlogan = () => {
@@ -55,7 +55,7 @@ export const Hero = () => {
   };
 
   return (
-    <AuroraBackground className="flex items-center justify-center">
+    <MeshGradientBackground className="flex items-center justify-center">
       {/* Main content */}
       <div className="relative z-10 px-5 md:px-20 w-full flex flex-col items-center text-center">
         {/* Headline */}
@@ -66,14 +66,16 @@ export const Hero = () => {
         {/* Animated Subheadline */}
         <AnimatedSlogan />
 
-        {/* CTA Button */}
+        {/* CTA Button with subtle backdrop blur */}
         <div className="flex justify-center mb-5">
-          <Button onClick={() => scrollToSection('apply')} className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-navy font-medium text-[14px] md:text-[16px] px-8 md:px-10 py-3 md:py-4 h-auto rounded-lg transition-all duration-300">
+          <Button 
+            onClick={() => scrollToSection('apply')} 
+            className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-navy font-medium text-[14px] md:text-[16px] px-8 md:px-10 py-3 md:py-4 h-auto rounded-lg transition-all duration-300 backdrop-blur-sm"
+          >
             Find my home
           </Button>
         </div>
       </div>
-
-    </AuroraBackground>
+    </MeshGradientBackground>
   );
 };

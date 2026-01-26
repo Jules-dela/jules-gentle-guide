@@ -126,6 +126,83 @@ export default {
             transform: "scale(1.1)",
           },
         },
+        "mesh-gradient-1": {
+          "0%, 100%": {
+            transform: "rotate(0deg) scale(1)",
+          },
+          "50%": {
+            transform: "rotate(3deg) scale(1.05)",
+          },
+        },
+        "mesh-blob-1": {
+          "0%": {
+            transform: "translate(0%, 0%) scale(1)",
+          },
+          "25%": {
+            transform: "translate(10%, 15%) scale(1.1)",
+          },
+          "50%": {
+            transform: "translate(5%, 25%) scale(1)",
+          },
+          "75%": {
+            transform: "translate(-5%, 10%) scale(1.05)",
+          },
+          "100%": {
+            transform: "translate(0%, 0%) scale(1)",
+          },
+        },
+        "mesh-blob-2": {
+          "0%": {
+            transform: "translate(0%, 0%) scale(1)",
+          },
+          "33%": {
+            transform: "translate(-15%, -10%) scale(1.15)",
+          },
+          "66%": {
+            transform: "translate(-5%, -20%) scale(0.95)",
+          },
+          "100%": {
+            transform: "translate(0%, 0%) scale(1)",
+          },
+        },
+        "mesh-blob-3": {
+          "0%": {
+            transform: "translate(0%, 0%) scale(1)",
+            opacity: "0.8",
+          },
+          "50%": {
+            transform: "translate(20%, -15%) scale(1.2)",
+            opacity: "1",
+          },
+          "100%": {
+            transform: "translate(0%, 0%) scale(1)",
+            opacity: "0.8",
+          },
+        },
+        "mesh-blob-4": {
+          "0%": {
+            transform: "translate(0%, 0%) scale(1)",
+          },
+          "40%": {
+            transform: "translate(-10%, 20%) scale(1.1)",
+          },
+          "80%": {
+            transform: "translate(5%, 5%) scale(0.95)",
+          },
+          "100%": {
+            transform: "translate(0%, 0%) scale(1)",
+          },
+        },
+        "mesh-accent": {
+          "0%, 100%": {
+            opacity: "0.6",
+            transform: "translate(0%, 0%)",
+          },
+          "50%": {
+            opacity: "1",
+            transform: "translate(-30%, 20%)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -133,6 +210,12 @@ export default {
         "aurora": "aurora 30s linear infinite",
         "aurora-fast": "aurora-fast 15s ease-in-out infinite",
         "pulse-slow": "pulse-slow 8s ease-in-out infinite",
+        "mesh-gradient-1": "mesh-gradient-1 40s ease-in-out infinite",
+        "mesh-blob-1": "mesh-blob-1 45s ease-in-out infinite",
+        "mesh-blob-2": "mesh-blob-2 50s ease-in-out infinite",
+        "mesh-blob-3": "mesh-blob-3 35s ease-in-out infinite",
+        "mesh-blob-4": "mesh-blob-4 55s ease-in-out infinite",
+        "mesh-accent": "mesh-accent 30s ease-in-out infinite",
       },
     },
   },
