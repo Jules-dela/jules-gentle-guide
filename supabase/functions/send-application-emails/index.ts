@@ -408,7 +408,15 @@ const handler = async (req: Request): Promise<Response> => {
             <p style="color: rgba(255,255,255,0.9); font-size: 13px; margin: 0; font-weight: 500;">
               We do the searching, you focus on your studies.
             </p>
-            <p style="color: rgba(255,255,255,0.6); font-size: 11px; margin: 12px 0 0 0;">
+            
+            <!-- Social Links -->
+            <div style="margin: 16px 0;">
+              <a href="https://instagram.com/unikey.ch" target="_blank" style="display: inline-block; text-decoration: none;">
+                <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram" width="24" height="24" style="vertical-align: middle;">
+              </a>
+            </div>
+            
+            <p style="color: rgba(255,255,255,0.6); font-size: 11px; margin: 0;">
               © 2025 Unikey | <a href="https://uni-key.ch" style="color: rgba(255,255,255,0.6);">uni-key.ch</a>
             </p>
           </div>
