@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Instagram } from "lucide-react";
 
 export const Footer = () => {
   return (
@@ -60,6 +61,15 @@ export const Footer = () => {
                 contact@uni-key.ch
               </a>
             </div>
+            <a 
+              href="https://instagram.com/unikey.ch" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 mt-3 text-sm opacity-90 hover:opacity-100 transition-opacity"
+            >
+              <Instagram size={20} />
+              <span>@unikey.ch</span>
+            </a>
           </div>
         </div>
 
