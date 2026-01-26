@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { FileText, Search, Eye, Package, Key } from 'lucide-react';
+import { FileText, Search, Eye, Share, Key } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TrackerProgressBarProps {
@@ -10,7 +10,7 @@ const stages = [
   { id: 1, label: 'My Criteria', icon: FileText },
   { id: 2, label: 'Research', icon: Search },
   { id: 3, label: 'Viewings', icon: Eye },
-  { id: 4, label: 'Documents', icon: Package },
+  { id: 4, label: 'Documents', icon: Share },
   { id: 5, label: 'Handover', icon: Key },
 ];
 
