@@ -27,23 +27,38 @@ export const AuroraBackground = ({
         <div
           className={cn(
             "absolute inset-0",
-            "[--navy-dark:220_70%_10%]",
-            "[--navy-base:221_83%_27%]",
-            "[--navy-light:221_70%_40%]",
-            "[--blue-accent:217_91%_65%]",
-            "[--indigo-glow:239_84%_67%]",
-            "[--cyan-accent:190_95%_50%]",
-            "bg-[hsl(var(--navy-base))]",
+            "[--navy-deep:210_100%_10%]",
+            "[--navy-royal:210_100%_20%]",
+            "[--navy-mid:210_80%_30%]",
+            "[--blue-electric:211_100%_50%]",
+            "[--cyan-glow:195_100%_45%]",
+            "bg-[hsl(var(--navy-deep))]",
             "after:content-[''] after:absolute after:inset-0",
-            "after:[background-image:repeating-linear-gradient(100deg,hsl(var(--navy-dark))_0%,hsl(var(--navy-dark))_7%,transparent_10%,transparent_12%,hsl(var(--navy-dark))_16%),repeating-linear-gradient(100deg,hsl(var(--blue-accent)/0.3)_10%,hsl(var(--indigo-glow)/0.25)_15%,hsl(var(--cyan-accent)/0.2)_20%,hsl(var(--blue-accent)/0.25)_25%,hsl(var(--navy-light)/0.4)_30%)]",
+            "after:[background-image:repeating-linear-gradient(100deg,hsl(var(--navy-deep))_0%,hsl(var(--navy-deep))_7%,transparent_10%,transparent_12%,hsl(var(--navy-deep))_16%),repeating-linear-gradient(100deg,hsl(var(--blue-electric)/0.25)_10%,hsl(var(--navy-royal)/0.3)_15%,hsl(var(--cyan-glow)/0.15)_20%,hsl(var(--blue-electric)/0.2)_25%,hsl(var(--navy-mid)/0.35)_30%)]",
             "after:[background-size:250%_200%]",
             "after:[background-position:50%_50%]",
             "after:animate-aurora",
-            "after:opacity-80",
-            "after:[filter:blur(8px)]",
+            "after:opacity-70",
+            "after:[filter:blur(10px)]",
             "after:will-change-transform"
           )}
         />
+        
+        {/* Secondary aurora layer - faster, different direction */}
+        <div
+          className={cn(
+            "absolute inset-0",
+            "opacity-50",
+            "[background-image:repeating-linear-gradient(45deg,transparent_0%,hsl(211_100%_50%/0.12)_5%,transparent_10%,hsl(210_100%_20%/0.15)_15%,transparent_20%),repeating-linear-gradient(-45deg,transparent_0%,hsl(195_100%_45%/0.08)_8%,transparent_16%)]",
+            "[background-size:200%_200%]",
+            "animate-aurora-fast",
+            "[filter:blur(25px)]"
+          )}
+        />
+        
+        {/* Accent glow spots */}
+        <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,hsl(211_100%_50%/0.2)_0%,transparent_60%)] animate-pulse-slow" />
+        <div className="absolute bottom-1/3 left-1/3 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle,hsl(210_100%_20%/0.25)_0%,transparent_60%)] animate-pulse-slow [animation-delay:2s]" />
         
         {/* Secondary aurora layer - faster, different direction */}
         <div
@@ -64,7 +79,7 @@ export const AuroraBackground = ({
 
       {/* Radial gradient overlay for vignette effect */}
       {showRadialGradient && (
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(221_83%_27%/0.4)_50%,hsl(221_83%_27%/0.8)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(210_100%_10%/0.5)_50%,hsl(210_100%_10%/0.85)_100%)]" />
       )}
 
       {/* Content layer */}
