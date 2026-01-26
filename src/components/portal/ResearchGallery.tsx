@@ -2,17 +2,23 @@ import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ApartmentCard } from './ApartmentCard';
 import { FeedbackPopup } from './FeedbackPopup';
-import { Heart } from 'lucide-react';
+import { Heart, Check } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface ResearchGalleryProps {
   onComplete: () => void;
 }
 
-// Dummy apartment data
+// Dummy apartment data with multiple images
 const dummyApartments = [
   {
     id: '1',
-    image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&auto=format&fit=crop&q=80',
+    ],
     rent: 1850,
     rooms: 2.5,
     location: 'Lausanne',
@@ -29,7 +35,11 @@ const dummyApartments = [
   },
   {
     id: '2',
-    image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80',
+    ],
     rent: 1650,
     rooms: 2,
     location: 'Lausanne',
@@ -46,7 +56,12 @@ const dummyApartments = [
   },
   {
     id: '3',
-    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80',
+    ],
     rent: 2100,
     rooms: 3.5,
     location: 'Lausanne',
@@ -86,6 +101,12 @@ export function ResearchGallery({ onComplete }: ResearchGalleryProps) {
     console.log('Feedback submitted:', reasons);
     setShowFeedback(false);
     
+    // Show toast notification
+    toast({
+      title: "Searching for new matches...",
+      description: "We're refining your search based on your feedback.",
+    });
+    
     // Move to next apartment or loop back
     if (currentIndex < dummyApartments.length - 1) {
       setCurrentIndex((prev) => prev + 1);
@@ -100,17 +121,35 @@ export function ResearchGallery({ onComplete }: ResearchGalleryProps) {
 
   return (
     <div className="relative min-h-[600px] py-8">
+      {/* Section Header */}
+      <motion.div 
+        className="text-center mb-8"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+          Curated For You
+        </h2>
+        <p className="text-muted-foreground">
+          Swipe through properties we've hand-picked based on your criteria
+        </p>
+      </motion.div>
+
       {/* Progress indicator */}
       <div className="flex justify-center gap-2 mb-8">
         {dummyApartments.map((_, index) => (
-          <div
+          <motion.div
             key={index}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: index * 0.1, duration: 0.3 }}
+            className={`h-2 rounded-full transition-all duration-500 ${
               index === currentIndex
-                ? 'w-8 bg-primary'
+                ? 'w-10 bg-primary'
                 : index < currentIndex
-                ? 'bg-primary/50'
-                : 'bg-muted'
+                ? 'w-2 bg-primary/50'
+                : 'w-2 bg-muted-foreground/30'
             }`}
           />
         ))}
@@ -132,35 +171,59 @@ export function ResearchGallery({ onComplete }: ResearchGalleryProps) {
       <AnimatePresence>
         {showSuccess && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.5 }}
-            className="absolute inset-0 flex flex-col items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50"
           >
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', damping: 10, stiffness: 200, delay: 0.2 }}
-              className="w-24 h-24 rounded-full bg-primary flex items-center justify-center mb-6 shadow-xl shadow-primary/30"
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: 'spring', damping: 12, stiffness: 200, delay: 0.1 }}
+              className="w-24 h-24 rounded-full bg-primary flex items-center justify-center mb-6 shadow-2xl shadow-primary/40"
             >
-              <Heart className="w-12 h-12 text-primary-foreground fill-primary-foreground" />
+              <Check className="w-12 h-12 text-primary-foreground" strokeWidth={3} />
             </motion.div>
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.3 }}
               className="text-2xl md:text-3xl font-bold text-foreground mb-2"
             >
-              Great Choice!
+              Excellent Choice!
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="text-muted-foreground"
+              transition={{ delay: 0.4 }}
+              className="text-muted-foreground text-center max-w-sm"
             >
-              Scheduling your viewing...
+              We're scheduling a professional viewing for you...
             </motion.p>
+            
+            {/* Loading dots */}
+            <motion.div 
+              className="flex gap-1.5 mt-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  className="w-2 h-2 rounded-full bg-primary"
+                  animate={{ 
+                    scale: [1, 1.3, 1],
+                    opacity: [0.5, 1, 0.5]
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    delay: i * 0.2,
+                  }}
+                />
+              ))}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
