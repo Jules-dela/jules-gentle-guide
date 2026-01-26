@@ -6,7 +6,9 @@ import { Footer } from '@/components/Footer';
 import { TrackerProgressBar } from '@/components/portal/TrackerProgressBar';
 import { CriteriaSummary } from '@/components/portal/CriteriaSummary';
 import { ResearchGallery } from '@/components/portal/ResearchGallery';
+import { ViewingRoom } from '@/components/portal/ViewingRoom';
 import { Loader2 } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 
 export default function PortalDashboard() {
   const { user, loading: authLoading } = useAuth();
@@ -21,6 +23,10 @@ export default function PortalDashboard() {
 
   const handleNextStep = () => {
     setCurrentStage((prev) => Math.min(prev + 1, 5));
+  };
+
+  const handleBackToResearch = () => {
+    setCurrentStage(2);
   };
 
   if (authLoading) {
@@ -46,24 +52,34 @@ export default function PortalDashboard() {
       
       {/* Main Content Area */}
       <main className="container mx-auto px-4 py-12">
-        {currentStage === 1 && (
-          <CriteriaSummary onNextStep={handleNextStep} />
-        )}
-        
-        {currentStage === 2 && (
-          <ResearchGallery onComplete={handleNextStep} />
-        )}
-        
-        {currentStage > 2 && (
-          <div className="max-w-2xl mx-auto text-center py-20">
-            <h2 className="text-2xl font-bold text-foreground mb-4">
-              Stage {currentStage} - Coming Soon
-            </h2>
-            <p className="text-muted-foreground">
-              This stage will be implemented next.
-            </p>
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          {currentStage === 1 && (
+            <CriteriaSummary key="stage-1" onNextStep={handleNextStep} />
+          )}
+          
+          {currentStage === 2 && (
+            <ResearchGallery key="stage-2" onComplete={handleNextStep} />
+          )}
+          
+          {currentStage === 3 && (
+            <ViewingRoom 
+              key="stage-3" 
+              onComplete={handleNextStep} 
+              onReject={handleBackToResearch}
+            />
+          )}
+          
+          {currentStage > 3 && (
+            <div key="stage-placeholder" className="max-w-2xl mx-auto text-center py-20">
+              <h2 className="text-2xl font-bold text-foreground mb-4">
+                Stage {currentStage} - Coming Soon
+              </h2>
+              <p className="text-muted-foreground">
+                This stage will be implemented next.
+              </p>
+            </div>
+          )}
+        </AnimatePresence>
       </main>
       
       {/* Footer */}
