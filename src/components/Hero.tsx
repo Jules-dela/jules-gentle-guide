@@ -1,4 +1,4 @@
-import { MeshGradientBackground } from "@/components/ui/mesh-gradient-background";
+import { AuroraBackground } from "@/components/ui/aurora-background";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
@@ -55,7 +55,7 @@ export const Hero = () => {
   };
 
   return (
-    <MeshGradientBackground className="flex items-center justify-center">
+    <AuroraBackground className="flex items-center justify-center">
       {/* Main content */}
       <div className="relative z-10 px-5 md:px-20 w-full flex flex-col items-center text-center">
         {/* Headline */}
@@ -77,6 +77,6 @@ export const Hero = () => {
           </Button>
         </div>
       </div>
-    </MeshGradientBackground>
+    </AuroraBackground>
   );
 };

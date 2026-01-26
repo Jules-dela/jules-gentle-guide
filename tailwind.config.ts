@@ -95,14 +95,11 @@ export default {
           },
         },
         "aurora": {
-          "0%": {
+          from: {
             backgroundPosition: "50% 50%, 50% 50%",
           },
-          "50%": {
+          to: {
             backgroundPosition: "350% 50%, 350% 50%",
-          },
-          "100%": {
-            backgroundPosition: "50% 50%, 50% 50%",
           },
         },
         "aurora-fast": {
@@ -234,7 +231,7 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "aurora": "aurora 30s linear infinite",
+        "aurora": "aurora 60s linear infinite",
         "aurora-fast": "aurora-fast 15s ease-in-out infinite",
         "pulse-slow": "pulse-slow 8s ease-in-out infinite",
         "mesh-gradient-1": "mesh-gradient-1 40s ease-in-out infinite",
