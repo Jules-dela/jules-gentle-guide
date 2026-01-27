@@ -259,6 +259,31 @@ export default function PortalDashboard() {
       {/* Progress Tracker */}
       <TrackerProgressBar currentStage={currentStage} onStageClick={setCurrentStage} />
       
+      {/* Return to Current Stage Banner */}
+      <AnimatePresence>
+        {isReadOnly && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="container mx-auto px-4 mt-4"
+          >
+            <div className="bg-primary/10 border border-primary/20 rounded-lg px-4 py-3 flex items-center justify-between gap-4">
+              <p className="text-sm text-muted-foreground">
+                You're viewing a previous stage
+              </p>
+              <Button 
+                size="sm" 
+                onClick={() => setCurrentStage(highestStage)}
+                className="shrink-0"
+              >
+                Return to Current Stage
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
       {/* Main Content Area */}
       <main className="container mx-auto px-4 py-12">
         <AnimatePresence mode="wait">
