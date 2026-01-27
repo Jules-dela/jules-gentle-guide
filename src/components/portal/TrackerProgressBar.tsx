@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 
 interface TrackerProgressBarProps {
   currentStage: number;
+  onStageClick?: (stage: number) => void;
 }
 
 const stages = [
@@ -14,7 +15,7 @@ const stages = [
   { id: 5, label: 'Handover', icon: Key },
 ];
 
-export function TrackerProgressBar({ currentStage }: TrackerProgressBarProps) {
+export function TrackerProgressBar({ currentStage, onStageClick }: TrackerProgressBarProps) {
   return (
     <div className="sticky top-[72px] z-40 bg-white/95 backdrop-blur-md border-b border-border shadow-sm">
       <div className="container mx-auto px-4 py-6">
@@ -39,12 +40,17 @@ export function TrackerProgressBar({ currentStage }: TrackerProgressBarProps) {
               const isCompleted = stage.id < currentStage;
               
               return (
-                <motion.div
+                <motion.button
                   key={stage.id}
-                  className="flex flex-col items-center"
+                  className={cn(
+                    "flex flex-col items-center",
+                    (isCompleted || isActive) && onStageClick && "cursor-pointer"
+                  )}
+                  onClick={() => (isCompleted || isActive) && onStageClick?.(stage.id)}
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: stage.id * 0.1, duration: 0.3 }}
+                  disabled={!isCompleted && !isActive}
                 >
                   <motion.div
                     className={cn(
@@ -53,8 +59,8 @@ export function TrackerProgressBar({ currentStage }: TrackerProgressBarProps) {
                       isCompleted && 'bg-primary text-primary-foreground',
                       !isActive && !isCompleted && 'bg-white border-2 border-muted text-muted-foreground'
                     )}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={(isCompleted || isActive) ? { scale: 1.1 } : {}}
+                    whileTap={(isCompleted || isActive) ? { scale: 0.95 } : {}}
                   >
                     <Icon className="w-4 h-4 md:w-5 md:h-5" />
                   </motion.div>
@@ -71,7 +77,7 @@ export function TrackerProgressBar({ currentStage }: TrackerProgressBarProps) {
                   >
                     {stage.label}
                   </motion.span>
-                </motion.div>
+                </motion.button>
               );
             })}
           </div>
