@@ -243,7 +243,8 @@ export default function PortalDashboard() {
               apartment={selectedApartment}
               documents={documents}
               onUpload={uploadDocument}
-              onComplete={handleNextStep} 
+              onComplete={handleNextStep}
+              onPreviewHandover={() => setCurrentStage(5)}
             />
           )}
           

@@ -38,6 +38,7 @@ interface DocumentsDossierProps {
   documents?: CaseDocument[];
   onUpload?: (documentId: string, file: File) => Promise<{ error: Error | null }>;
   onComplete: () => void;
+  onPreviewHandover?: () => void;
 }
 
 // Default document templates (used when no real documents exist)
@@ -121,7 +122,7 @@ const statusConfig = {
   },
 };
 
-export function DocumentsDossier({ apartment, documents: dbDocuments, onUpload, onComplete }: DocumentsDossierProps) {
+export function DocumentsDossier({ apartment, documents: dbDocuments, onUpload, onComplete, onPreviewHandover }: DocumentsDossierProps) {
   // Convert DB documents to UI format, or use defaults for demo
   const initialDocs = useMemo(() => {
     if (dbDocuments && dbDocuments.length > 0) {
@@ -451,9 +452,21 @@ export function DocumentsDossier({ apartment, documents: dbDocuments, onUpload, 
               </Button>
               
               {!allRequiredUploaded && (
-                <p className="text-center text-sm text-muted-foreground mt-3">
-                  {requiredDocs.filter(d => d.status === 'missing' || d.status === 'rejected').length} required document(s) remaining
-                </p>
+                <div className="text-center mt-3 space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    {requiredDocs.filter(d => d.status === 'missing' || d.status === 'rejected').length} required document(s) remaining
+                  </p>
+                  {onPreviewHandover && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={onPreviewHandover}
+                      className="text-xs text-muted-foreground hover:text-primary underline-offset-4 hover:underline"
+                    >
+                      Preview Handover Stage →
+                    </Button>
+                  )}
+                </div>
               )}
             </motion.div>
           </motion.div>
