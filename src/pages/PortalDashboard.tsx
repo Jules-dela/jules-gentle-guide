@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useClientPortal } from '@/hooks/useClientPortal';
 import { Header } from '@/components/Header';
@@ -13,7 +13,36 @@ import { KeyHandoverStage } from '@/components/portal/KeyHandoverStage';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import type { CaseStatus, PropertyProposal } from '@/types/portal';
+import type { CaseStatus, PropertyProposal, KeyHandover } from '@/types/portal';
+
+// Demo data for preview mode
+const DEMO_APARTMENT: SelectedApartment = {
+  id: 'demo-apt',
+  images: [
+    'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80',
+  ],
+  rent: 1850,
+  rooms: 2.5,
+  location: 'Rue de la Louve 12, 1003 Lausanne',
+  neighborhood: 'Lausanne Centre',
+  description: 'Beautiful 2.5 room apartment in the heart of Lausanne with stunning lake views.',
+  amenities: ['Balcony', 'Dishwasher', 'Elevator', 'Lake View'],
+};
+
+const DEMO_KEY_HANDOVER: KeyHandover = {
+  id: 'demo-handover',
+  case_id: 'demo-case',
+  scheduled_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 1 week from now
+  scheduled_time: '10:00',
+  location: 'Rue de la Louve 12, 1003 Lausanne',
+  contact_person: 'Jules',
+  contact_phone: '+41781234567',
+  confirmed_by_client: false,
+  notes: 'Please bring your ID and a copy of the signed lease.',
+  created_at: new Date().toISOString(),
+};
 
 // Map case status to portal stage number
 function getStageFromStatus(status: CaseStatus | undefined): number {
@@ -69,24 +98,34 @@ export default function PortalDashboard() {
     refetch
   } = useClientPortal();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  // Check for demo mode via URL parameter
+  const isDemoMode = searchParams.get('demo') === 'true';
+  const demoStage = searchParams.get('stage') ? parseInt(searchParams.get('stage')!, 10) : null;
   
   // Determine stage from case status
   const caseStage = useMemo(() => getStageFromStatus(activeCase?.status), [activeCase?.status]);
-  const [currentStage, setCurrentStage] = useState(caseStage);
-  const [selectedApartment, setSelectedApartment] = useState<SelectedApartment | null>(null);
+  const [currentStage, setCurrentStage] = useState(isDemoMode && demoStage ? demoStage : caseStage);
+  const [selectedApartment, setSelectedApartment] = useState<SelectedApartment | null>(
+    isDemoMode ? DEMO_APARTMENT : null
+  );
 
-  // Sync stage with case status
+  // Sync stage with case status (only if not in demo mode)
   useEffect(() => {
-    setCurrentStage(caseStage);
-  }, [caseStage]);
+    if (!isDemoMode) {
+      setCurrentStage(caseStage);
+    }
+  }, [caseStage, isDemoMode]);
 
-  // Find liked proposal for stages 3-5
+  // Find liked proposal for stages 3-5 (only if not in demo mode)
   useEffect(() => {
+    if (isDemoMode) return;
     const likedProposal = proposals.find(p => p.client_status === 'liked');
     if (likedProposal && !selectedApartment) {
       setSelectedApartment(proposalToApartment(likedProposal));
     }
-  }, [proposals, selectedApartment]);
+  }, [proposals, selectedApartment, isDemoMode]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -132,8 +171,8 @@ export default function PortalDashboard() {
     [proposals]
   );
 
-  // Loading state
-  if (authLoading || portalLoading) {
+  // Loading state (skip for demo mode)
+  if (!isDemoMode && (authLoading || portalLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -141,10 +180,11 @@ export default function PortalDashboard() {
     );
   }
 
-  if (!user) return null;
+  // Skip auth check in demo mode
+  if (!isDemoMode && !user) return null;
 
-  // Error state
-  if (error) {
+  // Error state (skip for demo mode)
+  if (!isDemoMode && error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
         <Header />
@@ -168,8 +208,8 @@ export default function PortalDashboard() {
     );
   }
 
-  // No profile/case state - show welcome message
-  if (!profile || !activeCase) {
+  // No profile/case state - show welcome message (skip for demo mode)
+  if (!isDemoMode && (!profile || !activeCase)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
         <Header />
@@ -194,6 +234,10 @@ export default function PortalDashboard() {
       </div>
     );
   }
+  
+  // Use demo data or real data
+  const displayKeyHandover = isDemoMode ? DEMO_KEY_HANDOVER : keyHandover;
+  const displayUserName = isDemoMode ? 'Demo User' : profile?.name;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
@@ -252,8 +296,8 @@ export default function PortalDashboard() {
             <KeyHandoverStage 
               key="stage-5" 
               apartment={selectedApartment}
-              keyHandover={keyHandover}
-              userName={profile?.name}
+              keyHandover={displayKeyHandover}
+              userName={displayUserName}
             />
           )}
         </AnimatePresence>
