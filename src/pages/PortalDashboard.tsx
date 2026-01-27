@@ -5,7 +5,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { TrackerProgressBar } from '@/components/portal/TrackerProgressBar';
 import { CriteriaSummary } from '@/components/portal/CriteriaSummary';
-import { ResearchGallery } from '@/components/portal/ResearchGallery';
+import { ResearchGallery, type SelectedApartment } from '@/components/portal/ResearchGallery';
 import { VisitReport } from '@/components/portal/VisitReport';
 import { Loader2 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
@@ -14,6 +14,7 @@ export default function PortalDashboard() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [currentStage, setCurrentStage] = useState(1);
+  const [selectedApartment, setSelectedApartment] = useState<SelectedApartment | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -21,7 +22,15 @@ export default function PortalDashboard() {
     }
   }, [user, authLoading, navigate]);
 
-  const handleNextStep = () => {
+  const handleNextStep = (apartment?: SelectedApartment) => {
+    if (apartment) {
+      setSelectedApartment(apartment);
+    }
+    setCurrentStage((prev) => Math.min(prev + 1, 5));
+  };
+
+  const handleResearchComplete = (apartment: SelectedApartment) => {
+    setSelectedApartment(apartment);
     setCurrentStage((prev) => Math.min(prev + 1, 5));
   };
 
@@ -58,12 +67,13 @@ export default function PortalDashboard() {
           )}
           
           {currentStage === 2 && (
-            <ResearchGallery key="stage-2" onComplete={handleNextStep} />
+            <ResearchGallery key="stage-2" onComplete={handleResearchComplete} />
           )}
           
-          {currentStage === 3 && (
+          {currentStage === 3 && selectedApartment && (
             <VisitReport 
               key="stage-3" 
+              apartment={selectedApartment}
               onComplete={handleNextStep} 
               onReject={handleBackToResearch}
             />
