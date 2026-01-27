@@ -8,6 +8,7 @@ import type { ClientInteraction } from '@/types/admin';
 interface NotificationFeedProps {
   interactions: ClientInteraction[];
   isLoading?: boolean;
+  className?: string;
 }
 
 const interactionConfig: Record<string, { icon: React.ElementType; color: string; bgColor: string }> = {
@@ -17,14 +18,14 @@ const interactionConfig: Record<string, { icon: React.ElementType; color: string
   feedback: { icon: MessageSquare, color: 'text-purple-600', bgColor: 'bg-purple-100' },
 };
 
-export function NotificationFeed({ interactions, isLoading }: NotificationFeedProps) {
+export function NotificationFeed({ interactions, isLoading, className }: NotificationFeedProps) {
   const getInteractionInfo = (type: string) => {
     return interactionConfig[type] || { icon: Bell, color: 'text-gray-600', bgColor: 'bg-gray-100' };
   };
 
   if (isLoading) {
     return (
-      <div className="bg-background rounded-xl border h-full">
+      <div className={cn("bg-background rounded-xl border", className)}>
         <div className="p-4 border-b">
           <h3 className="font-semibold text-foreground">Recent Interactions</h3>
         </div>
@@ -40,10 +41,10 @@ export function NotificationFeed({ interactions, isLoading }: NotificationFeedPr
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.2 }}
-      className="bg-background rounded-xl border h-full flex flex-col"
+      className={cn("bg-background rounded-xl border flex flex-col", className)}
     >
-      <div className="p-4 border-b shrink-0">
-        <h3 className="font-semibold text-foreground flex items-center gap-2">
+      <div className="p-3 sm:p-4 border-b shrink-0">
+        <h3 className="font-semibold text-foreground flex items-center gap-2 text-sm sm:text-base">
           <Bell className="h-4 w-4" />
           Recent Interactions
         </h3>
@@ -68,21 +69,21 @@ export function NotificationFeed({ interactions, isLoading }: NotificationFeedPr
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                    className="p-2.5 sm:p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className={cn('w-8 h-8 rounded-full flex items-center justify-center shrink-0', info.bgColor)}>
-                        <Icon className={cn('w-4 h-4', info.color)} />
+                    <div className="flex items-start gap-2.5 sm:gap-3">
+                      <div className={cn('w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0', info.bgColor)}>
+                        <Icon className={cn('w-3.5 h-3.5 sm:w-4 sm:h-4', info.color)} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground">
                           {interaction.client_name}
                         </p>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
+                        <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
                           {interaction.description}
                         </p>
                         {interaction.reason && (
-                          <p className="text-xs text-red-600 mt-1 italic">
+                          <p className="text-xs text-red-600 mt-1 italic line-clamp-1">
                             Reason: {interaction.reason}
                           </p>
                         )}
