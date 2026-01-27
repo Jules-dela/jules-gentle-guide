@@ -37,22 +37,22 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Page Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Overview</h1>
-            <p className="text-muted-foreground">Track all student housing searches</p>
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Overview</h1>
+            <p className="text-sm text-muted-foreground hidden sm:block">Track all student housing searches</p>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={refetch}
             disabled={loading}
-            className="gap-2"
+            className="gap-2 shrink-0"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
         </div>
 
@@ -63,14 +63,14 @@ export default function AdminDashboard() {
           issues={stats.issues}
         />
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content - Stack on mobile, grid on desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Master Table */}
-          <div className="lg:col-span-2">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-foreground">All Students</h2>
-              <p className="text-sm text-muted-foreground">
-                Click on a row to view details and manage their search
+          <div className="lg:col-span-2 order-2 lg:order-1">
+            <div className="mb-3 sm:mb-4">
+              <h2 className="text-base sm:text-lg font-semibold text-foreground">All Students</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Tap to view details
               </p>
             </div>
             <ClientsTable
@@ -80,9 +80,13 @@ export default function AdminDashboard() {
             />
           </div>
 
-          {/* Notification Feed */}
-          <div className="lg:col-span-1 h-[500px]">
-            <NotificationFeed interactions={interactions} isLoading={loading} />
+          {/* Notification Feed - Shows first on mobile */}
+          <div className="lg:col-span-1 order-1 lg:order-2">
+            <NotificationFeed 
+              interactions={interactions} 
+              isLoading={loading}
+              className="h-64 sm:h-80 lg:h-[500px]"
+            />
           </div>
         </div>
 
