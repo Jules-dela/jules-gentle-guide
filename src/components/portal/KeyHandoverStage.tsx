@@ -68,9 +68,7 @@ export function KeyHandoverStage({ apartment, keyHandover, userName = 'New Resid
   const contactPhone = keyHandover?.contact_phone || '41781234567';
   const contactPerson = keyHandover?.contact_person || 'Jules';
 
-  const handleWhatsApp = () => {
-    window.open(`https://wa.me/${contactPhone.replace(/[^0-9]/g, '')}?text=Hello%20${contactPerson},%20I%20would%20like%20to%20coordinate%20my%20arrival.`, '_blank');
-  };
+  const whatsappUrl = `https://wa.me/${contactPhone.replace(/[^0-9]/g, '')}?text=Hello%20${contactPerson},%20I%20would%20like%20to%20coordinate%20my%20arrival.`;
 
   const handleDownload = () => {
     // Simulate PDF download
@@ -289,12 +287,14 @@ export function KeyHandoverStage({ apartment, keyHandover, userName = 'New Resid
           Download Lease Agreement (PDF)
         </Button>
         <Button 
-          onClick={handleWhatsApp}
+          asChild
           variant="outline"
           className="flex-1 h-14 rounded-2xl gap-3 text-base font-medium border-2 hover:bg-green-50 hover:border-green-300 hover:text-green-700"
         >
-          <MessageCircle className="w-5 h-5" />
-          Contact Jules for Arrival
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+            <MessageCircle className="w-5 h-5" />
+            Contact Jules for Arrival
+          </a>
         </Button>
       </motion.div>
 
