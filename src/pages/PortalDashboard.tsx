@@ -7,6 +7,7 @@ import { TrackerProgressBar } from '@/components/portal/TrackerProgressBar';
 import { CriteriaSummary } from '@/components/portal/CriteriaSummary';
 import { ResearchGallery, type SelectedApartment } from '@/components/portal/ResearchGallery';
 import { VisitReport } from '@/components/portal/VisitReport';
+import { DocumentsDossier } from '@/components/portal/DocumentsDossier';
 import { Loader2 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 
@@ -79,13 +80,21 @@ export default function PortalDashboard() {
             />
           )}
           
-          {currentStage > 3 && (
+          {currentStage === 4 && selectedApartment && (
+            <DocumentsDossier 
+              key="stage-4" 
+              apartment={selectedApartment}
+              onComplete={handleNextStep} 
+            />
+          )}
+          
+          {currentStage > 4 && (
             <div key="stage-placeholder" className="max-w-2xl mx-auto text-center py-20">
               <h2 className="text-2xl font-bold text-foreground mb-4">
-                Stage {currentStage} - Coming Soon
+                Stage {currentStage} - Key Handover
               </h2>
               <p className="text-muted-foreground">
-                This stage will be implemented next.
+                Congratulations! Your key handover details will appear here soon.
               </p>
             </div>
           )}
