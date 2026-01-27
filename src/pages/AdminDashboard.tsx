@@ -7,6 +7,7 @@ import { StatCards } from '@/components/admin/StatCards';
 import { ClientsTable } from '@/components/admin/ClientsTable';
 import { NotificationFeed } from '@/components/admin/NotificationFeed';
 import { ClientSidePanel } from '@/components/admin/ClientSidePanel';
+import { NotificationBell } from '@/components/admin/NotificationBell';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import type { ClientWithCase } from '@/types/admin';
@@ -44,16 +45,19 @@ export default function AdminDashboard() {
             <h1 className="text-xl sm:text-2xl font-bold text-foreground">Overview</h1>
             <p className="text-sm text-muted-foreground hidden sm:block">Track all student housing searches</p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={refetch}
-            disabled={loading}
-            className="gap-2 shrink-0"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <NotificationBell interactions={interactions} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refetch}
+              disabled={loading}
+              className="gap-2 shrink-0"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Refresh</span>
+            </Button>
+          </div>
         </div>
 
         {/* Stat Cards */}
