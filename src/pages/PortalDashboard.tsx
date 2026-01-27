@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useClientPortal } from '@/hooks/useClientPortal';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { TrackerProgressBar } from '@/components/portal/TrackerProgressBar';
@@ -8,11 +9,13 @@ import { CriteriaSummary } from '@/components/portal/CriteriaSummary';
 import { ResearchGallery, type SelectedApartment } from '@/components/portal/ResearchGallery';
 import { VisitReport } from '@/components/portal/VisitReport';
 import { DocumentsDossier } from '@/components/portal/DocumentsDossier';
+import { KeyHandoverStage } from '@/components/portal/KeyHandoverStage';
 import { Loader2 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 
 export default function PortalDashboard() {
   const { user, loading: authLoading } = useAuth();
+  const { profile } = useClientPortal();
   const navigate = useNavigate();
   const [currentStage, setCurrentStage] = useState(1);
   const [selectedApartment, setSelectedApartment] = useState<SelectedApartment | null>(null);
@@ -88,15 +91,12 @@ export default function PortalDashboard() {
             />
           )}
           
-          {currentStage > 4 && (
-            <div key="stage-placeholder" className="max-w-2xl mx-auto text-center py-20">
-              <h2 className="text-2xl font-bold text-foreground mb-4">
-                Stage {currentStage} - Key Handover
-              </h2>
-              <p className="text-muted-foreground">
-                Congratulations! Your key handover details will appear here soon.
-              </p>
-            </div>
+          {currentStage > 4 && selectedApartment && (
+            <KeyHandoverStage 
+              key="stage-5" 
+              apartment={selectedApartment}
+              userName={profile?.name}
+            />
           )}
         </AnimatePresence>
       </main>
