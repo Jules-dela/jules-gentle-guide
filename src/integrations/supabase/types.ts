@@ -299,6 +299,10 @@ export type Database = {
           rooms: number | null
           size_sqm: number | null
           tags: string[] | null
+          visit_cons: string[] | null
+          visit_photos: string[] | null
+          visit_pros: string[] | null
+          visit_published: boolean | null
         }
         Insert: {
           address?: string | null
@@ -318,6 +322,10 @@ export type Database = {
           rooms?: number | null
           size_sqm?: number | null
           tags?: string[] | null
+          visit_cons?: string[] | null
+          visit_photos?: string[] | null
+          visit_pros?: string[] | null
+          visit_published?: boolean | null
         }
         Update: {
           address?: string | null
@@ -337,6 +345,10 @@ export type Database = {
           rooms?: number | null
           size_sqm?: number | null
           tags?: string[] | null
+          visit_cons?: string[] | null
+          visit_photos?: string[] | null
+          visit_pros?: string[] | null
+          visit_published?: boolean | null
         }
         Relationships: [
           {
