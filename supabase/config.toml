@@ -2,3 +2,6 @@ project_id = "yqeihbthxnmtjpewbfdf"
 
 [functions.send-application-emails]
 verify_jwt = false
+
+[functions.send-portal-notifications]
+verify_jwt = false
