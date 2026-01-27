@@ -248,7 +248,7 @@ export default function PortalDashboard() {
       <div className="h-[72px]" />
       
       {/* Progress Tracker */}
-      <TrackerProgressBar currentStage={currentStage} />
+      <TrackerProgressBar currentStage={currentStage} onStageClick={setCurrentStage} />
       
       {/* Main Content Area */}
       <main className="container mx-auto px-4 py-12">
