@@ -16,9 +16,11 @@ import {
   Zap,
   CheckCircle,
   Download,
-  Award
+  Award,
+  ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
 import type { SelectedApartment } from './ResearchGallery';
 import type { KeyHandover } from '@/types/portal';
 
@@ -69,6 +71,32 @@ export function KeyHandoverStage({ apartment, keyHandover, userName = 'New Resid
   const contactPerson = keyHandover?.contact_person || 'Jules';
 
   const whatsappUrl = `https://wa.me/${contactPhone.replace(/[^0-9]/g, '')}?text=Hello%20${contactPerson},%20I%20would%20like%20to%20coordinate%20my%20arrival.`;
+
+  const handleWhatsAppClick = () => {
+    // Try to open the link
+    const opened = window.open(whatsappUrl, '_blank');
+    
+    // If blocked, show toast with the link
+    if (!opened) {
+      toast({
+        title: "WhatsApp Link",
+        description: (
+          <div className="flex flex-col gap-2">
+            <p>Click below to open WhatsApp:</p>
+            <a 
+              href={whatsappUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary underline break-all"
+            >
+              Open WhatsApp Chat
+            </a>
+          </div>
+        ),
+        duration: 10000,
+      });
+    }
+  };
 
   const handleDownload = () => {
     // Simulate PDF download
@@ -287,14 +315,13 @@ export function KeyHandoverStage({ apartment, keyHandover, userName = 'New Resid
           Download Lease Agreement (PDF)
         </Button>
         <Button 
-          asChild
+          onClick={handleWhatsAppClick}
           variant="outline"
           className="flex-1 h-14 rounded-2xl gap-3 text-base font-medium border-2 hover:bg-green-50 hover:border-green-300 hover:text-green-700"
         >
-          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-            <MessageCircle className="w-5 h-5" />
-            Contact Jules for Arrival
-          </a>
+          <MessageCircle className="w-5 h-5" />
+          Contact Jules for Arrival
+          <ExternalLink className="w-4 h-4 ml-1" />
         </Button>
       </motion.div>
 
