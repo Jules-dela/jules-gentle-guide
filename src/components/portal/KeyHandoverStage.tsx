@@ -20,9 +20,11 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SelectedApartment } from './ResearchGallery';
+import type { KeyHandover } from '@/types/portal';
 
 interface KeyHandoverStageProps {
   apartment: SelectedApartment;
+  keyHandover?: KeyHandover | null;
   userName?: string;
 }
 
@@ -50,7 +52,7 @@ const checklistItems = [
   },
 ];
 
-export function KeyHandoverStage({ apartment, userName = 'New Resident' }: KeyHandoverStageProps) {
+export function KeyHandoverStage({ apartment, keyHandover, userName = 'New Resident' }: KeyHandoverStageProps) {
   const [journeyComplete, setJourneyComplete] = useState(false);
   const [checkedItems, setCheckedItems] = useState<string[]>(['utilities']);
 
@@ -62,8 +64,12 @@ export function KeyHandoverStage({ apartment, userName = 'New Resident' }: KeyHa
     );
   };
 
+  // Use real keyHandover data or defaults
+  const contactPhone = keyHandover?.contact_phone || '41781234567';
+  const contactPerson = keyHandover?.contact_person || 'Jules';
+
   const handleWhatsApp = () => {
-    window.open('https://wa.me/41781234567?text=Hello%20Jules,%20I%20would%20like%20to%20coordinate%20my%20arrival.', '_blank');
+    window.open(`https://wa.me/${contactPhone.replace(/[^0-9]/g, '')}?text=Hello%20${contactPerson},%20I%20would%20like%20to%20coordinate%20my%20arrival.`, '_blank');
   };
 
   const handleDownload = () => {
@@ -81,6 +87,13 @@ export function KeyHandoverStage({ apartment, userName = 'New Resident' }: KeyHa
 
   // Get first name from userName
   const firstName = userName.split(' ')[0];
+  
+  // Format date and time from DB or use defaults
+  const formattedDate = keyHandover?.scheduled_date 
+    ? new Date(keyHandover.scheduled_date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
+    : 'Saturday, Sept 1st';
+  const formattedTime = keyHandover?.scheduled_time || '10:00 AM';
+  const handoverLocation = keyHandover?.location || apartment.location || 'Rue de la Louve 12, 1003 Lausanne';
 
   return (
     <motion.div
@@ -149,7 +162,7 @@ export function KeyHandoverStage({ apartment, userName = 'New Resident' }: KeyHa
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Date & Time</p>
-                    <p className="font-medium text-foreground">Saturday, Sept 1st at 10:00 AM</p>
+                    <p className="font-medium text-foreground">{formattedDate} at {formattedTime}</p>
                   </div>
                 </div>
 
@@ -159,7 +172,7 @@ export function KeyHandoverStage({ apartment, userName = 'New Resident' }: KeyHa
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Location</p>
-                    <p className="font-medium text-foreground">{apartment.location || 'Rue de la Louve 12, 1003 Lausanne'}</p>
+                    <p className="font-medium text-foreground">{handoverLocation}</p>
                   </div>
                 </div>
               </div>
@@ -170,7 +183,7 @@ export function KeyHandoverStage({ apartment, userName = 'New Resident' }: KeyHa
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Meeting Point</p>
-                  <p className="font-medium text-foreground">Jules will meet you in front of the main building entrance.</p>
+                  <p className="font-medium text-foreground">{contactPerson} will meet you in front of the main building entrance.</p>
                 </div>
               </div>
             </div>
