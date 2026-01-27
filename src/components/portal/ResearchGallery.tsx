@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ApartmentCard } from './ApartmentCard';
 import { FeedbackPopup } from './FeedbackPopup';
-import { Check } from 'lucide-react';
+import { Check, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 export interface SelectedApartment {
@@ -17,13 +17,15 @@ export interface SelectedApartment {
 }
 
 interface ResearchGalleryProps {
+  proposals?: SelectedApartment[];
   onComplete: (apartment: SelectedApartment) => void;
+  onReject?: (proposalId: string, reasons: string[], notes?: string) => Promise<void>;
 }
 
-// Dummy apartment data with multiple images
-const dummyApartments = [
+// Fallback dummy apartments for demo/development
+const dummyApartments: SelectedApartment[] = [
   {
-    id: '1',
+    id: 'demo-1',
     images: [
       'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80',
@@ -35,17 +37,10 @@ const dummyApartments = [
     location: 'Lausanne',
     neighborhood: 'Sous-Gare',
     description: 'Charming apartment in the heart of Lausanne with stunning lake views. Recently renovated with modern finishes while maintaining its original character. Perfect for young professionals or students.',
-    amenities: [
-      'Lake view',
-      'Modern kitchen',
-      'Hardwood floors',
-      'In-unit laundry',
-      'Balcony',
-      'Storage room',
-    ],
+    amenities: ['Lake view', 'Modern kitchen', 'Hardwood floors', 'In-unit laundry', 'Balcony', 'Storage room'],
   },
   {
-    id: '2',
+    id: 'demo-2',
     images: [
       'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80',
@@ -56,17 +51,10 @@ const dummyApartments = [
     location: 'Lausanne',
     neighborhood: 'Flon',
     description: 'Contemporary studio in the vibrant Flon district. Walking distance to shops, restaurants, and nightlife. Ideal for students at EPFL or UNIL with easy metro access.',
-    amenities: [
-      'Open floor plan',
-      'Built-in wardrobes',
-      'Metro nearby',
-      'Gym access',
-      'Bike storage',
-      'Concierge',
-    ],
+    amenities: ['Open floor plan', 'Built-in wardrobes', 'Metro nearby', 'Gym access', 'Bike storage', 'Concierge'],
   },
   {
-    id: '3',
+    id: 'demo-3',
     images: [
       'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80',
@@ -78,25 +66,32 @@ const dummyApartments = [
     location: 'Lausanne',
     neighborhood: 'Ouchy',
     description: 'Spacious family apartment steps from Lake Geneva and the Olympic Museum. Bright living spaces with panoramic views. Quiet, residential neighborhood with excellent schools nearby.',
-    amenities: [
-      'Panoramic views',
-      'Guest bedroom',
-      'Parking included',
-      'Large terrace',
-      'Modern appliances',
-      'Pet friendly',
-    ],
+    amenities: ['Panoramic views', 'Guest bedroom', 'Parking included', 'Large terrace', 'Modern appliances', 'Pet friendly'],
   },
 ];
 
-export function ResearchGallery({ onComplete }: ResearchGalleryProps) {
+export function ResearchGallery({ proposals, onComplete, onReject }: ResearchGalleryProps) {
+  // Use real proposals if available, otherwise use demo data
+  const apartments = useMemo(() => 
+    proposals && proposals.length > 0 ? proposals : dummyApartments,
+    [proposals]
+  );
+  
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showFeedback, setShowFeedback] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set());
 
-  const currentApartment = dummyApartments[currentIndex];
+  // Filter out rejected apartments
+  const availableApartments = useMemo(() => 
+    apartments.filter(apt => !rejectedIds.has(apt.id)),
+    [apartments, rejectedIds]
+  );
+
+  const currentApartment = availableApartments[currentIndex];
 
   const handleLike = useCallback(() => {
+    if (!currentApartment) return;
     setShowSuccess(true);
     setTimeout(() => {
       setShowSuccess(false);
@@ -108,8 +103,16 @@ export function ResearchGallery({ onComplete }: ResearchGalleryProps) {
     setShowFeedback(true);
   }, []);
 
-  const handleFeedbackSubmit = useCallback((reasons: string[]) => {
-    console.log('Feedback submitted:', reasons);
+  const handleFeedbackSubmit = useCallback(async (reasons: string[], notes?: string) => {
+    if (!currentApartment) return;
+    
+    // Call the reject handler if available (for real data)
+    if (onReject) {
+      await onReject(currentApartment.id, reasons, notes);
+    }
+    
+    // Track rejected locally
+    setRejectedIds(prev => new Set([...prev, currentApartment.id]));
     setShowFeedback(false);
     
     // Show toast notification
@@ -119,16 +122,31 @@ export function ResearchGallery({ onComplete }: ResearchGalleryProps) {
     });
     
     // Move to next apartment or loop back
-    if (currentIndex < dummyApartments.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    } else {
+    if (currentIndex >= availableApartments.length - 1) {
       setCurrentIndex(0);
     }
-  }, [currentIndex]);
+  }, [currentApartment, currentIndex, availableApartments.length, onReject]);
 
   const handleFeedbackClose = useCallback(() => {
     setShowFeedback(false);
   }, []);
+
+  // No apartments available
+  if (availableApartments.length === 0) {
+    return (
+      <div className="relative min-h-[600px] py-8 flex flex-col items-center justify-center">
+        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+          <Search className="w-10 h-10 text-primary" />
+        </div>
+        <h2 className="text-2xl font-bold text-foreground mb-2 text-center">
+          No More Proposals
+        </h2>
+        <p className="text-muted-foreground text-center max-w-sm">
+          You've reviewed all available apartments. We're searching for more matches based on your feedback!
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-[600px] py-8">
@@ -149,7 +167,7 @@ export function ResearchGallery({ onComplete }: ResearchGalleryProps) {
 
       {/* Progress indicator */}
       <div className="flex justify-center gap-2 mb-8">
-        {dummyApartments.map((_, index) => (
+        {availableApartments.map((_, index) => (
           <motion.div
             key={index}
             initial={{ scale: 0 }}

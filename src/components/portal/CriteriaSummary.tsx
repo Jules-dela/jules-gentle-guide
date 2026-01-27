@@ -1,18 +1,14 @@
 import { motion } from 'framer-motion';
-import { User, Wallet, MapPin, Sparkles } from 'lucide-react';
+import { User, Wallet, MapPin, Sparkles, Clock, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import type { Profile, InitialCriteria, CaseStatus } from '@/types/portal';
 
 interface CriteriaSummaryProps {
+  profile?: Profile | null;
+  criteria?: InitialCriteria | null;
+  caseStatus?: CaseStatus;
   onNextStep: () => void;
 }
-
-// Dummy data for the form summary
-const guestData = {
-  name: 'Alex',
-  budget: '1800 CHF',
-  location: 'Lausanne Center',
-  mustHaves: ['Studio', 'Near Metro', 'Furnished'],
-};
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -30,7 +26,24 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
-export function CriteriaSummary({ onNextStep }: CriteriaSummaryProps) {
+export function CriteriaSummary({ profile, criteria, caseStatus, onNextStep }: CriteriaSummaryProps) {
+  // Use real data or fallback to defaults
+  const name = profile?.name?.split(' ')[0] || 'Guest';
+  const budget = criteria?.budget || 'Not specified';
+  const location = criteria?.neighbourhood || 'Lausanne';
+  
+  // Build must-haves from criteria
+  const mustHaves: string[] = [];
+  if (criteria?.rooms) mustHaves.push(`${criteria.rooms} rooms`);
+  if (criteria?.property_type) mustHaves.push(criteria.property_type);
+  if (criteria?.furnished) mustHaves.push('Furnished');
+  if (criteria?.near_transport) mustHaves.push('Near Metro');
+  if (criteria?.pets_allowed) mustHaves.push('Pets OK');
+  if (mustHaves.length === 0) mustHaves.push('Flexible');
+
+  // Determine if we're waiting for proposals
+  const isSearching = caseStatus === 'request_received' || caseStatus === 'search_in_progress';
+
   return (
     <motion.div
       className="max-w-2xl mx-auto"
@@ -41,7 +54,7 @@ export function CriteriaSummary({ onNextStep }: CriteriaSummaryProps) {
       {/* Header */}
       <motion.div variants={itemVariants} className="text-center mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-          Welcome, {guestData.name}! 👋
+          Welcome, {name}! 👋
         </h1>
         <p className="text-muted-foreground text-lg">
           Here's a summary of your housing search criteria
@@ -68,7 +81,7 @@ export function CriteriaSummary({ onNextStep }: CriteriaSummaryProps) {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Name</p>
-              <p className="text-lg font-semibold text-foreground">{guestData.name}</p>
+              <p className="text-lg font-semibold text-foreground">{profile?.name || 'Guest'}</p>
             </div>
           </motion.div>
 
@@ -82,7 +95,7 @@ export function CriteriaSummary({ onNextStep }: CriteriaSummaryProps) {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Budget</p>
-              <p className="text-lg font-semibold text-foreground">{guestData.budget}</p>
+              <p className="text-lg font-semibold text-foreground">{budget}</p>
             </div>
           </motion.div>
 
@@ -96,7 +109,7 @@ export function CriteriaSummary({ onNextStep }: CriteriaSummaryProps) {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Preferred Location</p>
-              <p className="text-lg font-semibold text-foreground">{guestData.location}</p>
+              <p className="text-lg font-semibold text-foreground">{location}</p>
             </div>
           </motion.div>
 
@@ -111,7 +124,7 @@ export function CriteriaSummary({ onNextStep }: CriteriaSummaryProps) {
             <div>
               <p className="text-sm text-muted-foreground">Must-Haves</p>
               <div className="flex flex-wrap gap-2 mt-2">
-                {guestData.mustHaves.map((item) => (
+                {mustHaves.map((item) => (
                   <span
                     key={item}
                     className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-full"
@@ -122,21 +135,51 @@ export function CriteriaSummary({ onNextStep }: CriteriaSummaryProps) {
               </div>
             </div>
           </motion.div>
+
+          {/* Duration if available */}
+          {criteria?.duration && (
+            <motion.div
+              variants={itemVariants}
+              className="flex items-center gap-4 p-4 rounded-2xl bg-muted/50"
+            >
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Clock className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Duration</p>
+                <p className="text-lg font-semibold text-foreground">{criteria.duration}</p>
+              </div>
+            </motion.div>
+          )}
         </div>
       </motion.div>
 
       {/* Next Step Button */}
       <motion.div variants={itemVariants} className="mt-8 text-center">
-        <Button
-          onClick={onNextStep}
-          size="lg"
-          className="px-12 py-6 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all"
-        >
-          Next Step: Start Research
-        </Button>
-        <p className="mt-4 text-sm text-muted-foreground">
-          We'll begin searching for apartments matching your criteria
-        </p>
+        {isSearching ? (
+          <>
+            <div className="inline-flex items-center gap-3 px-8 py-4 bg-primary/10 rounded-full mb-4">
+              <Search className="w-5 h-5 text-primary animate-pulse" />
+              <span className="text-primary font-medium">We're searching for your perfect home...</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              You'll be notified when we find matching apartments
+            </p>
+          </>
+        ) : (
+          <>
+            <Button
+              onClick={onNextStep}
+              size="lg"
+              className="px-12 py-6 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all"
+            >
+              Next Step: View Proposals
+            </Button>
+            <p className="mt-4 text-sm text-muted-foreground">
+              We've found apartments matching your criteria
+            </p>
+          </>
+        )}
       </motion.div>
     </motion.div>
   );

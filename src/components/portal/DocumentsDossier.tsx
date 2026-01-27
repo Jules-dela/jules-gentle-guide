@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileText, 
@@ -12,13 +12,16 @@ import {
   CreditCard,
   FileCheck,
   Users,
-  Sparkles
+  Sparkles,
+  XCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
 import type { SelectedApartment } from './ResearchGallery';
+import type { CaseDocument, DocumentStatus as DBDocumentStatus } from '@/types/portal';
 
-type DocumentStatus = 'missing' | 'pending' | 'verified';
+type DocumentStatus = 'missing' | 'pending' | 'verified' | 'rejected';
 
 interface Document {
   id: string;
@@ -27,14 +30,18 @@ interface Document {
   status: DocumentStatus;
   icon: React.ReactNode;
   required: boolean;
+  rejectionReason?: string | null;
 }
 
 interface DocumentsDossierProps {
   apartment: SelectedApartment;
+  documents?: CaseDocument[];
+  onUpload?: (documentId: string, file: File) => Promise<{ error: Error | null }>;
   onComplete: () => void;
 }
 
-const initialDocuments: Omit<Document, 'status'>[] = [
+// Default document templates (used when no real documents exist)
+const defaultDocumentTemplates: Omit<Document, 'status'>[] = [
   {
     id: 'identity',
     title: 'Identity Document',
@@ -72,6 +79,17 @@ const initialDocuments: Omit<Document, 'status'>[] = [
   },
 ];
 
+// Map DB status to UI status
+function mapDBStatus(status: DBDocumentStatus): DocumentStatus {
+  switch (status) {
+    case 'missing': return 'missing';
+    case 'uploaded': return 'pending';
+    case 'validated': return 'verified';
+    case 'rejected': return 'rejected';
+    default: return 'missing';
+  }
+}
+
 const statusConfig = {
   missing: {
     label: 'Missing',
@@ -94,30 +112,75 @@ const statusConfig = {
     borderColor: 'border-emerald-200',
     icon: Check,
   },
+  rejected: {
+    label: 'Rejected',
+    bgColor: 'bg-rose-50',
+    textColor: 'text-rose-600',
+    borderColor: 'border-rose-200',
+    icon: XCircle,
+  },
 };
 
-export function DocumentsDossier({ apartment, onComplete }: DocumentsDossierProps) {
-  // Initialize with one document already verified (liability) for demo
-  const [documents, setDocuments] = useState<Document[]>(
-    initialDocuments.map(doc => ({
+export function DocumentsDossier({ apartment, documents: dbDocuments, onUpload, onComplete }: DocumentsDossierProps) {
+  // Convert DB documents to UI format, or use defaults for demo
+  const initialDocs = useMemo(() => {
+    if (dbDocuments && dbDocuments.length > 0) {
+      return dbDocuments.map(doc => ({
+        id: doc.id,
+        title: doc.label,
+        description: doc.document_type,
+        status: mapDBStatus(doc.status),
+        icon: <FileText className="w-5 h-5" />,
+        required: true, // Assume all DB documents are required
+        rejectionReason: doc.rejection_reason,
+      }));
+    }
+    // Demo mode - use templates with one verified for preview
+    return defaultDocumentTemplates.map(doc => ({
       ...doc,
-      status: doc.id === 'liability' ? 'verified' : 'missing',
-    }))
-  );
+      status: doc.id === 'liability' ? 'verified' as DocumentStatus : 'missing' as DocumentStatus,
+    }));
+  }, [dbDocuments]);
+
+  const [localDocuments, setLocalDocuments] = useState<Document[]>(initialDocs);
   const [showCelebration, setShowCelebration] = useState(false);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
-  const requiredDocs = documents.filter(d => d.required);
-  const allRequiredUploaded = requiredDocs.every(d => d.status !== 'missing');
+  const requiredDocs = localDocuments.filter(d => d.required);
+  const allRequiredUploaded = requiredDocs.every(d => d.status !== 'missing' && d.status !== 'rejected');
 
-  const handleFileUpload = useCallback((docId: string) => {
-    setDocuments(prev =>
+  const handleFileUpload = useCallback(async (docId: string, file: File) => {
+    setUploadingId(docId);
+    
+    if (onUpload) {
+      // Real upload to Supabase
+      const { error } = await onUpload(docId, file);
+      if (error) {
+        toast({
+          title: "Upload failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        setUploadingId(null);
+        return;
+      }
+    }
+    
+    // Update local state
+    setLocalDocuments(prev =>
       prev.map(doc =>
         doc.id === docId ? { ...doc, status: 'pending' as DocumentStatus } : doc
       )
     );
-  }, []);
+    setUploadingId(null);
+    
+    toast({
+      title: "Document uploaded",
+      description: "Your document is pending review.",
+    });
+  }, [onUpload]);
 
   const handleUploadClick = (docId: string) => {
     fileInputRefs.current[docId]?.click();
@@ -125,7 +188,7 @@ export function DocumentsDossier({ apartment, onComplete }: DocumentsDossierProp
 
   const handleFileChange = (docId: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      handleFileUpload(docId);
+      handleFileUpload(docId, e.target.files[0]);
     }
   };
 
@@ -142,7 +205,7 @@ export function DocumentsDossier({ apartment, onComplete }: DocumentsDossierProp
     e.preventDefault();
     setDragOverId(null);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFileUpload(docId);
+      handleFileUpload(docId, e.dataTransfer.files[0]);
     }
   };
 
@@ -251,12 +314,12 @@ export function DocumentsDossier({ apartment, onComplete }: DocumentsDossierProp
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-foreground">Required Documents</h3>
                 <span className="text-sm text-muted-foreground">
-                  {documents.filter(d => d.status !== 'missing').length}/{documents.length} uploaded
+                  {localDocuments.filter(d => d.status !== 'missing' && d.status !== 'rejected').length}/{localDocuments.length} uploaded
                 </span>
               </div>
 
               <div className="space-y-4">
-                {documents.map((doc, index) => (
+                {localDocuments.map((doc, index) => (
                   <motion.div
                     key={doc.id}
                     initial={{ opacity: 0, x: -20 }}
@@ -266,13 +329,13 @@ export function DocumentsDossier({ apartment, onComplete }: DocumentsDossierProp
                       'relative border-2 rounded-2xl p-4 transition-all duration-300',
                       dragOverId === doc.id
                         ? 'border-primary bg-primary/5 scale-[1.02]'
-                        : doc.status === 'missing'
+                        : doc.status === 'missing' || doc.status === 'rejected'
                         ? 'border-dashed border-muted-foreground/30 hover:border-primary/50'
                         : 'border-solid border-muted-foreground/20'
                     )}
-                    onDragOver={(e) => doc.status === 'missing' && handleDragOver(e, doc.id)}
+                    onDragOver={(e) => (doc.status === 'missing' || doc.status === 'rejected') && handleDragOver(e, doc.id)}
                     onDragLeave={handleDragLeave}
-                    onDrop={(e) => doc.status === 'missing' && handleDrop(e, doc.id)}
+                    onDrop={(e) => (doc.status === 'missing' || doc.status === 'rejected') && handleDrop(e, doc.id)}
                   >
                     <div className="flex items-start gap-4">
                       {/* Icon */}
@@ -280,6 +343,7 @@ export function DocumentsDossier({ apartment, onComplete }: DocumentsDossierProp
                         'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0',
                         doc.status === 'verified' ? 'bg-emerald-100 text-emerald-600' :
                         doc.status === 'pending' ? 'bg-amber-100 text-amber-600' :
+                        doc.status === 'rejected' ? 'bg-rose-100 text-rose-600' :
                         'bg-muted text-muted-foreground'
                       )}>
                         {doc.icon}
@@ -300,8 +364,15 @@ export function DocumentsDossier({ apartment, onComplete }: DocumentsDossierProp
                           <StatusBadge status={doc.status} />
                         </div>
 
-                        {/* Upload area for missing documents */}
-                        {doc.status === 'missing' && (
+                        {/* Rejection reason */}
+                        {doc.status === 'rejected' && doc.rejectionReason && (
+                          <p className="text-sm text-rose-600 mt-2">
+                            Reason: {doc.rejectionReason}
+                          </p>
+                        )}
+
+                        {/* Upload area for missing or rejected documents */}
+                        {(doc.status === 'missing' || doc.status === 'rejected') && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
@@ -318,10 +389,24 @@ export function DocumentsDossier({ apartment, onComplete }: DocumentsDossierProp
                               variant="outline"
                               size="sm"
                               onClick={() => handleUploadClick(doc.id)}
+                              disabled={uploadingId === doc.id}
                               className="gap-2 rounded-full border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
                             >
-                              <Upload className="w-4 h-4" />
-                              Upload Document
+                              {uploadingId === doc.id ? (
+                                <>
+                                  <motion.div
+                                    className="w-4 h-4 border-2 border-current border-t-transparent rounded-full"
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                  />
+                                  Uploading...
+                                </>
+                              ) : (
+                                <>
+                                  <Upload className="w-4 h-4" />
+                                  {doc.status === 'rejected' ? 'Re-upload Document' : 'Upload Document'}
+                                </>
+                              )}
                             </Button>
                             <p className="text-xs text-muted-foreground mt-2">
                               or drag and drop your file here
@@ -367,7 +452,7 @@ export function DocumentsDossier({ apartment, onComplete }: DocumentsDossierProp
               
               {!allRequiredUploaded && (
                 <p className="text-center text-sm text-muted-foreground mt-3">
-                  {requiredDocs.filter(d => d.status === 'missing').length} required document(s) remaining
+                  {requiredDocs.filter(d => d.status === 'missing' || d.status === 'rejected').length} required document(s) remaining
                 </p>
               )}
             </motion.div>
