@@ -8,6 +8,7 @@ interface CriteriaSummaryProps {
   criteria?: InitialCriteria | null;
   caseStatus?: CaseStatus;
   onNextStep: () => void;
+  readOnly?: boolean;
 }
 
 const containerVariants = {
@@ -26,7 +27,7 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
-export function CriteriaSummary({ profile, criteria, caseStatus, onNextStep }: CriteriaSummaryProps) {
+export function CriteriaSummary({ profile, criteria, caseStatus, onNextStep, readOnly = false }: CriteriaSummaryProps) {
   // Use real data or fallback to defaults
   const name = profile?.name?.split(' ')[0] || 'Guest';
   const budget = criteria?.budget || 'Not specified';
@@ -154,33 +155,35 @@ export function CriteriaSummary({ profile, criteria, caseStatus, onNextStep }: C
         </div>
       </motion.div>
 
-      {/* Next Step Button */}
-      <motion.div variants={itemVariants} className="mt-8 text-center">
-        {isSearching ? (
-          <>
-            <div className="inline-flex items-center gap-3 px-8 py-4 bg-primary/10 rounded-full mb-4">
-              <Search className="w-5 h-5 text-primary animate-pulse" />
-              <span className="text-primary font-medium">We're searching for your perfect home...</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              You'll be notified when we find matching apartments
-            </p>
-          </>
-        ) : (
-          <>
-            <Button
-              onClick={onNextStep}
-              size="lg"
-              className="px-12 py-6 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all"
-            >
-              Next Step: View Proposals
-            </Button>
-            <p className="mt-4 text-sm text-muted-foreground">
-              We've found apartments matching your criteria
-            </p>
-          </>
-        )}
-      </motion.div>
+      {/* Next Step Button - Hidden in read-only mode */}
+      {!readOnly && (
+        <motion.div variants={itemVariants} className="mt-8 text-center">
+          {isSearching ? (
+            <>
+              <div className="inline-flex items-center gap-3 px-8 py-4 bg-primary/10 rounded-full mb-4">
+                <Search className="w-5 h-5 text-primary animate-pulse" />
+                <span className="text-primary font-medium">We're searching for your perfect home...</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                You'll be notified when we find matching apartments
+              </p>
+            </>
+          ) : (
+            <>
+              <Button
+                onClick={onNextStep}
+                size="lg"
+                className="px-12 py-6 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all"
+              >
+                Next Step: View Proposals
+              </Button>
+              <p className="mt-4 text-sm text-muted-foreground">
+                We've found apartments matching your criteria
+              </p>
+            </>
+          )}
+        </motion.div>
+      )}
     </motion.div>
   );
 }

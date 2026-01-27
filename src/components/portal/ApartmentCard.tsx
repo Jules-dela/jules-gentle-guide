@@ -19,9 +19,10 @@ interface ApartmentCardProps {
   apartment: Apartment;
   onLike: () => void;
   onDislike: () => void;
+  readOnly?: boolean;
 }
 
-export function ApartmentCard({ apartment, onLike, onDislike }: ApartmentCardProps) {
+export function ApartmentCard({ apartment, onLike, onDislike, readOnly = false }: ApartmentCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -178,22 +179,24 @@ export function ApartmentCard({ apartment, onLike, onDislike }: ApartmentCardPro
           )}
         </AnimatePresence>
 
-        {/* Sticky Action Buttons */}
-        <div className="flex gap-4 pt-4 border-t border-border">
-          <Button
-            variant="outline"
-            onClick={onDislike}
-            className="flex-1 h-12 rounded-full border-2 border-muted-foreground/30 text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all"
-          >
-            I Don't Like
-          </Button>
-          <Button
-            onClick={onLike}
-            className="flex-1 h-12 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 transition-all"
-          >
-            I Like
-          </Button>
-        </div>
+        {/* Sticky Action Buttons - Hidden in read-only mode */}
+        {!readOnly && (
+          <div className="flex gap-4 pt-4 border-t border-border">
+            <Button
+              variant="outline"
+              onClick={onDislike}
+              className="flex-1 h-12 rounded-full border-2 border-muted-foreground/30 text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all"
+            >
+              I Don't Like
+            </Button>
+            <Button
+              onClick={onLike}
+              className="flex-1 h-12 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 transition-all"
+            >
+              I Like
+            </Button>
+          </div>
+        )}
       </div>
     </motion.div>
   );

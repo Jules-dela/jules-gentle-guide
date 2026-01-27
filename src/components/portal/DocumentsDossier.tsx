@@ -39,6 +39,7 @@ interface DocumentsDossierProps {
   onUpload?: (documentId: string, file: File) => Promise<{ error: Error | null }>;
   onComplete: () => void;
   onPreviewHandover?: () => void;
+  readOnly?: boolean;
 }
 
 // Default document templates (used when no real documents exist)
@@ -122,7 +123,7 @@ const statusConfig = {
   },
 };
 
-export function DocumentsDossier({ apartment, documents: dbDocuments, onUpload, onComplete, onPreviewHandover }: DocumentsDossierProps) {
+export function DocumentsDossier({ apartment, documents: dbDocuments, onUpload, onComplete, onPreviewHandover, readOnly = false }: DocumentsDossierProps) {
   // Convert DB documents to UI format, or use defaults for demo
   const initialDocs = useMemo(() => {
     if (dbDocuments && dbDocuments.length > 0) {
@@ -372,8 +373,8 @@ export function DocumentsDossier({ apartment, documents: dbDocuments, onUpload, 
                           </p>
                         )}
 
-                        {/* Upload area for missing or rejected documents */}
-                        {(doc.status === 'missing' || doc.status === 'rejected') && (
+                        {/* Upload area for missing or rejected documents - Hidden in read-only mode */}
+                        {!readOnly && (doc.status === 'missing' || doc.status === 'rejected') && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
@@ -421,54 +422,56 @@ export function DocumentsDossier({ apartment, documents: dbDocuments, onUpload, 
               </div>
             </motion.div>
 
-            {/* Submit Button */}
-            <motion.div
-              className="max-w-2xl mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.5 }}
-            >
-              <Button
-                onClick={handleSubmit}
-                disabled={!allRequiredUploaded}
-                className={cn(
-                  'w-full h-16 rounded-full text-lg font-medium transition-all duration-500',
-                  allRequiredUploaded
-                    ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25'
-                    : 'bg-muted text-muted-foreground cursor-not-allowed'
-                )}
+            {/* Submit Button - Hidden in read-only mode */}
+            {!readOnly && (
+              <motion.div
+                className="max-w-2xl mx-auto"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.5 }}
               >
-                {allRequiredUploaded ? (
-                  <span className="flex items-center gap-2">
-                    <FileCheck className="w-5 h-5" />
-                    Submit Full Dossier
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5" />
-                    Upload all required documents to continue
-                  </span>
-                )}
-              </Button>
-              
-              {!allRequiredUploaded && (
-                <div className="text-center mt-3 space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    {requiredDocs.filter(d => d.status === 'missing' || d.status === 'rejected').length} required document(s) remaining
-                  </p>
-                  {onPreviewHandover && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={onPreviewHandover}
-                      className="text-xs text-muted-foreground hover:text-primary underline-offset-4 hover:underline"
-                    >
-                      Preview Handover Stage →
-                    </Button>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!allRequiredUploaded}
+                  className={cn(
+                    'w-full h-16 rounded-full text-lg font-medium transition-all duration-500',
+                    allRequiredUploaded
+                      ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25'
+                      : 'bg-muted text-muted-foreground cursor-not-allowed'
                   )}
-                </div>
-              )}
-            </motion.div>
+                >
+                  {allRequiredUploaded ? (
+                    <span className="flex items-center gap-2">
+                      <FileCheck className="w-5 h-5" />
+                      Submit Full Dossier
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5" />
+                      Upload all required documents to continue
+                    </span>
+                  )}
+                </Button>
+                
+                {!allRequiredUploaded && (
+                  <div className="text-center mt-3 space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      {requiredDocs.filter(d => d.status === 'missing' || d.status === 'rejected').length} required document(s) remaining
+                    </p>
+                    {onPreviewHandover && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onPreviewHandover}
+                        className="text-xs text-muted-foreground hover:text-primary underline-offset-4 hover:underline"
+                      >
+                        Preview Handover Stage →
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </motion.div>
+            )}
           </motion.div>
         ) : (
           /* Celebration Animation */
