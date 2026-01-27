@@ -2,11 +2,22 @@ import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ApartmentCard } from './ApartmentCard';
 import { FeedbackPopup } from './FeedbackPopup';
-import { Heart, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
+export interface SelectedApartment {
+  id: string;
+  images: string[];
+  rent: number;
+  rooms: number;
+  location: string;
+  neighborhood: string;
+  description: string;
+  amenities: string[];
+}
+
 interface ResearchGalleryProps {
-  onComplete: () => void;
+  onComplete: (apartment: SelectedApartment) => void;
 }
 
 // Dummy apartment data with multiple images
@@ -89,9 +100,9 @@ export function ResearchGallery({ onComplete }: ResearchGalleryProps) {
     setShowSuccess(true);
     setTimeout(() => {
       setShowSuccess(false);
-      onComplete();
+      onComplete(currentApartment);
     }, 2000);
-  }, [onComplete]);
+  }, [onComplete, currentApartment]);
 
   const handleDislike = useCallback(() => {
     setShowFeedback(true);

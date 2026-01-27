@@ -4,21 +4,13 @@ import { MapPin, Banknote, X, ChevronLeft, ChevronRight, Check, AlertCircle } fr
 import { Button } from '@/components/ui/button';
 import { ViewingFeedbackPopup } from './ViewingFeedbackPopup';
 import { cn } from '@/lib/utils';
+import type { SelectedApartment } from './ResearchGallery';
 
 interface VisitReportProps {
+  apartment: SelectedApartment;
   onComplete: () => void;
   onReject: () => void;
 }
-
-// Dummy apartment data
-const visitApartment = {
-  id: '1',
-  image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&auto=format&fit=crop&q=80',
-  rent: 1850,
-  rooms: 2.5,
-  location: 'Lausanne',
-  neighborhood: 'Sous-Gare',
-};
 
 // Dummy visit photos
 const visitPhotos = [
@@ -68,7 +60,7 @@ const agentNotes = {
   ],
 };
 
-export function VisitReport({ onComplete, onReject }: VisitReportProps) {
+export function VisitReport({ apartment, onComplete, onReject }: VisitReportProps) {
   const [showFeedback, setShowFeedback] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showRedirect, setShowRedirect] = useState(false);
@@ -157,7 +149,7 @@ export function VisitReport({ onComplete, onReject }: VisitReportProps) {
               transition={{ duration: 0.4, delay: 0.2 }}
             >
               <img
-                src={visitApartment.image}
+                src={apartment.images[0]}
                 alt="Apartment"
                 className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover flex-shrink-0"
               />
@@ -166,12 +158,12 @@ export function VisitReport({ onComplete, onReject }: VisitReportProps) {
                 <div className="flex flex-wrap items-center gap-3 text-sm">
                   <div className="flex items-center gap-1.5">
                     <Banknote className="w-4 h-4 text-primary" />
-                    <span className="font-medium">{visitApartment.rent} CHF</span>
+                    <span className="font-medium">{apartment.rent} CHF</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <MapPin className="w-4 h-4 text-primary" />
                     <span className="text-muted-foreground">
-                      {visitApartment.neighborhood}, {visitApartment.location}
+                      {apartment.neighborhood}, {apartment.location}
                     </span>
                   </div>
                 </div>
