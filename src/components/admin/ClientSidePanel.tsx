@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { ApartmentUploader } from './ApartmentUploader';
 import { FeedbackTracker } from './FeedbackTracker';
+import { VisitReportUploader } from './VisitReportUploader';
 import { supabase } from '@/integrations/supabase/client';
 import type { ClientWithCase } from '@/types/admin';
 
@@ -323,6 +324,17 @@ export function ClientSidePanel({ client, onClose }: ClientSidePanelProps) {
                     key={`tracker-${refreshKey}`}
                     caseId={client.case_id} 
                     onClearSearch={handleRefresh}
+                  />
+                )}
+
+                <Separator />
+
+                {/* Visit Report Uploader */}
+                {client.case_id && (
+                  <VisitReportUploader
+                    key={`visit-${refreshKey}`}
+                    caseId={client.case_id}
+                    onResetToResearch={handleRefresh}
                   />
                 )}
               </div>
