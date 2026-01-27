@@ -106,15 +106,22 @@ export default function PortalDashboard() {
   
   // Determine stage from case status
   const caseStage = useMemo(() => getStageFromStatus(activeCase?.status), [activeCase?.status]);
-  const [currentStage, setCurrentStage] = useState(isDemoMode && demoStage ? demoStage : caseStage);
+  
+  // Track highest stage reached (for read-only mode when viewing past stages)
+  const [highestStage, setHighestStage] = useState(isDemoMode && demoStage ? demoStage : 1);
+  const [currentStage, setCurrentStage] = useState(isDemoMode && demoStage ? demoStage : 1);
   const [selectedApartment, setSelectedApartment] = useState<SelectedApartment | null>(
     isDemoMode ? DEMO_APARTMENT : null
   );
+  
+  // Determine if viewing a previous stage (read-only mode)
+  const isReadOnly = currentStage < highestStage;
 
   // Sync stage with case status (only if not in demo mode)
   useEffect(() => {
     if (!isDemoMode) {
       setCurrentStage(caseStage);
+      setHighestStage(prev => Math.max(prev, caseStage));
     }
   }, [caseStage, isDemoMode]);
 
@@ -157,7 +164,9 @@ export default function PortalDashboard() {
   };
 
   const handleNextStep = () => {
-    setCurrentStage((prev) => Math.min(prev + 1, 5));
+    const nextStage = Math.min(currentStage + 1, 5);
+    setCurrentStage(nextStage);
+    setHighestStage(prev => Math.max(prev, nextStage));
   };
 
   const handleBackToResearch = () => {
@@ -259,7 +268,8 @@ export default function PortalDashboard() {
               profile={profile}
               criteria={activeCase.initial_criteria}
               caseStatus={activeCase.status}
-              onNextStep={handleNextStep} 
+              onNextStep={handleNextStep}
+              readOnly={isReadOnly}
             />
           )}
           
@@ -269,6 +279,7 @@ export default function PortalDashboard() {
               proposals={pendingProposals}
               onComplete={handleResearchComplete}
               onReject={handleRejectProposal}
+              readOnly={isReadOnly}
             />
           )}
           
@@ -278,6 +289,7 @@ export default function PortalDashboard() {
               apartment={selectedApartment}
               onComplete={handleNextStep} 
               onReject={handleBackToResearch}
+              readOnly={isReadOnly}
             />
           )}
           
@@ -289,6 +301,7 @@ export default function PortalDashboard() {
               onUpload={uploadDocument}
               onComplete={handleNextStep}
               onPreviewHandover={() => setCurrentStage(5)}
+              readOnly={isReadOnly}
             />
           )}
           

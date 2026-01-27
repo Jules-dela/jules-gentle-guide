@@ -20,6 +20,7 @@ interface ResearchGalleryProps {
   proposals?: SelectedApartment[];
   onComplete: (apartment: SelectedApartment) => void;
   onReject?: (proposalId: string, reasons: string[], notes?: string) => Promise<void>;
+  readOnly?: boolean;
 }
 
 // Fallback dummy apartments for demo/development
@@ -70,7 +71,7 @@ const dummyApartments: SelectedApartment[] = [
   },
 ];
 
-export function ResearchGallery({ proposals, onComplete, onReject }: ResearchGalleryProps) {
+export function ResearchGallery({ proposals, onComplete, onReject, readOnly = false }: ResearchGalleryProps) {
   // Use real proposals if available, otherwise use demo data
   const apartments = useMemo(() => 
     proposals && proposals.length > 0 ? proposals : dummyApartments,
@@ -192,6 +193,7 @@ export function ResearchGallery({ proposals, onComplete, onReject }: ResearchGal
             apartment={currentApartment}
             onLike={handleLike}
             onDislike={handleDislike}
+            readOnly={readOnly}
           />
         )}
       </AnimatePresence>

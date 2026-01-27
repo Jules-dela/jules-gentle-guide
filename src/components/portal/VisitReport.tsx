@@ -10,6 +10,7 @@ interface VisitReportProps {
   apartment: SelectedApartment;
   onComplete: () => void;
   onReject: () => void;
+  readOnly?: boolean;
 }
 
 // Dummy visit photos
@@ -60,7 +61,7 @@ const agentNotes = {
   ],
 };
 
-export function VisitReport({ apartment, onComplete, onReject }: VisitReportProps) {
+export function VisitReport({ apartment, onComplete, onReject, readOnly = false }: VisitReportProps) {
   const [showFeedback, setShowFeedback] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showRedirect, setShowRedirect] = useState(false);
@@ -264,27 +265,29 @@ export function VisitReport({ apartment, onComplete, onReject }: VisitReportProp
               </div>
             </motion.div>
 
-            {/* Action Buttons */}
-            <motion.div
-              className="flex gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.5 }}
-            >
-              <Button
-                variant="outline"
-                onClick={handleDislike}
-                className="flex-1 h-14 rounded-full border-2 border-muted-foreground/30 text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all text-base"
+            {/* Action Buttons - Hidden in read-only mode */}
+            {!readOnly && (
+              <motion.div
+                className="flex gap-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.5 }}
               >
-                I Don't Like
-              </Button>
-              <Button
-                onClick={handleLike}
-                className="flex-1 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 transition-all text-base"
-              >
-                I Like – Let's Apply!
-              </Button>
-            </motion.div>
+                <Button
+                  variant="outline"
+                  onClick={handleDislike}
+                  className="flex-1 h-14 rounded-full border-2 border-muted-foreground/30 text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all text-base"
+                >
+                  I Don't Like
+                </Button>
+                <Button
+                  onClick={handleLike}
+                  className="flex-1 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 transition-all text-base"
+                >
+                  I Like – Let's Apply!
+                </Button>
+              </motion.div>
+            )}
           </motion.div>
         )}
 
