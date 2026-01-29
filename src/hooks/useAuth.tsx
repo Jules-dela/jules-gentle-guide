@@ -43,6 +43,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
 
+        // Don't trigger admin checks for PASSWORD_RECOVERY events
+        if (event === 'PASSWORD_RECOVERY') {
+          return; // Let ResetPassword page handle this
+        }
+
         // Defer admin check with setTimeout to avoid deadlock
         if (session?.user) {
           setTimeout(() => {

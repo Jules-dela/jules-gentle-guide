@@ -38,8 +38,30 @@ export default function ResetPassword() {
   });
 
   useEffect(() => {
-    // Check if user has a valid recovery session
-    const checkSession = async () => {
+    // Handle the recovery session from URL hash
+    const handleRecoverySession = async () => {
+      // Check if we have hash params (Supabase recovery redirect)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const type = hashParams.get('type');
+      
+      if (type === 'recovery' && accessToken && refreshToken) {
+        // Set the session from URL tokens
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        
+        if (!error) {
+          setIsValidSession(true);
+          // Clean up URL
+          window.history.replaceState(null, '', window.location.pathname);
+          return;
+        }
+      }
+      
+      // Fallback: check existing session
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setIsValidSession(true);
@@ -53,7 +75,7 @@ export default function ResetPassword() {
       }
     };
     
-    checkSession();
+    handleRecoverySession();
   }, [navigate, toast]);
 
   const onSubmit = async (data: ResetFormData) => {
