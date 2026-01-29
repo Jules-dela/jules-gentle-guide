@@ -374,20 +374,51 @@ export function DocumentManager({ caseId, clientName, onUpdate }: DocumentManage
 
     setDownloadingZip(true);
     try {
-      // Download each file locally (avoid opening storage URLs in a new tab, which can be blocked by adblockers)
-      for (const doc of uploadedDocs) {
-        // eslint-disable-next-line no-await-in-loop
-        await downloadDoc(doc);
+      // Call edge function to generate ZIP server-side
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+
+      if (!token) {
+        throw new Error('Not authenticated');
       }
+
+      const response = await supabase.functions.invoke('download-dossier-zip', {
+        body: { caseId, clientName },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to generate ZIP');
+      }
+
+      // The response data is the ZIP blob
+      const blob = response.data as Blob;
+      const blobUrl = URL.createObjectURL(blob);
+      
+      // Trigger download
+      const safeClientName = (clientName || 'client')
+        .replace(/[^a-zA-Z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '_');
+      const dateStr = new Date().toISOString().split('T')[0];
+      const zipFileName = `${safeClientName}_dossier_${dateStr}.zip`;
+
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = zipFileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+
       toast({
-        title: 'Documents Opened',
-        description: `${uploadedDocs.length} document(s) downloaded`,
+        title: 'ZIP Downloaded',
+        description: `${uploadedDocs.length} document(s) bundled into ${zipFileName}`,
       });
     } catch (err) {
-      console.error('Error downloading:', err);
+      console.error('Error downloading ZIP:', err);
       toast({
-        title: 'Error',
-        description: 'Failed to download documents',
+        title: 'Download Failed',
+        description: err instanceof Error ? err.message : 'Failed to download documents',
         variant: 'destructive',
       });
     } finally {

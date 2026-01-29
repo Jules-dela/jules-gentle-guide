@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.send-portal-notifications]
 verify_jwt = false
+
+[functions.download-dossier-zip]
+verify_jwt = false
