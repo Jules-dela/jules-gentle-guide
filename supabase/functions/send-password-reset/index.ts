@@ -157,14 +157,20 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    const resetLink = data.properties?.action_link;
-    if (!resetLink) {
-      console.error("No reset link generated");
+    // IMPORTANT:
+    // Do NOT email the /verify action_link directly because many email clients/security scanners
+    // will prefetch it, consuming the one-time token and making it look "expired" when the user clicks.
+    // Instead, send the user to our app with token_hash and only verify on explicit user action.
+    const tokenHash = data.properties?.hashed_token;
+    if (!tokenHash) {
+      console.error("No token hash generated");
       return new Response(
         JSON.stringify({ success: true }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const resetLink = `${redirectTo}?token_hash=${encodeURIComponent(tokenHash)}&type=recovery`;
 
     // Build HTML email
     const html = buildPasswordResetEmailHtml(resetLink, email);

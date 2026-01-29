@@ -29,6 +29,10 @@ export default function ResetPassword() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [requiresTokenVerification, setRequiresTokenVerification] = useState(false);
+  const [tokenHash, setTokenHash] = useState<string | null>(null);
+
   const form = useForm<ResetFormData>({
     resolver: zodResolver(resetSchema),
     defaultValues: {
@@ -38,31 +42,41 @@ export default function ResetPassword() {
   });
 
   useEffect(() => {
-    // Handle the recovery session from URL hash
-    const handleRecoverySession = async () => {
-      // Check if we have hash params (Supabase recovery redirect)
+    const init = async () => {
+      // 1) Preferred flow: token_hash in URL search params (safe vs email scanners)
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlTokenHash = searchParams.get("token_hash");
+      const urlType = searchParams.get("type");
+      if (urlType === "recovery" && urlTokenHash) {
+        setTokenHash(urlTokenHash);
+        setRequiresTokenVerification(true);
+        return;
+      }
+
+      // 2) Backward-compatible flow: access/refresh tokens in URL hash
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token');
-      const type = hashParams.get('type');
-      
-      if (type === 'recovery' && accessToken && refreshToken) {
-        // Set the session from URL tokens
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+      const hashType = hashParams.get("type");
+
+      if (hashType === "recovery" && accessToken && refreshToken) {
         const { error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
-        
+
         if (!error) {
           setIsValidSession(true);
-          // Clean up URL
-          window.history.replaceState(null, '', window.location.pathname);
+          window.history.replaceState(null, "", window.location.pathname);
           return;
         }
       }
-      
-      // Fallback: check existing session
-      const { data: { session } } = await supabase.auth.getSession();
+
+      // 3) Fallback: check existing session
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (session) {
         setIsValidSession(true);
       } else {
@@ -74,9 +88,51 @@ export default function ResetPassword() {
         navigate("/auth");
       }
     };
-    
-    handleRecoverySession();
+
+    init();
   }, [navigate, toast]);
+
+  const verifyTokenHash = async () => {
+    if (!tokenHash) return;
+    setIsVerifying(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        type: "recovery",
+        token_hash: tokenHash,
+      });
+
+      if (error) {
+        toast({
+          title: "Invalid or expired link",
+          description: "Please request a new password reset link.",
+          variant: "destructive",
+        });
+        navigate("/auth");
+        return;
+      }
+
+      // Ensure session exists before rendering the form
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        toast({
+          title: "Invalid or expired link",
+          description: "Please request a new password reset link.",
+          variant: "destructive",
+        });
+        navigate("/auth");
+        return;
+      }
+
+      setRequiresTokenVerification(false);
+      setIsValidSession(true);
+      window.history.replaceState(null, "", window.location.pathname);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   const onSubmit = async (data: ResetFormData) => {
     setIsSubmitting(true);
@@ -103,6 +159,33 @@ export default function ResetPassword() {
       setIsSubmitting(false);
     }
   };
+
+  if (requiresTokenVerification) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary p-4">
+        <Card className="w-full max-w-md shadow-xl border-0">
+          <CardHeader className="space-y-2 text-center pb-6">
+            <CardTitle className="text-2xl font-bold text-primary">
+              Verify reset link
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Click continue to securely open your reset session.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              type="button"
+              className="w-full"
+              onClick={verifyTokenHash}
+              disabled={isVerifying}
+            >
+              {isVerifying ? "Verifying..." : "Continue"}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!isValidSession) {
     return (
