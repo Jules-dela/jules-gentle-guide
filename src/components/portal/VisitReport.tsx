@@ -325,8 +325,8 @@ export function VisitReport({ apartment, onComplete, onReject, readOnly = false 
               </motion.div>
             )}
 
-            {/* Action Buttons - Hidden in read-only mode */}
-            {!readOnly && (
+            {/* Action Buttons - Hidden in read-only mode or when visit not published */}
+            {!readOnly && visitData?.visit_published && photos.length > 0 && (
               <motion.div
                 className="flex gap-4"
                 initial={{ opacity: 0, y: 20 }}
