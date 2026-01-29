@@ -74,6 +74,9 @@ export function DocumentManager({ caseId, clientName, onUpdate }: DocumentManage
   const [documents, setDocuments] = useState<AdminDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewFileName, setPreviewFileName] = useState<string>('document');
   
   // Modal states
   const [viewingDoc, setViewingDoc] = useState<AdminDocument | null>(null);
@@ -82,6 +85,111 @@ export function DocumentManager({ caseId, clientName, onUpdate }: DocumentManage
   const [addingDoc, setAddingDoc] = useState(false);
   const [newDocLabel, setNewDocLabel] = useState('');
   const [downloadingZip, setDownloadingZip] = useState(false);
+
+  const cleanupPreviewUrl = useCallback(() => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+  }, [previewUrl]);
+
+  useEffect(() => {
+    // Cleanup on unmount
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const extractBucketAndPath = (fileUrl: string): { bucket: string; path: string; fileName: string } | null => {
+    try {
+      const url = new URL(fileUrl);
+      const parts = url.pathname.split('/').filter(Boolean);
+      // Expect: storage/v1/object/(public|sign)/<bucket>/<path...>
+      const objectIdx = parts.findIndex((p) => p === 'object');
+      if (objectIdx === -1) return null;
+      const variant = parts[objectIdx + 1];
+      const bucket = parts[objectIdx + 2];
+      if (!bucket || !variant) return null;
+      const pathParts = parts.slice(objectIdx + 3);
+      const path = decodeURIComponent(pathParts.join('/'));
+      const fileName = pathParts[pathParts.length - 1] ? decodeURIComponent(pathParts[pathParts.length - 1]) : 'document';
+      return { bucket, path, fileName };
+    } catch {
+      return null;
+    }
+  };
+
+  const getIsImageFile = (fileNameOrUrl: string) =>
+    /\.(jpg|jpeg|png|gif|webp)$/i.test(fileNameOrUrl);
+
+  const triggerBrowserDownload = (blobUrl: string, fileName: string) => {
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = fileName || 'document';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  const downloadDocumentBlob = async (doc: AdminDocument) => {
+    if (!doc.file_url) throw new Error('No file available');
+
+    const parsed = extractBucketAndPath(doc.file_url);
+
+    // Prefer authenticated storage download (avoids opening the storage domain in a tab/iframe).
+    if (parsed) {
+      const { data, error } = await supabase.storage.from(parsed.bucket).download(parsed.path);
+      if (error) throw error;
+      const blobUrl = URL.createObjectURL(data);
+      return { blobUrl, fileName: parsed.fileName || `${doc.label}.pdf` };
+    }
+
+    // Fallback: fetch the URL (should still work when not blocked by adblock rules).
+    const res = await fetch(doc.file_url, { credentials: 'omit' });
+    if (!res.ok) throw new Error(`Failed to fetch file (${res.status})`);
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    return { blobUrl, fileName: `${doc.label}.pdf` };
+  };
+
+  const openPreview = async (doc: AdminDocument) => {
+    if (!doc.file_url) return;
+    setPreviewLoadingId(doc.id);
+    try {
+      cleanupPreviewUrl();
+      const { blobUrl, fileName } = await downloadDocumentBlob(doc);
+      setPreviewFileName(fileName);
+      setPreviewUrl(blobUrl);
+      setViewingDoc(doc);
+    } catch (err) {
+      console.error('Error previewing document:', err);
+      toast({
+        title: 'Preview failed',
+        description: err instanceof Error ? err.message : 'Unable to preview document',
+        variant: 'destructive',
+      });
+    } finally {
+      setPreviewLoadingId(null);
+    }
+  };
+
+  const downloadDoc = async (doc: AdminDocument) => {
+    if (!doc.file_url) return;
+    setPreviewLoadingId(doc.id);
+    try {
+      const { blobUrl, fileName } = await downloadDocumentBlob(doc);
+      triggerBrowserDownload(blobUrl, fileName);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Error downloading document:', err);
+      toast({
+        title: 'Download failed',
+        description: err instanceof Error ? err.message : 'Unable to download document',
+        variant: 'destructive',
+      });
+    } finally {
+      setPreviewLoadingId(null);
+    }
+  };
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -266,16 +374,14 @@ export function DocumentManager({ caseId, clientName, onUpdate }: DocumentManage
 
     setDownloadingZip(true);
     try {
-      // Download each file and create a ZIP
-      // For now, open all in new tabs (full ZIP would require server-side processing)
+      // Download each file locally (avoid opening storage URLs in a new tab, which can be blocked by adblockers)
       for (const doc of uploadedDocs) {
-        if (doc.file_url) {
-          window.open(doc.file_url, '_blank');
-        }
+        // eslint-disable-next-line no-await-in-loop
+        await downloadDoc(doc);
       }
       toast({
         title: 'Documents Opened',
-        description: `${uploadedDocs.length} document(s) opened in new tabs`,
+        description: `${uploadedDocs.length} document(s) downloaded`,
       });
     } catch (err) {
       console.error('Error downloading:', err);
@@ -394,21 +500,29 @@ export function DocumentManager({ caseId, clientName, onUpdate }: DocumentManage
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => setViewingDoc(doc)}
+                      onClick={() => openPreview(doc)}
+                      disabled={previewLoadingId === doc.id}
                       title="View document"
                     >
-                      <Eye className="h-4 w-4" />
+                      {previewLoadingId === doc.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
-                      asChild
+                      onClick={() => downloadDoc(doc)}
+                      disabled={previewLoadingId === doc.id}
                       title="Download"
                     >
-                      <a href={doc.file_url} download target="_blank" rel="noopener noreferrer">
+                      {previewLoadingId === doc.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
                         <Download className="h-4 w-4" />
-                      </a>
+                      )}
                     </Button>
                   </>
                 )}
@@ -454,7 +568,15 @@ export function DocumentManager({ caseId, clientName, onUpdate }: DocumentManage
       </div>
 
       {/* View Document Modal */}
-      <Dialog open={!!viewingDoc} onOpenChange={() => setViewingDoc(null)}>
+      <Dialog
+        open={!!viewingDoc}
+        onOpenChange={(open) => {
+          if (!open) {
+            setViewingDoc(null);
+            cleanupPreviewUrl();
+          }
+        }}
+      >
         <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -465,18 +587,18 @@ export function DocumentManager({ caseId, clientName, onUpdate }: DocumentManage
               Document preview for {clientName}
             </DialogDescription>
           </DialogHeader>
-          {viewingDoc?.file_url && (
+          {previewUrl && (
             <div className="flex-1 min-h-[400px] bg-muted rounded-lg overflow-hidden">
-              {viewingDoc.file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+              {getIsImageFile(previewFileName) ? (
                 <img 
-                  src={viewingDoc.file_url} 
-                  alt={viewingDoc.label}
+                  src={previewUrl}
+                  alt={viewingDoc?.label || 'Document'}
                   className="w-full h-full object-contain"
                 />
               ) : (
                 <iframe
-                  src={viewingDoc.file_url}
-                  title={viewingDoc.label}
+                  src={previewUrl}
+                  title={viewingDoc?.label || 'Document'}
                   className="w-full h-[500px]"
                 />
               )}
@@ -510,12 +632,14 @@ export function DocumentManager({ caseId, clientName, onUpdate }: DocumentManage
             )}
             <Button
               variant="outline"
-              asChild
+              onClick={() => {
+                if (viewingDoc) downloadDoc(viewingDoc);
+              }}
+              disabled={!viewingDoc?.file_url}
+              className="gap-2"
             >
-              <a href={viewingDoc?.file_url || ''} download target="_blank" rel="noopener noreferrer">
-                <Download className="h-4 w-4 mr-2" />
-                Download
-              </a>
+              <Download className="h-4 w-4" />
+              Download
             </Button>
           </DialogFooter>
         </DialogContent>
