@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Upload, X, Image, Loader2, Check, ThumbsUp, ThumbsDown, 
-  RefreshCw, Plus, Trash2, Eye, Clock 
+  RefreshCw, Plus, Trash2, Eye, Clock, Mail 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,8 +10,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useAdminNotifications } from '@/hooks/useNotifications';
 
 interface Proposal {
   id: string;
@@ -31,13 +33,17 @@ interface Proposal {
 interface VisitReportUploaderProps {
   caseId: string;
   onResetToResearch: () => void;
+  clientEmail?: string;
+  clientName?: string;
 }
 
-export function VisitReportUploader({ caseId, onResetToResearch }: VisitReportUploaderProps) {
+export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, clientName }: VisitReportUploaderProps) {
   const [likedProposal, setLikedProposal] = useState<Proposal | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [notifyClient, setNotifyClient] = useState(false);
+  const { createNotification } = useAdminNotifications();
   
   // Visit report form state
   const [visitImages, setVisitImages] = useState<File[]>([]);
@@ -199,11 +205,23 @@ export function VisitReportUploader({ caseId, onResetToResearch }: VisitReportUp
 
       if (updateError) throw updateError;
 
+      // Create notification for stage 3
+      await createNotification(
+        caseId,
+        3,
+        'visit_published',
+        { address: likedProposal.neighbourhood },
+        notifyClient,
+        clientEmail,
+        clientName
+      );
+
       toast({
         title: "Visit report published!",
-        description: "The client can now see the visit details in their portal.",
+        description: `The client can now see the visit details in their portal.${notifyClient ? ' Email notification sent.' : ''}`,
       });
 
+      setNotifyClient(false);
       // Refresh data
       fetchLikedProposal();
     } catch (error) {
@@ -513,6 +531,20 @@ export function VisitReportUploader({ caseId, onResetToResearch }: VisitReportUp
                 Add point
               </Button>
             </div>
+          </div>
+
+          {/* Notify Client Checkbox */}
+          <div className="flex items-center gap-2 px-1">
+            <Checkbox
+              id="notify-visit"
+              checked={notifyClient}
+              onCheckedChange={(checked) => setNotifyClient(checked === true)}
+              disabled={visitRejected}
+            />
+            <Label htmlFor="notify-visit" className="text-sm font-normal flex items-center gap-2 cursor-pointer">
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              Notify Client via Email
+            </Label>
           </div>
 
           {/* Publish Button */}

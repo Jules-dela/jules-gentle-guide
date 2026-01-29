@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useClientPortal } from '@/hooks/useClientPortal';
+import { useNotifications } from '@/hooks/useNotifications';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { TrackerProgressBar } from '@/components/portal/TrackerProgressBar';
@@ -104,6 +105,9 @@ export default function PortalDashboard() {
   const isDemoMode = searchParams.get('demo') === 'true';
   const demoStage = searchParams.get('stage') ? parseInt(searchParams.get('stage')!, 10) : null;
   
+  // Notifications hook
+  const { unreadStages, markStageAsRead } = useNotifications(activeCase?.id || null);
+  
   // Determine stage from case status
   const caseStage = useMemo(() => getStageFromStatus(activeCase?.status), [activeCase?.status]);
   
@@ -116,6 +120,13 @@ export default function PortalDashboard() {
   
   // Determine if viewing a previous stage (read-only mode)
   const isReadOnly = currentStage < highestStage;
+
+  // Mark stage as read when viewing it
+  useEffect(() => {
+    if (activeCase?.id && currentStage && unreadStages[currentStage]?.hasNew) {
+      markStageAsRead(activeCase.id, currentStage);
+    }
+  }, [activeCase?.id, currentStage, unreadStages, markStageAsRead]);
 
   // Sync stage with case status (only if not in demo mode)
   useEffect(() => {
@@ -257,7 +268,11 @@ export default function PortalDashboard() {
       <div className="h-[72px]" />
       
       {/* Progress Tracker */}
-      <TrackerProgressBar currentStage={currentStage} onStageClick={setCurrentStage} />
+      <TrackerProgressBar 
+        currentStage={currentStage} 
+        onStageClick={setCurrentStage} 
+        unreadStages={unreadStages}
+      />
       
       {/* Return to Current Stage Banner */}
       <AnimatePresence>

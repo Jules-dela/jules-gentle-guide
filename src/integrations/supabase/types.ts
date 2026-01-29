@@ -137,6 +137,38 @@ export type Database = {
           },
         ]
       }
+      client_stage_views: {
+        Row: {
+          case_id: string
+          id: string
+          last_viewed_at: string
+          stage: number
+          user_id: string
+        }
+        Insert: {
+          case_id: string
+          id?: string
+          last_viewed_at?: string
+          stage: number
+          user_id: string
+        }
+        Update: {
+          case_id?: string
+          id?: string
+          last_viewed_at?: string
+          stage?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_stage_views_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       housing_applications: {
         Row: {
           budget: string | null
@@ -377,6 +409,44 @@ export type Database = {
           ip_address?: string
         }
         Relationships: []
+      }
+      stage_notifications: {
+        Row: {
+          case_id: string
+          id: string
+          metadata: Json | null
+          notification_type: string
+          stage: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          case_id: string
+          id?: string
+          metadata?: Json | null
+          notification_type?: string
+          stage: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          case_id?: string
+          id?: string
+          metadata?: Json | null
+          notification_type?: string
+          stage?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_notifications_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
