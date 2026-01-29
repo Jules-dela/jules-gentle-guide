@@ -10,6 +10,8 @@ import { ApartmentUploader } from './ApartmentUploader';
 import { FeedbackTracker } from './FeedbackTracker';
 import { VisitReportUploader } from './VisitReportUploader';
 import { DocumentManager } from './DocumentManager';
+import { HandoverManager } from './HandoverManager';
+import { ContractClosurePanel } from './ContractClosurePanel';
 import { supabase } from '@/integrations/supabase/client';
 import type { ClientWithCase } from '@/types/admin';
 
@@ -348,6 +350,31 @@ export function ClientSidePanel({ client, onClose }: ClientSidePanelProps) {
                     caseId={client.case_id}
                     clientName={client.name}
                     onUpdate={handleRefresh}
+                  />
+                )}
+
+                <Separator />
+
+                {/* Handover Manager - Stage 5 */}
+                {client.case_id && (
+                  <HandoverManager
+                    key={`handover-${refreshKey}`}
+                    caseId={client.case_id}
+                    clientName={client.name}
+                    onUpdate={handleRefresh}
+                  />
+                )}
+
+                <Separator />
+
+                {/* Contract Closure & Data Deletion */}
+                {client.case_id && (
+                  <ContractClosurePanel
+                    key={`closure-${refreshKey}`}
+                    caseId={client.case_id}
+                    clientName={client.name}
+                    onClose={onClose}
+                    onClosed={handleRefresh}
                   />
                 )}
               </div>
