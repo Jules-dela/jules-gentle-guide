@@ -25,7 +25,8 @@ interface UseClientPortalReturn {
     proposalId: string, 
     status: 'liked' | 'rejected',
     rejectionReasons?: string[],
-    rejectionNotes?: string
+    rejectionNotes?: string,
+    visitQuestions?: string
   ) => Promise<{ error: Error | null }>;
   uploadDocument: (documentId: string, file: File) => Promise<{ error: Error | null }>;
   confirmKeyHandover: () => Promise<{ error: Error | null }>;
@@ -216,16 +217,24 @@ export function useClientPortal(): UseClientPortalReturn {
     proposalId: string,
     status: 'liked' | 'rejected',
     rejectionReasons?: string[],
-    rejectionNotes?: string
+    rejectionNotes?: string,
+    visitQuestions?: string
   ) => {
     try {
+      const updateData: Record<string, unknown> = {
+        client_status: status,
+        rejection_reasons: rejectionReasons || [],
+        rejection_notes: rejectionNotes || null,
+      };
+
+      // Include visit questions if provided (for liked proposals)
+      if (status === 'liked' && visitQuestions !== undefined) {
+        updateData.client_visit_questions = visitQuestions || null;
+      }
+
       const { error } = await supabase
         .from('property_proposals')
-        .update({
-          client_status: status,
-          rejection_reasons: rejectionReasons || [],
-          rejection_notes: rejectionNotes || null,
-        })
+        .update(updateData)
         .eq('id', proposalId);
 
       if (error) throw error;

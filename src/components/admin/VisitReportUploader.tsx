@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Upload, X, Image, Loader2, Check, ThumbsUp, ThumbsDown, 
-  RefreshCw, Plus, Trash2, Eye, Clock, Mail 
+  RefreshCw, Plus, Trash2, Eye, Clock, Mail, MessageSquare 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,7 @@ interface Proposal {
   visit_pros: string[] | null;
   visit_cons: string[] | null;
   visit_published: boolean | null;
+  client_visit_questions: string | null;
 }
 
 interface VisitReportUploaderProps {
@@ -385,6 +386,36 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
               )}
               Reset to Research Stage
             </Button>
+          )}
+
+          <Separator />
+
+          {/* Client's Specific Requests for this Visit */}
+          {likedProposal.client_visit_questions && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <MessageSquare className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-semibold text-primary mb-1">
+                    Client's Specific Requests for this Visit
+                  </h4>
+                  <p className="text-sm text-foreground whitespace-pre-wrap break-words">
+                    {likedProposal.client_visit_questions}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!likedProposal.client_visit_questions && (
+            <div className="border border-dashed border-muted-foreground/30 rounded-lg p-4 text-center">
+              <MessageSquare className="h-5 w-5 text-muted-foreground/50 mx-auto mb-1" />
+              <p className="text-xs text-muted-foreground">
+                No specific requests from client
+              </p>
+            </div>
           )}
 
           <Separator />

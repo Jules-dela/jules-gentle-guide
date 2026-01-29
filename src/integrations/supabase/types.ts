@@ -319,6 +319,7 @@ export type Database = {
           case_id: string
           charges: number | null
           client_status: Database["public"]["Enums"]["proposal_status"] | null
+          client_visit_questions: string | null
           created_at: string
           description: string | null
           id: string
@@ -342,6 +343,7 @@ export type Database = {
           case_id: string
           charges?: number | null
           client_status?: Database["public"]["Enums"]["proposal_status"] | null
+          client_visit_questions?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -365,6 +367,7 @@ export type Database = {
           case_id?: string
           charges?: number | null
           client_status?: Database["public"]["Enums"]["proposal_status"] | null
+          client_visit_questions?: string | null
           created_at?: string
           description?: string | null
           id?: string

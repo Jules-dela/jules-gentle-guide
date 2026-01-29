@@ -79,6 +79,7 @@ export interface PropertyProposal {
   client_status: ProposalStatus;
   rejection_reasons: string[];
   rejection_notes: string | null;
+  client_visit_questions: string | null;
   created_at: string;
 }
 
