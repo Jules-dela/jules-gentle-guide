@@ -70,7 +70,7 @@ export function KeyHandoverStage({ apartment, keyHandover, userName = 'New Resid
   const contactPhone = keyHandover?.contact_phone || '41781234567';
   const contactPerson = keyHandover?.contact_person || 'Jules';
 
-  const whatsappUrl = `https://wa.me/${contactPhone.replace(/[^0-9]/g, '')}?text=Hello%20${contactPerson},%20I%20would%20like%20to%20coordinate%20my%20arrival.`;
+  const whatsappUrl = `https://wa.me/${contactPhone.replace(/[^0-9]/g, '')}?text=Hi%20${contactPerson}!%20I%20am%20ready%20for%20my%20key%20handover.`;
 
   const handleWhatsAppClick = () => {
     // Try to open the link
