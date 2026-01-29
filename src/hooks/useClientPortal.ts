@@ -252,16 +252,18 @@ export function useClientPortal(): UseClientPortalReturn {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
+      // Generate signed URL for private bucket (valid for 1 year)
+      const { data: signedData, error: signedError } = await supabase.storage
         .from('client-documents')
-        .getPublicUrl(filePath);
+        .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 year expiry
 
-      // Update document record
+      if (signedError) throw signedError;
+
+      // Update document record with signed URL
       const { error: updateError } = await supabase
         .from('case_documents')
         .update({
-          file_url: urlData.publicUrl,
+          file_url: signedData.signedUrl,
           status: 'uploaded',
         })
         .eq('id', documentId);
