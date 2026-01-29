@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ApartmentCard } from './ApartmentCard';
 import { FeedbackPopup } from './FeedbackPopup';
+import { LandlordQuestionsModal } from './LandlordQuestionsModal';
 import { Check, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -18,7 +19,7 @@ export interface SelectedApartment {
 
 interface ResearchGalleryProps {
   proposals?: SelectedApartment[];
-  onComplete: (apartment: SelectedApartment) => void;
+  onComplete: (apartment: SelectedApartment, questions?: string) => void;
   onReject?: (proposalId: string, reasons: string[], notes?: string) => Promise<void>;
   readOnly?: boolean;
 }
@@ -80,6 +81,7 @@ export function ResearchGallery({ proposals, onComplete, onReject, readOnly = fa
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showQuestionsModal, setShowQuestionsModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set());
 
@@ -93,12 +95,23 @@ export function ResearchGallery({ proposals, onComplete, onReject, readOnly = fa
 
   const handleLike = useCallback(() => {
     if (!currentApartment) return;
+    // Show questions modal instead of immediately completing
+    setShowQuestionsModal(true);
+  }, [currentApartment]);
+
+  const handleQuestionsSubmit = useCallback(async (questions: string) => {
+    if (!currentApartment) return;
+    setShowQuestionsModal(false);
     setShowSuccess(true);
     setTimeout(() => {
       setShowSuccess(false);
-      onComplete(currentApartment);
+      onComplete(currentApartment, questions);
     }, 2000);
   }, [onComplete, currentApartment]);
+
+  const handleQuestionsClose = useCallback(() => {
+    setShowQuestionsModal(false);
+  }, []);
 
   const handleDislike = useCallback(() => {
     setShowFeedback(true);
@@ -264,6 +277,14 @@ export function ResearchGallery({ proposals, onComplete, onReject, readOnly = fa
         isOpen={showFeedback}
         onClose={handleFeedbackClose}
         onSubmit={handleFeedbackSubmit}
+      />
+
+      {/* Landlord Questions Modal - Step 2.5 */}
+      <LandlordQuestionsModal
+        isOpen={showQuestionsModal}
+        onClose={handleQuestionsClose}
+        onSubmit={handleQuestionsSubmit}
+        apartmentName={currentApartment ? `${currentApartment.neighborhood} · ${currentApartment.rooms} rooms` : undefined}
       />
     </div>
   );

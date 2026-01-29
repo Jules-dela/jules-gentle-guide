@@ -151,11 +151,11 @@ export default function PortalDashboard() {
     }
   }, [user, authLoading, navigate]);
 
-  const handleResearchComplete = async (apartment: SelectedApartment) => {
-    // Find the proposal and update its status
+  const handleResearchComplete = async (apartment: SelectedApartment, questions?: string) => {
+    // Find the proposal and update its status (including landlord questions)
     const proposal = proposals.find(p => p.id === apartment.id);
     if (proposal) {
-      const { error } = await updateProposalFeedback(proposal.id, 'liked');
+      const { error } = await updateProposalFeedback(proposal.id, 'liked', undefined, undefined, questions);
       if (!error) {
         setSelectedApartment(apartment);
         setCurrentStage(3);
