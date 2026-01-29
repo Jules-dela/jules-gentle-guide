@@ -314,15 +314,21 @@ export function KeyHandoverStage({ apartment, keyHandover, userName = 'New Resid
           <Download className="w-5 h-5" />
           Download Lease Agreement (PDF)
         </Button>
-        <Button 
-          onClick={handleWhatsAppClick}
-          variant="outline"
-          className="flex-1 h-14 rounded-2xl gap-3 text-base font-medium border-2 hover:bg-green-50 hover:border-green-300 hover:text-green-700"
+      <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-1"
         >
-          <MessageCircle className="w-5 h-5" />
-          Contact Jules for Arrival
-          <ExternalLink className="w-4 h-4 ml-1" />
-        </Button>
+          <Button 
+            variant="outline"
+            className="w-full h-14 rounded-2xl gap-3 text-base font-medium border-2 hover:bg-green-50 hover:border-green-300 hover:text-green-700"
+          >
+            <MessageCircle className="w-5 h-5" />
+            Contact {contactPerson} for Arrival
+            <ExternalLink className="w-4 h-4 ml-1" />
+          </Button>
+        </a>
       </motion.div>
 
       {/* Acknowledge Button */}
