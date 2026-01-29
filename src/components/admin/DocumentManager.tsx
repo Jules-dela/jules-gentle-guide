@@ -382,16 +382,24 @@ export function DocumentManager({ caseId, clientName, onUpdate }: DocumentManage
         throw new Error('Not authenticated');
       }
 
-      const response = await supabase.functions.invoke('download-dossier-zip', {
-        body: { caseId, clientName },
+      // Use fetch directly to get binary response properly
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/download-dossier-zip`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ caseId, clientName }),
       });
 
-      if (response.error) {
-        throw new Error(response.error.message || 'Failed to generate ZIP');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to generate ZIP');
       }
 
-      // The response data is the ZIP blob
-      const blob = response.data as Blob;
+      // Get the blob directly from fetch response
+      const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
       
       // Trigger download
