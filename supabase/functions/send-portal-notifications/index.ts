@@ -9,11 +9,17 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-type NotificationType = "key_handover_scheduled" | "document_verified" | "document_rejected";
+type NotificationType = "key_handover_scheduled" | "document_verified" | "document_rejected" | "new_match" | "visit_published";
 
 interface NotificationRequest {
   type: NotificationType;
-  case_id: string;
+  // New simplified format for direct notifications
+  email?: string;
+  name?: string;
+  stage?: number;
+  metadata?: Record<string, unknown>;
+  // Legacy format for case-based lookups
+  case_id?: string;
   // For key handover
   scheduled_date?: string;
   scheduled_time?: string;
@@ -77,40 +83,56 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const body: NotificationRequest = await req.json();
-    const { type, case_id } = body;
+    const { type, case_id, email, name, metadata } = body;
 
-    if (!type || !case_id) {
+    if (!type) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: type, case_id" }),
+        JSON.stringify({ error: "Missing required field: type" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Fetch case and client details
-    const { data: caseData, error: caseError } = await supabase
-      .from("cases")
-      .select(`
-        id,
-        profiles!inner (
-          id,
-          name,
-          email
-        )
-      `)
-      .eq("id", case_id)
-      .single();
+    let clientEmail: string;
+    let clientName: string;
+    let firstName: string;
 
-    if (caseError || !caseData) {
-      console.error("Case fetch error:", caseError);
+    // If email/name provided directly, use them
+    if (email && name) {
+      clientEmail = email;
+      clientName = name;
+      firstName = name.split(" ")[0];
+    } else if (case_id) {
+      // Fallback: Fetch case and client details
+      const { data: caseData, error: caseError } = await supabase
+        .from("cases")
+        .select(`
+          id,
+          profiles!inner (
+            id,
+            name,
+            email
+          )
+        `)
+        .eq("id", case_id)
+        .single();
+
+      if (caseError || !caseData) {
+        console.error("Case fetch error:", caseError);
+        return new Response(
+          JSON.stringify({ error: "Case not found" }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      clientName = (caseData.profiles as any).name;
+      clientEmail = (caseData.profiles as any).email;
+      firstName = clientName.split(" ")[0];
+    } else {
       return new Response(
-        JSON.stringify({ error: "Case not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Missing required fields: email/name or case_id" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    const clientName = (caseData.profiles as any).name;
-    const clientEmail = (caseData.profiles as any).email;
-    const firstName = clientName.split(" ")[0];
 
     let subject: string;
     let htmlContent: string;
@@ -141,6 +163,23 @@ const handler = async (req: Request): Promise<Response> => {
           firstName,
           documentLabel: body.document_label || "Your document",
           rejectionReason: body.rejection_reason || "Please contact us for details.",
+        });
+        break;
+
+      case "new_match":
+        const matchCount = (metadata?.count as number) || 1;
+        subject = `🏠 ${matchCount} New Apartment${matchCount > 1 ? 's' : ''} Found! - UniKey`;
+        htmlContent = generateNewMatchEmail({
+          firstName,
+          matchCount,
+        });
+        break;
+
+      case "visit_published":
+        subject = "📸 Visit Report Ready! - UniKey";
+        htmlContent = generateVisitPublishedEmail({
+          firstName,
+          address: (metadata?.address as string) || "your selected property",
         });
         break;
 
@@ -361,6 +400,117 @@ function generateDocumentRejectedEmail(data: {
           
           <p style="font-size: 14px; color: #888; margin-top: 32px;">
             We're here to help!
+          </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f8fafc; padding: 24px 30px; text-align: center; border-top: 1px solid #eee;">
+          <p style="font-size: 14px; color: #888; margin: 0;">
+            UniKey – Your Home Search, Simplified
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+function generateNewMatchEmail(data: {
+  firstName: string;
+  matchCount: number;
+}): string {
+  const plural = data.matchCount > 1;
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 12px; overflow: hidden; margin-top: 20px; margin-bottom: 20px;">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 40px 30px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">🏠 ${data.matchCount} New Match${plural ? 'es' : ''}!</h1>
+        </div>
+        
+        <!-- Content -->
+        <div style="padding: 40px 30px;">
+          <p style="font-size: 18px; color: #333; margin-bottom: 24px;">
+            Hi ${data.firstName},
+          </p>
+          
+          <p style="font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 24px;">
+            Great news! We've found ${data.matchCount} new apartment${plural ? 's' : ''} matching your criteria.
+          </p>
+          
+          <!-- CTA Card -->
+          <div style="background-color: #f8fafc; border-radius: 12px; padding: 24px; margin-bottom: 24px; text-align: center; border: 1px solid #e2e8f0;">
+            <p style="font-size: 16px; color: #333; margin: 0 0 16px 0;">
+              Log in to your UniKey portal to browse ${plural ? 'them' : 'it'} and share your feedback.
+            </p>
+            <a href="https://unikey.lovable.app/portal" style="display: inline-block; background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+              View Apartments
+            </a>
+          </div>
+          
+          <p style="font-size: 14px; color: #888; margin-top: 32px;">
+            Questions? Reply to this email or contact us via WhatsApp.
+          </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f8fafc; padding: 24px 30px; text-align: center; border-top: 1px solid #eee;">
+          <p style="font-size: 14px; color: #888; margin: 0;">
+            UniKey – Your Home Search, Simplified
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+function generateVisitPublishedEmail(data: {
+  firstName: string;
+  address: string;
+}): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 12px; overflow: hidden; margin-top: 20px; margin-bottom: 20px;">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 40px 30px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">📸 Visit Report Ready!</h1>
+        </div>
+        
+        <!-- Content -->
+        <div style="padding: 40px 30px;">
+          <p style="font-size: 18px; color: #333; margin-bottom: 24px;">
+            Hi ${data.firstName},
+          </p>
+          
+          <p style="font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 24px;">
+            We just finished visiting <strong>${data.address}</strong> for you. The visit report with photos and our expert notes is now available in your portal.
+          </p>
+          
+          <!-- CTA Card -->
+          <div style="background-color: #f8fafc; border-radius: 12px; padding: 24px; margin-bottom: 24px; text-align: center; border: 1px solid #e2e8f0;">
+            <p style="font-size: 16px; color: #333; margin: 0 0 16px 0;">
+              Review the report and let us know if you'd like to proceed or keep searching.
+            </p>
+            <a href="https://unikey.lovable.app/portal" style="display: inline-block; background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+              View Report
+            </a>
+          </div>
+          
+          <p style="font-size: 14px; color: #888; margin-top: 32px;">
+            Questions about the property? Just reply to this email!
           </p>
         </div>
         

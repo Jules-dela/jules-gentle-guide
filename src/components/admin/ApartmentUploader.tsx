@@ -1,13 +1,15 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check } from 'lucide-react';
+import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useAdminNotifications } from '@/hooks/useNotifications';
 
 interface ApartmentDraft {
   id: string;
@@ -23,14 +25,18 @@ interface ApartmentDraft {
 interface ApartmentUploaderProps {
   caseId: string;
   onSave: () => void;
+  clientEmail?: string;
+  clientName?: string;
 }
 
 const MAX_APARTMENTS = 3;
 
-export function ApartmentUploader({ caseId, onSave }: ApartmentUploaderProps) {
+export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: ApartmentUploaderProps) {
   const [apartments, setApartments] = useState<ApartmentDraft[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [notifyClient, setNotifyClient] = useState(false);
+  const { createNotification } = useAdminNotifications();
 
   const addApartment = useCallback(() => {
     if (apartments.length >= MAX_APARTMENTS) {
@@ -158,14 +164,26 @@ export function ApartmentUploader({ caseId, onSave }: ApartmentUploaderProps) {
         if (insertError) throw insertError;
       }
 
+      // Create notification for stage 2
+      await createNotification(
+        caseId,
+        2,
+        'new_match',
+        { count: apartments.length },
+        notifyClient,
+        clientEmail,
+        clientName
+      );
+
       toast({
         title: "Apartments published!",
-        description: `${apartments.length} apartment(s) are now visible in the client's portal.`,
+        description: `${apartments.length} apartment(s) are now visible in the client's portal.${notifyClient ? ' Email notification sent.' : ''}`,
       });
 
       // Clear the form
       setApartments([]);
       setExpandedId(null);
+      setNotifyClient(false);
       onSave();
     } catch (error) {
       console.error('Error saving apartments:', error);
@@ -367,23 +385,38 @@ export function ApartmentUploader({ caseId, onSave }: ApartmentUploaderProps) {
       )}
 
       {apartments.length > 0 && (
-        <Button
-          className="w-full gap-2"
-          onClick={handleSubmitAll}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Publishing...
-            </>
-          ) : (
-            <>
-              <Upload className="h-4 w-4" />
-              Push to Client Portal
-            </>
-          )}
-        </Button>
+        <div className="space-y-3">
+          {/* Notify Client Checkbox */}
+          <div className="flex items-center gap-2 px-1">
+            <Checkbox
+              id="notify-research"
+              checked={notifyClient}
+              onCheckedChange={(checked) => setNotifyClient(checked === true)}
+            />
+            <Label htmlFor="notify-research" className="text-sm font-normal flex items-center gap-2 cursor-pointer">
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              Notify Client via Email
+            </Label>
+          </div>
+
+          <Button
+            className="w-full gap-2"
+            onClick={handleSubmitAll}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Publishing...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4" />
+                Push to Client Portal
+              </>
+            )}
+          </Button>
+        </div>
       )}
     </div>
   );

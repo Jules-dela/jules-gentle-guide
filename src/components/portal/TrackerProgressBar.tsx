@@ -2,9 +2,18 @@ import { motion } from 'framer-motion';
 import { FileText, Search, Eye, Share, Key } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+interface UnreadStages {
+  [stage: number]: {
+    hasNew: boolean;
+    count?: number;
+    type?: string;
+  };
+}
+
 interface TrackerProgressBarProps {
   currentStage: number;
   onStageClick?: (stage: number) => void;
+  unreadStages?: UnreadStages;
 }
 
 const stages = [
@@ -15,7 +24,7 @@ const stages = [
   { id: 5, label: 'Handover', icon: Key },
 ];
 
-export function TrackerProgressBar({ currentStage, onStageClick }: TrackerProgressBarProps) {
+export function TrackerProgressBar({ currentStage, onStageClick, unreadStages = {} }: TrackerProgressBarProps) {
   return (
     <div className="sticky top-[72px] z-40 bg-white/95 backdrop-blur-md border-b border-border shadow-sm">
       <div className="container mx-auto px-4 py-6">
@@ -38,12 +47,14 @@ export function TrackerProgressBar({ currentStage, onStageClick }: TrackerProgre
               const Icon = stage.icon;
               const isActive = stage.id === currentStage;
               const isCompleted = stage.id < currentStage;
+              const hasUnread = unreadStages[stage.id]?.hasNew;
+              const unreadCount = unreadStages[stage.id]?.count;
               
               return (
                 <motion.button
                   key={stage.id}
                   className={cn(
-                    "flex flex-col items-center",
+                    "flex flex-col items-center relative",
                     (isCompleted || isActive) && onStageClick && "cursor-pointer"
                   )}
                   onClick={() => (isCompleted || isActive) && onStageClick?.(stage.id)}
@@ -54,7 +65,7 @@ export function TrackerProgressBar({ currentStage, onStageClick }: TrackerProgre
                 >
                   <motion.div
                     className={cn(
-                      'w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300',
+                      'w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300 relative',
                       isActive && 'bg-primary text-primary-foreground shadow-lg ring-4 ring-primary/20',
                       isCompleted && 'bg-primary text-primary-foreground',
                       !isActive && !isCompleted && 'bg-white border-2 border-muted text-muted-foreground'
@@ -63,6 +74,23 @@ export function TrackerProgressBar({ currentStage, onStageClick }: TrackerProgre
                     whileTap={(isCompleted || isActive) ? { scale: 0.95 } : {}}
                   >
                     <Icon className="w-4 h-4 md:w-5 md:h-5" />
+                    
+                    {/* Notification badge */}
+                    {hasUnread && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -top-1 -right-1 flex items-center justify-center"
+                      >
+                        {unreadCount && unreadCount > 1 ? (
+                          <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center shadow-sm">
+                            {unreadCount}
+                          </span>
+                        ) : (
+                          <span className="w-3 h-3 rounded-full bg-primary shadow-sm animate-pulse" />
+                        )}
+                      </motion.div>
+                    )}
                   </motion.div>
                   <motion.span
                     className={cn(

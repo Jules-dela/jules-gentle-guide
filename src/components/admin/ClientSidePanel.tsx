@@ -315,7 +315,9 @@ export function ClientSidePanel({ client, onClose }: ClientSidePanelProps) {
                   <ApartmentUploader 
                     key={`uploader-${refreshKey}`}
                     caseId={client.case_id} 
-                    onSave={handleRefresh} 
+                    onSave={handleRefresh}
+                    clientEmail={client.email}
+                    clientName={client.name}
                   />
                 )}
 
@@ -338,6 +340,8 @@ export function ClientSidePanel({ client, onClose }: ClientSidePanelProps) {
                     key={`visit-${refreshKey}`}
                     caseId={client.case_id}
                     onResetToResearch={handleRefresh}
+                    clientEmail={client.email}
+                    clientName={client.name}
                   />
                 )}
 
