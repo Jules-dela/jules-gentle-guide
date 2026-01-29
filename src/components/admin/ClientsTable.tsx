@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { 
@@ -11,8 +12,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { ChevronRight, FileText } from 'lucide-react';
+import { ChevronRight, FileText, Archive } from 'lucide-react';
 import type { ClientWithCase } from '@/types/admin';
 
 // Document badge component
@@ -48,7 +50,7 @@ const stageConfig: Record<string, { label: string; color: string }> = {
   documents_preparation: { label: 'Docs', color: 'bg-orange-100 text-orange-700' },
   application_review: { label: 'Docs', color: 'bg-orange-100 text-orange-700' },
   key_handover_scheduled: { label: 'Handover', color: 'bg-emerald-100 text-emerald-700' },
-  closed: { label: 'Completed', color: 'bg-green-100 text-green-700' },
+  closed: { label: 'Archived', color: 'bg-gray-100 text-gray-500' },
 };
 
 // Status tag configuration
@@ -73,6 +75,7 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
     : client.needs_attention 
       ? statusTagConfig.needs_attention 
       : statusTagConfig.active;
+  const isArchived = client.case_status === 'closed';
 
   const getInitials = (name: string) => {
     return name
@@ -88,18 +91,27 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       onClick={onClick}
-      className="bg-background rounded-lg border p-4 cursor-pointer hover:bg-muted/50 transition-colors active:scale-[0.98]"
+      className={cn(
+        "bg-background rounded-lg border p-4 cursor-pointer hover:bg-muted/50 transition-colors active:scale-[0.98]",
+        isArchived && "opacity-60"
+      )}
     >
       <div className="flex items-start gap-3">
-        <Avatar className="h-10 w-10 shrink-0">
-          <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+        <Avatar className={cn("h-10 w-10 shrink-0", isArchived && "grayscale")}>
+          <AvatarFallback className={cn(
+            "text-sm font-medium",
+            isArchived ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary"
+          )}>
             {getInitials(client.name)}
           </AvatarFallback>
         </Avatar>
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-1">
-            <p className="font-medium text-foreground truncate">{client.name}</p>
+            <p className="font-medium text-foreground truncate flex items-center gap-2">
+              {client.name}
+              {isArchived && <Archive className="h-3.5 w-3.5 text-muted-foreground" />}
+            </p>
             <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
           </div>
           <p className="text-sm text-muted-foreground truncate mb-2">{client.email}</p>
@@ -111,14 +123,16 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
             <Badge variant={statusTag.variant} className="text-xs">
               {statusTag.label}
             </Badge>
-            <DocsBadge 
-              uploaded={client.docs_uploaded} 
-              total={client.docs_total}
-              pendingReview={client.docs_pending_review}
-            />
+            {!isArchived && (
+              <DocsBadge 
+                uploaded={client.docs_uploaded} 
+                total={client.docs_total}
+                pendingReview={client.docs_pending_review}
+              />
+            )}
           </div>
           
-          {(client.budget || client.neighbourhood) && (
+          {!isArchived && (client.budget || client.neighbourhood) && (
             <p className="text-xs text-muted-foreground mt-2">
               {client.budget || 'No budget'} • {client.neighbourhood || 'Any area'}
             </p>
@@ -130,6 +144,8 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
 }
 
 export function ClientsTable({ clients, onClientClick, isLoading }: ClientsTableProps) {
+  const [filter, setFilter] = useState<'active' | 'archived'>('active');
+
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -159,6 +175,11 @@ export function ClientsTable({ clients, onClientClick, isLoading }: ClientsTable
     return `${activity} ${timeAgo}`;
   };
 
+  // Filter clients based on tab
+  const activeClients = clients.filter(c => c.case_status !== 'closed');
+  const archivedClients = clients.filter(c => c.case_status === 'closed');
+  const displayedClients = filter === 'active' ? activeClients : archivedClients;
+
   if (isLoading) {
     return (
       <div className="bg-background rounded-xl border">
@@ -169,112 +190,142 @@ export function ClientsTable({ clients, onClientClick, isLoading }: ClientsTable
     );
   }
 
-  if (clients.length === 0) {
-    return (
-      <div className="bg-background rounded-xl border">
-        <div className="p-8 text-center text-muted-foreground">
-          No clients found
-        </div>
-      </div>
-    );
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
+      className="space-y-3"
     >
-      {/* Mobile/Tablet Card View */}
-      <div className="md:hidden space-y-3">
-        {clients.map((client) => (
-          <ClientCard
-            key={client.id}
-            client={client}
-            onClick={() => onClientClick(client)}
-          />
-        ))}
-      </div>
+      {/* Filter Tabs */}
+      <Tabs value={filter} onValueChange={(v) => setFilter(v as 'active' | 'archived')}>
+        <TabsList className="grid w-full max-w-xs grid-cols-2">
+          <TabsTrigger value="active" className="gap-2">
+            Active
+            <Badge variant="secondary" className="ml-1 text-xs">{activeClients.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="archived" className="gap-2">
+            <Archive className="h-3.5 w-3.5" />
+            Archived
+            <Badge variant="secondary" className="ml-1 text-xs">{archivedClients.length}</Badge>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
-      {/* Desktop Table View */}
-      <div className="hidden md:block bg-background rounded-xl border overflow-hidden">
-        <ScrollArea className="w-full">
-          <div className="min-w-[800px]">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50 hover:bg-muted/50">
-                  <TableHead className="font-semibold">Student</TableHead>
-                  <TableHead className="font-semibold">Stage</TableHead>
-                  <TableHead className="font-semibold">Docs</TableHead>
-                  <TableHead className="font-semibold">Last Activity</TableHead>
-                  <TableHead className="font-semibold">Criteria</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {clients.map((client) => {
-                  const stageInfo = getStageInfo(client.case_status);
-                  const statusTag = getStatusTag(client);
+      {displayedClients.length === 0 ? (
+        <div className="bg-background rounded-xl border">
+          <div className="p-8 text-center text-muted-foreground">
+            {filter === 'active' ? 'No active clients' : 'No archived clients'}
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Mobile/Tablet Card View */}
+          <div className="md:hidden space-y-3">
+            {displayedClients.map((client) => (
+              <ClientCard
+                key={client.id}
+                client={client}
+                onClick={() => onClientClick(client)}
+              />
+            ))}
+          </div>
 
-                  return (
-                    <TableRow
-                      key={client.id}
-                      onClick={() => onClientClick(client)}
-                      className="cursor-pointer hover:bg-muted/50 transition-colors"
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9">
-                            <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                              {getInitials(client.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-foreground">{client.name}</p>
-                            <p className="text-sm text-muted-foreground">{client.email}</p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span
+          {/* Desktop Table View */}
+          <div className="hidden md:block bg-background rounded-xl border overflow-hidden">
+            <ScrollArea className="w-full">
+              <div className="min-w-[800px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                      <TableHead className="font-semibold">Student</TableHead>
+                      <TableHead className="font-semibold">Stage</TableHead>
+                      {filter === 'active' && <TableHead className="font-semibold">Docs</TableHead>}
+                      <TableHead className="font-semibold">{filter === 'active' ? 'Last Activity' : 'Closed Date'}</TableHead>
+                      {filter === 'active' && <TableHead className="font-semibold">Criteria</TableHead>}
+                      <TableHead className="font-semibold">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {displayedClients.map((client) => {
+                      const stageInfo = getStageInfo(client.case_status);
+                      const statusTag = getStatusTag(client);
+                      const isArchived = client.case_status === 'closed';
+
+                      return (
+                        <TableRow
+                          key={client.id}
+                          onClick={() => onClientClick(client)}
                           className={cn(
-                            'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium',
-                            stageInfo.color
+                            "cursor-pointer hover:bg-muted/50 transition-colors",
+                            isArchived && "opacity-60"
                           )}
                         >
-                          {stageInfo.label}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <DocsBadge 
-                          uploaded={client.docs_uploaded} 
-                          total={client.docs_total}
-                          pendingReview={client.docs_pending_review}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <p className="text-sm text-muted-foreground">
-                          {formatLastActivity(client.last_activity, client.last_activity_at)}
-                        </p>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          <span className="text-muted-foreground">
-                            {client.budget || 'No budget'} • {client.neighbourhood || 'Any area'}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={statusTag.variant}>{statusTag.label}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar className={cn("h-9 w-9", isArchived && "grayscale")}>
+                                <AvatarFallback className={cn(
+                                  "text-sm font-medium",
+                                  isArchived ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary"
+                                )}>
+                                  {getInitials(client.name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium text-foreground flex items-center gap-2">
+                                  {client.name}
+                                  {isArchived && <Archive className="h-3.5 w-3.5 text-muted-foreground" />}
+                                </p>
+                                <p className="text-sm text-muted-foreground">{client.email}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={cn(
+                                'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium',
+                                stageInfo.color
+                              )}
+                            >
+                              {stageInfo.label}
+                            </span>
+                          </TableCell>
+                          {filter === 'active' && (
+                            <TableCell>
+                              <DocsBadge 
+                                uploaded={client.docs_uploaded} 
+                                total={client.docs_total}
+                                pendingReview={client.docs_pending_review}
+                              />
+                            </TableCell>
+                          )}
+                          <TableCell>
+                            <p className="text-sm text-muted-foreground">
+                              {formatLastActivity(client.last_activity, client.last_activity_at)}
+                            </p>
+                          </TableCell>
+                          {filter === 'active' && (
+                            <TableCell>
+                              <div className="text-sm">
+                                <span className="text-muted-foreground">
+                                  {client.budget || 'No budget'} • {client.neighbourhood || 'Any area'}
+                                </span>
+                              </div>
+                            </TableCell>
+                          )}
+                          <TableCell>
+                            <Badge variant={statusTag.variant}>{statusTag.label}</Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </ScrollArea>
           </div>
-        </ScrollArea>
-      </div>
+        </>
+      )}
     </motion.div>
   );
 }
