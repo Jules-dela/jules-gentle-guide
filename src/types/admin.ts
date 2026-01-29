@@ -27,7 +27,7 @@ export interface ClientInteraction {
   id: string;
   client_id: string;
   client_name: string;
-  type: 'liked' | 'rejected' | 'document_uploaded' | 'feedback' | 'dossier_submitted';
+  type: 'liked' | 'rejected' | 'document_uploaded' | 'feedback' | 'dossier_submitted' | 'visit_instructions';
   description: string;
   reason?: string;
   timestamp: string;
