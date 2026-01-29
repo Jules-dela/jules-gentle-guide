@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { ApartmentUploader } from './ApartmentUploader';
 import { FeedbackTracker } from './FeedbackTracker';
 import { VisitReportUploader } from './VisitReportUploader';
+import { DocumentManager } from './DocumentManager';
 import { supabase } from '@/integrations/supabase/client';
 import type { ClientWithCase } from '@/types/admin';
 
@@ -335,6 +336,18 @@ export function ClientSidePanel({ client, onClose }: ClientSidePanelProps) {
                     key={`visit-${refreshKey}`}
                     caseId={client.case_id}
                     onResetToResearch={handleRefresh}
+                  />
+                )}
+
+                <Separator />
+
+                {/* Document Manager */}
+                {client.case_id && (
+                  <DocumentManager
+                    key={`docs-${refreshKey}`}
+                    caseId={client.case_id}
+                    clientName={client.name}
+                    onUpdate={handleRefresh}
                   />
                 )}
               </div>

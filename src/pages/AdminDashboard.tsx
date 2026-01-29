@@ -65,6 +65,7 @@ export default function AdminDashboard() {
           completed={stats.completed}
           inProgress={stats.inProgress}
           issues={stats.issues}
+          dossiersReady={stats.dossiersReady}
         />
 
         {/* Main Content - Stack on mobile, grid on desktop */}
