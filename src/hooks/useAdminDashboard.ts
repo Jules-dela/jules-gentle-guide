@@ -127,13 +127,27 @@ export function useAdminDashboard() {
       const recentInteractions: ClientInteraction[] = [];
       
       for (const proposal of proposals?.slice(0, 15) || []) {
-        if (proposal.client_status === 'pending') continue;
-        
         const clientCase = cases?.find((c) => c.id === proposal.case_id);
         const client = profiles?.find((p) => p.id === clientCase?.client_id);
         
         if (!client) continue;
 
+        // Add visit instructions interaction if client provided questions
+        const visitQuestions = proposal.client_visit_questions as string | null;
+        if (visitQuestions && proposal.client_status === 'liked') {
+          recentInteractions.push({
+            id: `visit-instructions-${proposal.id}`,
+            client_id: client.id,
+            client_name: client.name,
+            type: 'visit_instructions',
+            description: `New visit instructions received`,
+            reason: visitQuestions.length > 80 ? visitQuestions.slice(0, 80) + '...' : visitQuestions,
+            timestamp: proposal.created_at,
+          });
+        }
+
+        if (proposal.client_status === 'pending') continue;
+        
         const isLiked = proposal.client_status === 'liked';
         const rejectionReasons = proposal.rejection_reasons as string[] | null;
 

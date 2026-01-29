@@ -328,6 +328,47 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Client Briefing Card - HIGH VISIBILITY at TOP */}
+          <div className={`rounded-xl p-4 ${
+            likedProposal.client_visit_questions 
+              ? 'bg-amber-50 border-2 border-amber-200 shadow-sm' 
+              : 'border border-dashed border-muted-foreground/30 bg-muted/20'
+          }`}>
+            <div className="flex items-start gap-3">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                likedProposal.client_visit_questions 
+                  ? 'bg-amber-100' 
+                  : 'bg-muted'
+              }`}>
+                <MessageSquare className={`h-5 w-5 ${
+                  likedProposal.client_visit_questions 
+                    ? 'text-amber-600' 
+                    : 'text-muted-foreground/50'
+                }`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className={`text-sm font-bold mb-1 ${
+                  likedProposal.client_visit_questions 
+                    ? 'text-amber-800' 
+                    : 'text-muted-foreground'
+                }`}>
+                  📋 Client Briefing for Visit
+                </h4>
+                {likedProposal.client_visit_questions ? (
+                  <p className="text-sm text-amber-900 whitespace-pre-wrap break-words leading-relaxed">
+                    "{likedProposal.client_visit_questions}"
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground italic">
+                    No specific questions provided for this visit.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
           {/* Visit Decision Status */}
           {likedProposal.visit_published && (
             <div className={`p-3 rounded-lg ${
@@ -386,36 +427,6 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
               )}
               Reset to Research Stage
             </Button>
-          )}
-
-          <Separator />
-
-          {/* Client's Specific Requests for this Visit */}
-          {likedProposal.client_visit_questions && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <MessageSquare className="h-4 w-4 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold text-primary mb-1">
-                    Client's Specific Requests for this Visit
-                  </h4>
-                  <p className="text-sm text-foreground whitespace-pre-wrap break-words">
-                    {likedProposal.client_visit_questions}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!likedProposal.client_visit_questions && (
-            <div className="border border-dashed border-muted-foreground/30 rounded-lg p-4 text-center">
-              <MessageSquare className="h-5 w-5 text-muted-foreground/50 mx-auto mb-1" />
-              <p className="text-xs text-muted-foreground">
-                No specific requests from client
-              </p>
-            </div>
           )}
 
           <Separator />

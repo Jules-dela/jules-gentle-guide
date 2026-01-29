@@ -18,6 +18,7 @@ const interactionConfig: Record<string, { icon: React.ElementType; color: string
   document_uploaded: { icon: FileText, color: 'text-blue-600', bgColor: 'bg-blue-100' },
   feedback: { icon: MessageSquare, color: 'text-purple-600', bgColor: 'bg-purple-100' },
   dossier_submitted: { icon: FileCheck, color: 'text-primary', bgColor: 'bg-primary/10', priority: true },
+  visit_instructions: { icon: MessageSquare, color: 'text-amber-600', bgColor: 'bg-amber-100', priority: true },
 };
 
 export function NotificationFeed({ interactions, isLoading, className }: NotificationFeedProps) {
@@ -25,9 +26,13 @@ export function NotificationFeed({ interactions, isLoading, className }: Notific
     return interactionConfig[type] || { icon: Bell, color: 'text-gray-600', bgColor: 'bg-gray-100' };
   };
 
-  // Separate priority interactions (dossier submissions)
-  const priorityInteractions = interactions.filter(i => i.type === 'dossier_submitted');
-  const regularInteractions = interactions.filter(i => i.type !== 'dossier_submitted');
+  // Separate priority interactions (dossier submissions and visit instructions)
+  const priorityInteractions = interactions.filter(i => 
+    i.type === 'dossier_submitted' || i.type === 'visit_instructions'
+  );
+  const regularInteractions = interactions.filter(i => 
+    i.type !== 'dossier_submitted' && i.type !== 'visit_instructions'
+  );
 
   if (isLoading) {
     return (
@@ -76,7 +81,12 @@ export function NotificationFeed({ interactions, isLoading, className }: Notific
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.1 }}
-                    className="p-3 rounded-lg bg-primary/5 border border-primary/20 ring-2 ring-primary/30"
+                    className={cn(
+                      "p-3 rounded-lg border ring-2",
+                      interaction.type === 'visit_instructions' 
+                        ? "bg-amber-50 border-amber-200 ring-amber-300/50" 
+                        : "bg-primary/5 border-primary/20 ring-primary/30"
+                    )}
                   >
                     <div className="flex items-start gap-3">
                       <div className={cn('w-8 h-8 rounded-full flex items-center justify-center shrink-0', info.bgColor)}>
@@ -84,9 +94,15 @@ export function NotificationFeed({ interactions, isLoading, className }: Notific
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <AlertCircle className="h-4 w-4 text-primary" />
-                          <span className="text-xs font-semibold text-primary uppercase tracking-wide">
-                            High Priority
+                          <AlertCircle className={cn(
+                            "h-4 w-4",
+                            interaction.type === 'visit_instructions' ? 'text-amber-600' : 'text-primary'
+                          )} />
+                          <span className={cn(
+                            "text-xs font-semibold uppercase tracking-wide",
+                            interaction.type === 'visit_instructions' ? 'text-amber-600' : 'text-primary'
+                          )}>
+                            {interaction.type === 'visit_instructions' ? '📋 Visit Briefing' : 'High Priority'}
                           </span>
                         </div>
                         <p className="text-sm font-medium text-foreground mt-1">
@@ -95,6 +111,11 @@ export function NotificationFeed({ interactions, isLoading, className }: Notific
                         <p className="text-sm text-muted-foreground">
                           {interaction.description}
                         </p>
+                        {interaction.reason && interaction.type === 'visit_instructions' && (
+                          <p className="text-xs text-amber-700 mt-2 italic bg-amber-100/50 p-2 rounded">
+                            "{interaction.reason}"
+                          </p>
+                        )}
                       </div>
                     </div>
                   </motion.div>
