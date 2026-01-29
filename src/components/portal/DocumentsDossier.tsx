@@ -137,10 +137,10 @@ export function DocumentsDossier({ apartment, documents: dbDocuments, onUpload, 
         rejectionReason: doc.rejection_reason,
       }));
     }
-    // Demo mode - use templates with one verified for preview
+    // Demo mode - all documents start as missing
     return defaultDocumentTemplates.map(doc => ({
       ...doc,
-      status: doc.id === 'liability' ? 'verified' as DocumentStatus : 'missing' as DocumentStatus,
+      status: 'missing' as DocumentStatus,
     }));
   }, [dbDocuments]);
 
