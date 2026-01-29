@@ -16,13 +16,18 @@ export interface ClientWithCase {
   last_activity_at: string | null;
   needs_attention: boolean;
   created_at: string;
+  // Document tracking
+  docs_uploaded: number;
+  docs_total: number;
+  docs_pending_review: boolean;
+  dossier_submitted: boolean;
 }
 
 export interface ClientInteraction {
   id: string;
   client_id: string;
   client_name: string;
-  type: 'liked' | 'rejected' | 'document_uploaded' | 'feedback';
+  type: 'liked' | 'rejected' | 'document_uploaded' | 'feedback' | 'dossier_submitted';
   description: string;
   reason?: string;
   timestamp: string;
@@ -32,4 +37,26 @@ export interface AdminStats {
   completed: number;
   inProgress: number;
   issues: number;
+  dossiersReady: number;
 }
+
+export interface AdminDocument {
+  id: string;
+  case_id: string;
+  document_type: string;
+  label: string;
+  file_url: string | null;
+  status: 'missing' | 'uploaded' | 'validated' | 'rejected';
+  rejection_reason: string | null;
+  created_at: string;
+  validated_at: string | null;
+}
+
+// Mandatory document types for Swiss rental applications
+export const MANDATORY_DOCUMENT_TYPES = [
+  { type: 'id', label: 'Valid ID / Passport' },
+  { type: 'income', label: 'Proof of Income / Employment Contract' },
+  { type: 'poursuites', label: 'Extrait des Poursuites (Debt Collection Extract)' },
+  { type: 'insurance', label: 'RC Insurance (Liability Insurance)' },
+  { type: 'guarantor', label: 'Guarantor Form / Guarantee Letter' },
+] as const;

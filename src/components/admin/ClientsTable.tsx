@@ -12,8 +12,32 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, FileText } from 'lucide-react';
 import type { ClientWithCase } from '@/types/admin';
+
+// Document badge component
+function DocsBadge({ uploaded, total, pendingReview }: { 
+  uploaded: number; 
+  total: number; 
+  pendingReview: boolean;
+}) {
+  const isComplete = uploaded >= total && total > 0;
+  
+  return (
+    <div className="relative inline-flex items-center gap-1">
+      <span className={cn(
+        'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium',
+        isComplete ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'
+      )}>
+        <FileText className="h-3 w-3" />
+        {uploaded}/{total}
+      </span>
+      {pendingReview && (
+        <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-blue-500 rounded-full ring-2 ring-background animate-pulse" />
+      )}
+    </div>
+  );
+}
 
 // Stage configuration
 const stageConfig: Record<string, { label: string; color: string }> = {
@@ -87,6 +111,11 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
             <Badge variant={statusTag.variant} className="text-xs">
               {statusTag.label}
             </Badge>
+            <DocsBadge 
+              uploaded={client.docs_uploaded} 
+              total={client.docs_total}
+              pendingReview={client.docs_pending_review}
+            />
           </div>
           
           {(client.budget || client.neighbourhood) && (
@@ -176,6 +205,7 @@ export function ClientsTable({ clients, onClientClick, isLoading }: ClientsTable
                 <TableRow className="bg-muted/50 hover:bg-muted/50">
                   <TableHead className="font-semibold">Student</TableHead>
                   <TableHead className="font-semibold">Stage</TableHead>
+                  <TableHead className="font-semibold">Docs</TableHead>
                   <TableHead className="font-semibold">Last Activity</TableHead>
                   <TableHead className="font-semibold">Criteria</TableHead>
                   <TableHead className="font-semibold">Status</TableHead>
@@ -214,6 +244,13 @@ export function ClientsTable({ clients, onClientClick, isLoading }: ClientsTable
                         >
                           {stageInfo.label}
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        <DocsBadge 
+                          uploaded={client.docs_uploaded} 
+                          total={client.docs_total}
+                          pendingReview={client.docs_pending_review}
+                        />
                       </TableCell>
                       <TableCell>
                         <p className="text-sm text-muted-foreground">
