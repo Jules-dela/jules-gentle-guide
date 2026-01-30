@@ -177,6 +177,7 @@ export type Database = {
           email: string
           furnished: boolean | null
           id: string
+          moving_date: string | null
           name: string
           near_transport: boolean | null
           neighbourhood: string | null
@@ -197,6 +198,7 @@ export type Database = {
           email: string
           furnished?: boolean | null
           id?: string
+          moving_date?: string | null
           name: string
           near_transport?: boolean | null
           neighbourhood?: string | null
@@ -217,6 +219,7 @@ export type Database = {
           email?: string
           furnished?: boolean | null
           id?: string
+          moving_date?: string | null
           name?: string
           near_transport?: boolean | null
           neighbourhood?: string | null
