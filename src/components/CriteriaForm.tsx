@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Link } from "react-router-dom";
+import { format } from "date-fns";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,10 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronRight, ChevronLeft, CheckCircle2, User, Home, Settings, Send } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ChevronRight, ChevronLeft, CheckCircle2, User, Home, Settings, Send, CalendarIcon } from "lucide-react";
 
 // Validation schema
 const criteriaSchema = z.object({
@@ -21,6 +25,7 @@ const criteriaSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }).max(255),
   phone: z.string().trim().max(20).optional().or(z.literal("")),
   university: z.string().trim().max(100).optional().or(z.literal("")),
+  movingDate: z.date().optional(),
   neighbourhood: z.string().min(1, { message: "Please select a neighbourhood" }),
   budget: z.string().min(1, { message: "Please select a budget range" }),
   rooms: z.string().min(1, { message: "Please select number of rooms" }),
@@ -62,6 +67,7 @@ export const CriteriaForm = () => {
       email: "",
       phone: "",
       university: "",
+      movingDate: undefined,
       neighbourhood: "",
       budget: "",
       rooms: "",
@@ -392,6 +398,46 @@ export const CriteriaForm = () => {
                                   )}
                                 />
                               </div>
+                              <FormField
+                                control={form.control}
+                                name="movingDate"
+                                render={({ field }) => (
+                                  <FormItem className="flex flex-col">
+                                    <FormLabel>When do you want to move in? (optional)</FormLabel>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <FormControl>
+                                          <Button
+                                            variant="outline"
+                                            className={cn(
+                                              "w-full md:w-[280px] pl-3 text-left font-normal bg-white/50 backdrop-blur-sm border-white/30 hover:bg-white/70 transition-all",
+                                              !field.value && "text-muted-foreground"
+                                            )}
+                                          >
+                                            {field.value ? (
+                                              format(field.value, "PPP")
+                                            ) : (
+                                              <span>Pick a date</span>
+                                            )}
+                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                          </Button>
+                                        </FormControl>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                          mode="single"
+                                          selected={field.value}
+                                          onSelect={field.onChange}
+                                          disabled={(date) => date < new Date()}
+                                          initialFocus
+                                          className={cn("p-3 pointer-events-auto")}
+                                        />
+                                      </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
                             </motion.div>
                           )}
 
