@@ -405,7 +405,7 @@ export const CriteriaForm = () => {
                                 name="movingDate"
                                 render={({ field }) => (
                                   <FormItem className="flex flex-col">
-                                    <FormLabel>When do you want to move in? (optional)</FormLabel>
+                                    <FormLabel>When do you want to move in?</FormLabel>
                                     <Popover>
                                       <PopoverTrigger asChild>
                                         <FormControl>
