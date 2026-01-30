@@ -25,7 +25,7 @@ const criteriaSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }).max(255),
   phone: z.string().trim().max(20).optional().or(z.literal("")),
   university: z.string().trim().max(100).optional().or(z.literal("")),
-  movingDate: z.date().optional(),
+  movingDate: z.date({ required_error: "Please select your preferred moving date" }),
   neighbourhood: z.string().min(1, { message: "Please select a neighbourhood" }),
   budget: z.string().min(1, { message: "Please select a budget range" }),
   rooms: z.string().min(1, { message: "Please select number of rooms" }),
