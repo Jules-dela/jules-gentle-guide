@@ -11,6 +11,19 @@ import type {
   InitialCriteria
 } from '@/types/portal';
 
+interface ContractData {
+  signature_image: string;
+  ip_address: string;
+  timestamp: string;
+  user_agent: string;
+  device_info: {
+    platform: string;
+    language: string;
+    screen_width: number;
+    screen_height: number;
+  };
+}
+
 interface UseClientPortalReturn {
   profile: Profile | null;
   activeCase: Case | null;
@@ -30,6 +43,7 @@ interface UseClientPortalReturn {
   ) => Promise<{ error: Error | null }>;
   uploadDocument: (documentId: string, file: File) => Promise<{ error: Error | null }>;
   confirmKeyHandover: () => Promise<{ error: Error | null }>;
+  signContract: (contractData: ContractData) => Promise<{ error: Error | null }>;
 }
 
 export function useClientPortal(): UseClientPortalReturn {
@@ -94,6 +108,7 @@ export function useClientPortal(): UseClientPortalReturn {
           ...caseData,
           status: caseData.status as Case['status'],
           initial_criteria: caseData.initial_criteria as unknown as InitialCriteria | null,
+          contract_data: caseData.contract_data as unknown as Case['contract_data'],
         };
         setActiveCase(typedCase);
 
@@ -304,6 +319,40 @@ export function useClientPortal(): UseClientPortalReturn {
     }
   };
 
+  const signContract = async (contractData: ContractData) => {
+    if (!activeCase) {
+      return { error: new Error('No active case found') };
+    }
+
+    try {
+      const { error } = await supabase
+        .from('cases')
+        .update({ contract_data: JSON.parse(JSON.stringify(contractData)) })
+        .eq('id', activeCase.id);
+
+      if (error) throw error;
+      
+      // Send contract receipt email
+      try {
+        await supabase.functions.invoke('send-contract-receipt', {
+          body: {
+            clientName: profile?.name,
+            clientEmail: profile?.email,
+            signedAt: contractData.timestamp,
+          },
+        });
+      } catch (emailErr) {
+        console.error('Error sending contract receipt email:', emailErr);
+        // Don't fail the sign operation if email fails
+      }
+
+      await fetchData();
+      return { error: null };
+    } catch (err) {
+      return { error: err instanceof Error ? err : new Error('Failed to sign contract') };
+    }
+  };
+
   return {
     profile,
     activeCase,
@@ -317,5 +366,6 @@ export function useClientPortal(): UseClientPortalReturn {
     updateProposalFeedback,
     uploadDocument,
     confirmKeyHandover,
+    signContract,
   };
 }

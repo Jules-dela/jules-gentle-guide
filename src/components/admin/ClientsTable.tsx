@@ -14,7 +14,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { ChevronRight, FileText, Archive } from 'lucide-react';
+import { ChevronRight, FileText, Archive, Award } from 'lucide-react';
+import { SignedBadge } from './SignatureViewer';
 import type { ClientWithCase } from '@/types/admin';
 
 // Document badge component
@@ -110,6 +111,7 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
           <div className="flex items-center justify-between gap-2 mb-1">
             <p className="font-medium text-foreground truncate flex items-center gap-2">
               {client.name}
+              {client.is_contract_signed && <SignedBadge isSigned={true} />}
               {isArchived && <Archive className="h-3.5 w-3.5 text-muted-foreground" />}
             </p>
             <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -274,6 +276,7 @@ export function ClientsTable({ clients, onClientClick, isLoading }: ClientsTable
                               <div>
                                 <p className="font-medium text-foreground flex items-center gap-2">
                                   {client.name}
+                                  {client.is_contract_signed && <SignedBadge isSigned={true} />}
                                   {isArchived && <Archive className="h-3.5 w-3.5 text-muted-foreground" />}
                                 </p>
                                 <p className="text-sm text-muted-foreground">{client.email}</p>

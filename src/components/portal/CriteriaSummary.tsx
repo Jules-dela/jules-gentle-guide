@@ -1,13 +1,16 @@
 import { motion } from 'framer-motion';
 import { User, Wallet, MapPin, Sparkles, Clock, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { Profile, InitialCriteria, CaseStatus } from '@/types/portal';
+import { ServiceAgreement } from './ServiceAgreement';
+import type { Profile, InitialCriteria, CaseStatus, ContractData } from '@/types/portal';
 
 interface CriteriaSummaryProps {
   profile?: Profile | null;
   criteria?: InitialCriteria | null;
   caseStatus?: CaseStatus;
+  contractData?: ContractData | null;
   onNextStep: () => void;
+  onSign?: (contractData: ContractData) => Promise<{ error: Error | null }>;
   readOnly?: boolean;
 }
 
@@ -27,7 +30,7 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
-export function CriteriaSummary({ profile, criteria, caseStatus, onNextStep, readOnly = false }: CriteriaSummaryProps) {
+export function CriteriaSummary({ profile, criteria, caseStatus, contractData, onNextStep, onSign, readOnly = false }: CriteriaSummaryProps) {
   // Use real data or fallback to defaults
   const name = profile?.name?.split(' ')[0] || 'Guest';
   const budget = criteria?.budget || 'Not specified';
@@ -44,16 +47,19 @@ export function CriteriaSummary({ profile, criteria, caseStatus, onNextStep, rea
 
   // Determine if we're waiting for proposals
   const isSearching = caseStatus === 'request_received' || caseStatus === 'search_in_progress';
+  
+  // Check if contract is signed
+  const isSigned = !!contractData?.signature_image;
 
   return (
     <motion.div
-      className="max-w-2xl mx-auto"
+      className="max-w-2xl mx-auto space-y-8"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       {/* Header */}
-      <motion.div variants={itemVariants} className="text-center mb-8">
+      <motion.div variants={itemVariants} className="text-center">
         <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
           Welcome, {name}! 👋
         </h1>
@@ -155,10 +161,25 @@ export function CriteriaSummary({ profile, criteria, caseStatus, onNextStep, rea
         </div>
       </motion.div>
 
+      {/* Service Agreement - Only show if not signed and not read-only */}
+      {!readOnly && onSign && (
+        <motion.div variants={itemVariants}>
+          <ServiceAgreement
+            onSign={onSign}
+            isSigned={isSigned}
+            existingSignature={contractData}
+          />
+        </motion.div>
+      )}
+
       {/* Next Step Button - Hidden in read-only mode */}
       {!readOnly && (
-        <motion.div variants={itemVariants} className="mt-8 text-center">
-          {isSearching ? (
+        <motion.div variants={itemVariants} className="text-center">
+          {!isSigned ? (
+            <p className="text-sm text-muted-foreground">
+              Please sign the service agreement above to authorize your housing search
+            </p>
+          ) : isSearching ? (
             <>
               <div className="inline-flex items-center gap-3 px-8 py-4 bg-primary/10 rounded-full mb-4">
                 <Search className="w-5 h-5 text-primary animate-pulse" />

@@ -27,11 +27,25 @@ export interface Profile {
   created_at: string;
 }
 
+export interface ContractData {
+  signature_image: string;
+  ip_address: string;
+  timestamp: string;
+  user_agent: string;
+  device_info: {
+    platform: string;
+    language: string;
+    screen_width: number;
+    screen_height: number;
+  };
+}
+
 export interface Case {
   id: string;
   client_id: string;
   status: CaseStatus;
   initial_criteria: InitialCriteria | null;
+  contract_data: ContractData | null;
   staff_notes: string | null;
   created_at: string;
   updated_at: string;

@@ -98,6 +98,7 @@ export type Database = {
           client_id: string
           close_reason: string | null
           closed_at: string | null
+          contract_data: Json | null
           created_at: string
           id: string
           initial_criteria: Json | null
@@ -109,6 +110,7 @@ export type Database = {
           client_id: string
           close_reason?: string | null
           closed_at?: string | null
+          contract_data?: Json | null
           created_at?: string
           id?: string
           initial_criteria?: Json | null
@@ -120,6 +122,7 @@ export type Database = {
           client_id?: string
           close_reason?: string | null
           closed_at?: string | null
+          contract_data?: Json | null
           created_at?: string
           id?: string
           initial_criteria?: Json | null

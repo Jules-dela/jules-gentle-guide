@@ -46,6 +46,7 @@ export function useAdminDashboard() {
       const clientsWithCases: ClientWithCase[] = (profiles || []).map((profile) => {
         const profileCase = cases?.find((c) => c.client_id === profile.id);
         const criteria = profileCase?.initial_criteria as Record<string, unknown> | null;
+        const contractData = profileCase?.contract_data as unknown as ClientWithCase['contract_data'] | null;
 
         // Check for rejected proposals
         const clientProposals = proposals?.filter((p) => p.case_id === profileCase?.id) || [];
@@ -110,6 +111,8 @@ export function useAdminDashboard() {
           docs_total: docsTotal,
           docs_pending_review: docsPendingReview,
           dossier_submitted: dossierSubmitted,
+          contract_data: contractData,
+          is_contract_signed: !!contractData?.signature_image,
         };
       });
 
