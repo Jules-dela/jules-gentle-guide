@@ -96,6 +96,7 @@ export default function PortalDashboard() {
     error,
     updateProposalFeedback,
     uploadDocument,
+    signContract,
     refetch
   } = useClientPortal();
   const navigate = useNavigate();
@@ -308,7 +309,9 @@ export default function PortalDashboard() {
               profile={profile}
               criteria={activeCase.initial_criteria}
               caseStatus={activeCase.status}
+              contractData={activeCase.contract_data}
               onNextStep={handleNextStep}
+              onSign={signContract}
               readOnly={isReadOnly}
             />
           )}

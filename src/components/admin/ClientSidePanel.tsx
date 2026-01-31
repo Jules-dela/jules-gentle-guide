@@ -12,6 +12,7 @@ import { VisitReportUploader } from './VisitReportUploader';
 import { DocumentManager } from './DocumentManager';
 import { HandoverManager } from './HandoverManager';
 import { ContractClosurePanel } from './ContractClosurePanel';
+import { SignatureViewer, SignedBadge } from './SignatureViewer';
 import { supabase } from '@/integrations/supabase/client';
 import type { ClientWithCase } from '@/types/admin';
 
@@ -167,7 +168,10 @@ export function ClientSidePanel({ client, onClose }: ClientSidePanelProps) {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg sm:text-xl font-semibold text-foreground truncate">{client.name}</h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-lg sm:text-xl font-semibold text-foreground truncate">{client.name}</h3>
+                      {client.is_contract_signed && <SignedBadge isSigned={true} />}
+                    </div>
                     <p className="text-sm text-muted-foreground">{client.client_type || 'Student'}</p>
                     <Badge variant="secondary" className="text-xs mt-1">
                       {stageLabels[client.case_status] || client.case_status}
@@ -191,6 +195,22 @@ export function ClientSidePanel({ client, onClose }: ClientSidePanelProps) {
                       </a>
                     </div>
                   )}
+                </div>
+
+                {/* Contract Signature Status */}
+                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Service Agreement</p>
+                    <p className="text-xs text-muted-foreground">
+                      {client.is_contract_signed 
+                        ? `Signed on ${new Date(client.contract_data?.timestamp || '').toLocaleDateString('en-GB')}`
+                        : 'Not yet signed'}
+                    </p>
+                  </div>
+                  <SignatureViewer 
+                    contractData={client.contract_data} 
+                    clientName={client.name} 
+                  />
                 </div>
 
                 <Separator />
