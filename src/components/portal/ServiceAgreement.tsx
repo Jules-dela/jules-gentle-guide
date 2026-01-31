@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -21,64 +21,242 @@ interface ContractData {
 }
 
 interface ServiceAgreementProps {
+  clientName?: string;
   onSign: (contractData: ContractData) => Promise<{ error: Error | null }>;
   isSigned?: boolean;
   existingSignature?: ContractData | null;
   isLoading?: boolean;
 }
 
-const SERVICE_AGREEMENT_TEXT = `UNIKEY SEARCH MANDATE AGREEMENT
+// Generate the contract text with dynamic fields
+const generateContractText = (clientName: string, currentDate: string) => `SERVICE AGREEMENT, LIABILITY WAIVER & DATA CONSENT
 
-1. SCOPE OF SERVICES
-UniKey ("the Service Provider") agrees to provide personalized housing search services for the Client ("you") seeking accommodation in the Lausanne area. This includes property research, visit coordination, document preparation assistance, and landlord communication.
+Between Unikey Sàrl ("Service Provider") and Client ("Tenant")
 
-2. AUTHORIZATION
-By signing below, you authorize Jules and the UniKey team to:
-• Search for properties matching your specified criteria
-• Contact landlords, real estate agencies, and property managers on your behalf
-• Schedule and conduct property viewings (in-person or virtual)
-• Submit your rental application dossier to prospective landlords
-• Negotiate terms and conditions on your behalf
+═══════════════════════════════════════════════════════════════════════════════
 
-3. SERVICE FEE STRUCTURE
-Our service operates on a strictly success-based model:
+1. PARTIES
 
-✓ NO upfront payments or deposits required
-✓ NO fees if we don't find you a home
-✓ Fee is equivalent to ONE MONTH'S RENT
-✓ Fee is due ONLY upon successful lease signing
+CLIENT ("TENANT")
+Full Name: ${clientName}
+Agreement Date: ${currentDate}
 
-Payment is due within 7 days of signing your rental lease agreement. We accept bank transfer (IBAN details will be provided upon successful placement).
+SERVICE PROVIDER ("UNIKEY")
+Company Name: Unikey Sàrl
+Email: support@unikey.ch
+Website: www.unikey.ch
 
-4. CLIENT OBLIGATIONS
-You agree to:
-• Provide accurate and complete information about your housing requirements
-• Respond to communications within 48 hours
-• Attend scheduled viewings or provide 24-hour cancellation notice
-• Provide all required documentation in a timely manner
-• Not engage directly with properties we present to you outside of our service
+═══════════════════════════════════════════════════════════════════════════════
 
-5. EXCLUSIVITY CLAUSE
-For properties presented by UniKey, you agree not to contact the landlord or agency directly to circumvent our service. Any lease signed for a property we introduced shall trigger the service fee.
+2. PURPOSE AND SCOPE OF THE AGREEMENT
 
-6. DATA PROTECTION
-Your personal information is processed in accordance with Swiss Federal Act on Data Protection (FADP) and GDPR. Your data will only be shared with landlords and agencies as necessary for the housing search. See our full Privacy Policy for details.
+2.1 Unikey provides apartment search assistance, matchmaking, and advisory services for students seeking accommodation in or around Lausanne, Switzerland.
 
-7. DURATION & TERMINATION
-This mandate remains in effect until:
-• A rental agreement is signed (triggering the service fee), OR
-• Either party terminates with 7 days written notice, OR
-• 6 months from the date of signing (whichever comes first)
+2.2 Unikey does not act as and must not be considered as:
+  • A real estate agency or licensed real estate broker
 
-8. ELECTRONIC SIGNATURE
-You acknowledge that your electronic signature below has the same legal effect as a handwritten signature. This agreement is legally binding upon signature.
+2.3 This Agreement governs only the services provided by Unikey to the Client and does not govern any rental agreement between the Client and any landlord, agency, or third party.
 
-9. GOVERNING LAW
-This agreement is governed by Swiss law. Any disputes shall be subject to the exclusive jurisdiction of the courts of Lausanne, Switzerland.
+═══════════════════════════════════════════════════════════════════════════════
 
-By signing below, you confirm that you have read, understood, and agree to all terms and conditions of this Search Mandate Agreement.`;
+3. NATURE AND LIMITATIONS OF THE SERVICE
+
+3.1 Unikey provides, on a best-effort basis:
+  • Curated accommodation suggestions based on the Client's profile and preferences
+  • Facilitation of contact with property owners, agencies or platforms
+  • Administrative guidance and document checklists related to the rental process
+  • Optional relocation and onboarding information (e.g. local tips, practical information)
+
+3.2 Unikey does not guarantee, and shall not be held responsible for:
+  • The availability, quality, size, condition, equipment, or location of any property
+  • The rental price, additional costs, or any subsequent changes to these
+  • The Client's acceptance by a landlord/agency or the successful signing of a lease
+  • The approval of visas, residence permits, guarantors, or any administrative procedures
+  • The duration, stability, or suitability of the rental agreement for the Client
+  • The safety, legal compliance, or technical functionality of the property
+
+3.3 The Client acknowledges that they are solely responsible for:
+  • Visiting (where possible), inspecting, and evaluating any property
+  • Negotiating, reviewing, and signing the rental agreement
+  • Ensuring that the housing solution meets their needs and expectations
+
+═══════════════════════════════════════════════════════════════════════════════
+
+4. INTERMEDIARY BROKERAGE DISCLOSURE
+
+4.1 Unikey operates exclusively as an information, matching, and administrative assistance provider. Unikey is not a licensed real estate broker, property manager, fiduciary, or legal representative of any landlord, agency, or property owner.
+
+4.2 Unikey's role is limited to:
+  • Identifying and presenting accommodation opportunities
+  • Facilitating communication between potential tenants and housing providers
+  • Providing general guidance on the rental process
+
+Unikey does not:
+  • Draft, approve, or sign lease contracts on behalf of the Client or the landlord
+  • Collect rent, deposits, or any recurring payments for landlords or agencies
+
+4.3 In accordance with Swiss tenancy and consumer regulations, Unikey does not receive any financial commission from landlords, agencies, guarantor companies, insurance companies, or property platforms, unless explicitly stated in a separate written disclosure accepted by the Client.
+
+4.4 The Client confirms understanding that all legal, contractual, and financial obligations relating to the rental agreement exist exclusively between the Client and the landlord/agency. Unikey is not a party to the rental agreement.
+
+4.5 Should Swiss law require Unikey to hold specific accreditation, fiduciary insurance, or public registration for certain services, Unikey agrees to comply or, if not feasible, to immediately limit, suspend, or modify the relevant service scope.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+5. FEES, INVOICING, AND PAYMENT CONDITIONS
+
+5.1 SERVICE FEE
+The Client agrees to pay Unikey a service fee equal to five percent (5%) of the gross annual rent (12 months) of the selected property, as stated in the signed rental agreement or confirmed reservation document.
+
+5.2 WHEN THE FEE BECOMES DUE
+The service fee becomes immediately and fully due once BOTH of the following conditions are met:
+  (a) The Client has signed a rental agreement (lease or sublease) for a property identified, proposed, or facilitated by Unikey; and
+  (b) The keys to the property are either handed over to the Client or confirmed in writing (including by email) by the landlord or agency as available for the Client on the agreed move-in date.
+
+5.3 INVOICE AND PAYMENT DEADLINE
+Upon confirmation of events (a) and (b) above, Unikey will issue an invoice to the Client. The Client shall pay the invoice in full within seven (7) calendar days of the invoice date by one of the accepted payment methods.
+
+5.4 ACCEPTED PAYMENT METHODS
+Payment can be made by:
+  • Bank transfer to the account indicated on the invoice
+  • Approved digital payment solutions (e.g. Twint, Revolut, or others specified by Unikey)
+  • Any other method only if expressly agreed in writing by Unikey
+
+5.5 NON-REFUNDABLE NATURE OF THE FEE
+Once conditions (a) and (b) of Clause 5.2 have been fulfilled, the service fee is strictly non-refundable, except where mandatory Swiss law requires otherwise and only under the limited situations set out in Clause 6.
+
+5.6 NO LINK TO FUTURE USE OR LENGTH OF RENTAL
+The service fee is due and remains payable regardless of:
+  • Early termination, cancellation, or non-renewal of the rental agreement by the Client or the landlord
+  • Any dispute, rent reduction, or change in rental terms after the lease is signed
+  • The Client's satisfaction or dissatisfaction with the property, location, landlord, neighbors, or any other circumstances
+
+═══════════════════════════════════════════════════════════════════════════════
+
+6. REFUND AND GUARANTEE POLICY
+
+6.1 REFUND POLICY
+Under all circumstances, fees paid to Unikey are non-refundable, except where required by mandatory Swiss consumer protection law and only in the following limited scenarios:
+  • Visa refusal, financial difficulties, or personal change of plans by the Client: No refund
+  • Landlord cancels or withdraws after lease signature or confirmed reservation for reasons not caused by Unikey: No refund. The Client must seek recourse directly with the landlord/agency or through appropriate legal channels
+  • Fraud or gross misconduct proven and directly caused by Unikey or its employees that leads to the Client being unable to occupy the property: Full refund of the service fee, plus internal case review by Unikey
+
+6.2 NO SERVICE GUARANTEE
+Unikey does not guarantee that:
+  • The Client will ultimately secure housing through Unikey's services
+  • The rental process will proceed without delay, difficulty, or conflict
+  • The Client will be satisfied with the final accommodation or the landlord/agency
+
+═══════════════════════════════════════════════════════════════════════════════
+
+7. DISCLAIMER OF WARRANTY AND LIMITATION OF LIABILITY
+
+7.1 NO WARRANTY ON HOUSING OR OUTCOME
+Unikey provides its services on a best-effort basis only. Unikey does not own, manage, inspect, or operate any of the properties proposed. Unikey makes no warranty, express or implied, regarding:
+  • The condition, cleanliness, safety, legality, or regulatory compliance of any property
+  • The behavior, reliability, solvency, or good faith of any landlord, agency, or co-tenant
+  • The successful signing, performance, renewal, or termination of any rental agreement
+
+7.2 NO RESPONSIBILITY FOR LANDLORD–TENANT RELATIONSHIP
+The Client understands and agrees that:
+  • Any rental agreement is exclusively concluded between the Client and the landlord/agency
+  • All rights and obligations arise solely under that rental agreement
+  • Unikey is not a party to the rental contract and has no duty to enforce, monitor, intervene in, or mediate its execution
+
+7.3 FINANCIAL AND ADMINISTRATIVE RISKS
+Unikey shall not be liable for any loss, cost, or damage related to:
+  • Rent, deposits, utility bills, service charges, or other payments requested by the landlord, agency, or third parties
+  • Hidden costs, additional charges, or unexpected expenses arising from the rental relationship
+  • Administrative delays, refusals, or decisions by universities, guarantor companies, migration authorities, insurance providers, or any public entities
+  • Misunderstandings, translation issues, or incomplete/incorrect information provided by the Client or by third parties
+
+7.4 LIMITATION OF LIABILITY
+To the fullest extent permitted by Swiss law:
+  • Unikey's total aggregate liability for any claim arising out of or in connection with this Agreement or the services shall be strictly limited to the total amount of the service fee actually paid by the Client to Unikey under this Agreement
+  • Unikey shall in no event be liable for any indirect, consequential, moral, punitive, or loss-of-chance damages
+
+7.5 WAIVER OF CLAIMS
+The Client hereby waives, to the maximum extent allowed by law, any present or future claim, action, or demand against Unikey based on:
+  • Dissatisfaction with the rental property, neighbors, area, or environment
+  • Acts or omissions of landlords, agencies, guarantor companies, insurers, or any other third parties
+  • Events occurring after the signature of the rental agreement and/or the handover of keys
+
+═══════════════════════════════════════════════════════════════════════════════
+
+8. NO LEGAL, FINANCIAL, INSURANCE, OR IMMIGRATION ADVICE
+
+8.1 Unikey does not provide legal, tax, financial, insurance, or immigration advice.
+
+8.2 The Client is strongly encouraged to consult qualified professionals, such as:
+  • A Swiss rental law attorney or legal advice service
+  • Relevant housing authorities in the Canton of Vaud
+  • The Swiss immigration and population office (e.g. OCPM or equivalent)
+  • Private insurance providers or guarantor services
+
+Any general information shared by Unikey is for informational purposes only and must not be considered as professional advice.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+9. DATA PROTECTION & GDPR / SWISS FADP CONSENT
+
+9.1 COMPLIANCE
+Unikey is committed to compliance with the Swiss Federal Data Protection Act (FADP/LIFDPA) and, where applicable, the EU General Data Protection Regulation (GDPR).
+
+9.2 DATA COLLECTED
+Unikey may collect and process the following categories of personal data:
+  • Identity and contact information (e.g. name, address, email, phone, date of birth, nationality)
+  • University enrollment or student status verification
+  • Housing preferences, budget and financial eligibility documents (where voluntarily provided by the Client)
+
+9.3 PURPOSE OF COLLECTION AND PROCESSING
+Personal data is collected and processed solely for:
+  • Assessing the Client's housing needs and preferences
+  • Communicating with the Client regarding the services
+  • Presenting the Client to potential landlords/agencies and facilitating the housing search
+  • Fulfilling Unikey's legal, accounting, and administrative obligations
+
+9.4 DATA SHARING
+The Client authorizes Unikey to share their personal data, strictly as required for service delivery, with:
+  • Landlords, real estate agencies, property platforms and managers
+  • Guarantor companies or insurance partners, only if requested or expressly authorized by the Client
+
+Unikey will never sell, rent, or otherwise monetize the Client's personal data.
+
+9.5 RETENTION AND DATA SUBJECT RIGHTS
+Personal data may be retained for up to two (2) years after the end of the service relationship for administrative, legal, or audit purposes, unless a longer period is required by law.
+
+The Client has the right to request access, correction, export, or deletion of their personal data, to the extent permitted by law. If the Client requests deletion before the end of any legally required retention period, Unikey will delete or anonymize what is not legally required to be kept.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+10. GOVERNING LAW & JURISDICTION
+
+10.1 This Agreement is governed by and shall be construed in accordance with the laws of Switzerland.
+
+10.2 Any dispute arising out of or in connection with this Agreement shall be subject to the exclusive jurisdiction of the competent courts of Lausanne, Canton of Vaud, Switzerland, unless mandatory law requires another forum.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+11. ENTIRE AGREEMENT AND AMENDMENTS
+
+11.1 This Agreement constitutes the entire understanding between Unikey and the Client regarding the services described herein and supersedes all prior oral or written statements on the same subject.
+
+11.2 Any amendment or modification to this Agreement must be made in writing and signed by both parties.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+SIGNATURE SECTION
+
+By signing below, the Client (${clientName}) confirms that they have read, understood, and accepted all the terms of this Agreement, including the liability limitations, non-refundability of the service fee, and data protection/consent clauses.
+
+Agreement Date: ${currentDate}
+
+═══════════════════════════════════════════════════════════════════════════════
+
+END OF DOCUMENT`;
 
 export function ServiceAgreement({ 
+  clientName = 'Guest',
   onSign, 
   isSigned = false, 
   existingSignature = null,
@@ -88,7 +266,17 @@ export function ServiceAgreement({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [signatureEmpty, setSignatureEmpty] = useState(true);
   const sigCanvas = useRef<SignatureCanvas | null>(null);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Get current date formatted
+  const currentDate = new Date().toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  // Generate contract with dynamic fields
+  const contractText = generateContractText(clientName, currentDate);
 
   // Check if signature canvas is empty
   const checkSignatureEmpty = () => {
@@ -97,14 +285,35 @@ export function ServiceAgreement({
     }
   };
 
-  // Handle scroll detection
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+  // Handle scroll detection - check if scrolled to bottom
+  const handleScroll = useCallback((e: Event) => {
     const target = e.target as HTMLDivElement;
-    const isAtBottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 20;
+    if (!target) return;
+    
+    const scrollTop = target.scrollTop;
+    const scrollHeight = target.scrollHeight;
+    const clientHeight = target.clientHeight;
+    
+    // Consider "at bottom" when within 30px of the end
+    const isAtBottom = scrollHeight - scrollTop - clientHeight <= 30;
+    
     if (isAtBottom && !hasScrolledToBottom) {
       setHasScrolledToBottom(true);
     }
-  };
+  }, [hasScrolledToBottom]);
+
+  // Attach scroll listener to the viewport element
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    // Find the actual scrollable viewport (Radix ScrollArea uses a nested div)
+    const viewport = scrollContainer.querySelector('[data-radix-scroll-area-viewport]');
+    if (viewport) {
+      viewport.addEventListener('scroll', handleScroll);
+      return () => viewport.removeEventListener('scroll', handleScroll);
+    }
+  }, [handleScroll]);
 
   // Clear signature
   const clearSignature = () => {
@@ -228,15 +437,21 @@ export function ServiceAgreement({
         </div>
       </div>
 
-      {/* Contract Text */}
-      <div className="relative">
-        <ScrollArea 
-          className="h-64 px-6 py-4 bg-muted/30"
-          onScrollCapture={handleScroll}
-        >
-          <pre className="text-sm text-foreground/80 whitespace-pre-wrap font-sans leading-relaxed">
-            {SERVICE_AGREEMENT_TEXT}
-          </pre>
+      {/* Contract Text - Read-only scrollable area */}
+      <div className="relative" ref={scrollContainerRef}>
+        <ScrollArea className="h-80 bg-muted/20">
+          <div className="px-6 py-5">
+            <pre 
+              className="text-sm text-foreground/85 whitespace-pre-wrap leading-relaxed"
+              style={{ 
+                fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                fontSize: '13px',
+                lineHeight: '1.7',
+              }}
+            >
+              {contractText}
+            </pre>
+          </div>
         </ScrollArea>
         
         {/* Gradient overlay if not scrolled */}
@@ -246,11 +461,11 @@ export function ServiceAgreement({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none flex items-end justify-center pb-2"
+              className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none flex items-end justify-center pb-3"
             >
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <span className="text-xs text-muted-foreground flex items-center gap-1 bg-white/90 px-3 py-1.5 rounded-full shadow-sm">
                 <ChevronDown className="w-4 h-4 animate-bounce" />
-                Scroll to continue
+                Scroll to the bottom to continue
               </span>
             </motion.div>
           )}
@@ -324,8 +539,9 @@ export function ServiceAgreement({
                 </Button>
               </div>
 
-              <p className="text-xs text-muted-foreground text-center">
-                By signing, you agree to the terms above and authorize UniKey to begin your housing search.
+              {/* Legal Footer */}
+              <p className="text-xs text-muted-foreground text-center pt-2 border-t border-border/50">
+                By signing, you agree to the terms of the UniKey Search Mandate and authorize the digital processing of your signature.
               </p>
             </motion.div>
           ) : (

@@ -15,54 +15,146 @@ interface ContractReceiptRequest {
   signedAt: string;
 }
 
-const SERVICE_AGREEMENT_TEXT = `UNIKEY SEARCH MANDATE AGREEMENT
+// Generate plain text version of the contract
+const generateContractText = (clientName: string, signedDate: string) => `SERVICE AGREEMENT, LIABILITY WAIVER & DATA CONSENT
 
-1. SCOPE OF SERVICES
-UniKey ("the Service Provider") agrees to provide personalized housing search services for the Client ("you") seeking accommodation in the Lausanne area. This includes property research, visit coordination, document preparation assistance, and landlord communication.
+Between Unikey Sàrl ("Service Provider") and Client ("Tenant")
 
-2. AUTHORIZATION
-By signing below, you authorize Jules and the UniKey team to:
-• Search for properties matching your specified criteria
-• Contact landlords, real estate agencies, and property managers on your behalf
-• Schedule and conduct property viewings (in-person or virtual)
-• Submit your rental application dossier to prospective landlords
-• Negotiate terms and conditions on your behalf
+═══════════════════════════════════════════════════════════════════════════════
 
-3. SERVICE FEE STRUCTURE
-Our service operates on a strictly success-based model:
+1. PARTIES
 
-✓ NO upfront payments or deposits required
-✓ NO fees if we don't find you a home
-✓ Fee is equivalent to ONE MONTH'S RENT
-✓ Fee is due ONLY upon successful lease signing
+CLIENT ("TENANT")
+Full Name: ${clientName}
+Agreement Date: ${signedDate}
 
-Payment is due within 7 days of signing your rental lease agreement. We accept bank transfer (IBAN details will be provided upon successful placement).
+SERVICE PROVIDER ("UNIKEY")
+Company Name: Unikey Sàrl
+Email: support@unikey.ch
+Website: www.unikey.ch
 
-4. CLIENT OBLIGATIONS
-You agree to:
-• Provide accurate and complete information about your housing requirements
-• Respond to communications within 48 hours
-• Attend scheduled viewings or provide 24-hour cancellation notice
-• Provide all required documentation in a timely manner
-• Not engage directly with properties we present to you outside of our service
+═══════════════════════════════════════════════════════════════════════════════
 
-5. EXCLUSIVITY CLAUSE
-For properties presented by UniKey, you agree not to contact the landlord or agency directly to circumvent our service. Any lease signed for a property we introduced shall trigger the service fee.
+2. PURPOSE AND SCOPE OF THE AGREEMENT
 
-6. DATA PROTECTION
-Your personal information is processed in accordance with Swiss Federal Act on Data Protection (FADP) and GDPR. Your data will only be shared with landlords and agencies as necessary for the housing search. See our full Privacy Policy for details.
+2.1 Unikey provides apartment search assistance, matchmaking, and advisory services for students seeking accommodation in or around Lausanne, Switzerland.
 
-7. DURATION & TERMINATION
-This mandate remains in effect until:
-• A rental agreement is signed (triggering the service fee), OR
-• Either party terminates with 7 days written notice, OR
-• 6 months from the date of signing (whichever comes first)
+2.2 Unikey does not act as and must not be considered as:
+  • A real estate agency or licensed real estate broker
 
-8. ELECTRONIC SIGNATURE
-You acknowledge that your electronic signature below has the same legal effect as a handwritten signature. This agreement is legally binding upon signature.
+2.3 This Agreement governs only the services provided by Unikey to the Client and does not govern any rental agreement between the Client and any landlord, agency, or third party.
 
-9. GOVERNING LAW
-This agreement is governed by Swiss law. Any disputes shall be subject to the exclusive jurisdiction of the courts of Lausanne, Switzerland.`;
+═══════════════════════════════════════════════════════════════════════════════
+
+3. NATURE AND LIMITATIONS OF THE SERVICE
+
+3.1 Unikey provides, on a best-effort basis:
+  • Curated accommodation suggestions based on the Client's profile and preferences
+  • Facilitation of contact with property owners, agencies or platforms
+  • Administrative guidance and document checklists related to the rental process
+  • Optional relocation and onboarding information
+
+3.2 Unikey does not guarantee, and shall not be held responsible for:
+  • The availability, quality, size, condition, equipment, or location of any property
+  • The rental price, additional costs, or any subsequent changes to these
+  • The Client's acceptance by a landlord/agency or the successful signing of a lease
+  • The approval of visas, residence permits, guarantors, or any administrative procedures
+
+3.3 The Client acknowledges that they are solely responsible for:
+  • Visiting, inspecting, and evaluating any property
+  • Negotiating, reviewing, and signing the rental agreement
+  • Ensuring that the housing solution meets their needs and expectations
+
+═══════════════════════════════════════════════════════════════════════════════
+
+4. INTERMEDIARY BROKERAGE DISCLOSURE
+
+4.1 Unikey operates exclusively as an information, matching, and administrative assistance provider.
+
+4.2 Unikey's role is limited to:
+  • Identifying and presenting accommodation opportunities
+  • Facilitating communication between potential tenants and housing providers
+  • Providing general guidance on the rental process
+
+4.3 Unikey does not receive any financial commission from landlords, agencies, guarantor companies, insurance companies, or property platforms.
+
+4.4 The Client confirms understanding that all legal, contractual, and financial obligations relating to the rental agreement exist exclusively between the Client and the landlord/agency.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+5. FEES, INVOICING, AND PAYMENT CONDITIONS
+
+5.1 SERVICE FEE
+The Client agrees to pay Unikey a service fee equal to five percent (5%) of the gross annual rent (12 months) of the selected property.
+
+5.2 WHEN THE FEE BECOMES DUE
+The service fee becomes due once BOTH conditions are met:
+  (a) The Client has signed a rental agreement for a property facilitated by Unikey; and
+  (b) The keys to the property are handed over to the Client.
+
+5.3 INVOICE AND PAYMENT DEADLINE
+The Client shall pay the invoice in full within seven (7) calendar days of the invoice date.
+
+5.5 NON-REFUNDABLE NATURE OF THE FEE
+Once conditions (a) and (b) of Clause 5.2 have been fulfilled, the service fee is strictly non-refundable.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+6. REFUND AND GUARANTEE POLICY
+
+6.1 Fees paid to Unikey are non-refundable, except where required by mandatory Swiss consumer protection law.
+
+6.2 Unikey does not guarantee that:
+  • The Client will ultimately secure housing through Unikey's services
+  • The rental process will proceed without delay or difficulty
+  • The Client will be satisfied with the final accommodation
+
+═══════════════════════════════════════════════════════════════════════════════
+
+7. DISCLAIMER OF WARRANTY AND LIMITATION OF LIABILITY
+
+7.1 Unikey provides its services on a best-effort basis only.
+
+7.2 Any rental agreement is exclusively concluded between the Client and the landlord/agency.
+
+7.4 Unikey's total aggregate liability shall be strictly limited to the total amount of the service fee actually paid by the Client.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+8. NO LEGAL, FINANCIAL, INSURANCE, OR IMMIGRATION ADVICE
+
+Unikey does not provide legal, tax, financial, insurance, or immigration advice.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+9. DATA PROTECTION & GDPR / SWISS FADP CONSENT
+
+9.1 Unikey is committed to compliance with the Swiss Federal Data Protection Act (FADP) and EU GDPR.
+
+9.4 The Client authorizes Unikey to share their personal data with landlords, real estate agencies, and property platforms as required for service delivery.
+
+9.5 Personal data may be retained for up to two (2) years after the end of the service relationship.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+10. GOVERNING LAW & JURISDICTION
+
+This Agreement is governed by the laws of Switzerland. Any dispute shall be subject to the exclusive jurisdiction of the courts of Lausanne, Canton of Vaud, Switzerland.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+11. ENTIRE AGREEMENT
+
+This Agreement constitutes the entire understanding between Unikey and the Client regarding the services described herein.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+ELECTRONICALLY SIGNED
+
+Client: ${clientName}
+Date: ${signedDate}
+
+═══════════════════════════════════════════════════════════════════════════════`;
 
 const handler = async (req: Request): Promise<Response> => {
   console.log("send-contract-receipt function invoked");
@@ -88,6 +180,8 @@ const handler = async (req: Request): Promise<Response> => {
       hour: '2-digit',
       minute: '2-digit',
     });
+
+    const contractText = generateContractText(clientName, formattedDate);
 
     // Send receipt email to client
     const emailResponse = await resend.emails.send({
@@ -141,8 +235,8 @@ const handler = async (req: Request): Promise<Response> => {
               <h4 style="color: #1e3a8a; margin: 0 0 12px 0; font-size: 14px;">Key Terms Reminder</h4>
               <ul style="color: #6b7280; font-size: 13px; line-height: 1.6; margin: 0; padding-left: 16px;">
                 <li>No upfront fees – pay only upon successful lease signing</li>
-                <li>Service fee: equivalent to one month's rent</li>
-                <li>Agreement valid for 6 months or until housing secured</li>
+                <li>Service fee: 5% of gross annual rent</li>
+                <li>Payment due within 7 days of invoice</li>
               </ul>
             </div>
             
@@ -167,7 +261,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <div style="background: #f1f5f9; border-radius: 8px; padding: 16px; margin-top: 24px;">
             <h4 style="color: #475569; margin: 0 0 12px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Full Agreement Text</h4>
-            <pre style="color: #64748b; font-size: 11px; line-height: 1.5; white-space: pre-wrap; font-family: inherit; margin: 0; max-height: 300px; overflow: auto;">${SERVICE_AGREEMENT_TEXT}</pre>
+            <pre style="color: #64748b; font-size: 10px; line-height: 1.4; white-space: pre-wrap; font-family: 'Courier New', monospace; margin: 0; max-height: 400px; overflow: auto;">${contractText}</pre>
           </div>
         </body>
         </html>
