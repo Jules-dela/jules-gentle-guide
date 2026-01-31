@@ -165,6 +165,7 @@ export function CriteriaSummary({ profile, criteria, caseStatus, contractData, o
       {!readOnly && onSign && (
         <motion.div variants={itemVariants}>
           <ServiceAgreement
+            clientName={profile?.name || 'Guest'}
             onSign={onSign}
             isSigned={isSigned}
             existingSignature={contractData}
