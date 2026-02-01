@@ -14,7 +14,7 @@ import { KeyHandoverStage } from '@/components/portal/KeyHandoverStage';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import type { CaseStatus, PropertyProposal, KeyHandover } from '@/types/portal';
+import type { CaseStatus, PropertyProposal, KeyHandover, Profile, Case, InitialCriteria } from '@/types/portal';
 
 // Demo data for preview mode
 const DEMO_APARTMENT: SelectedApartment = {
@@ -43,6 +43,44 @@ const DEMO_KEY_HANDOVER: KeyHandover = {
   confirmed_by_client: false,
   notes: 'Please bring your ID and a copy of the signed lease.',
   created_at: new Date().toISOString(),
+};
+
+// Demo profile for preview mode
+const DEMO_PROFILE: Profile = {
+  id: 'demo-profile',
+  user_id: 'demo-user',
+  name: 'Demo User',
+  email: 'demo@example.com',
+  phone: '+41781234567',
+  client_type: 'student',
+  company_school: 'EPFL',
+  created_at: new Date().toISOString(),
+};
+
+// Demo case for preview mode
+const DEMO_CASE: Case = {
+  id: 'demo-case',
+  client_id: 'demo-profile',
+  status: 'request_received',
+  initial_criteria: {
+    neighbourhood: 'lausanne-centre',
+    budget: '1500-2000',
+    rooms: '2.5',
+    duration: '12',
+    property_type: 'apartment',
+    roommate_preference: '0',
+    furnished: true,
+    near_transport: true,
+    pets_allowed: false,
+    smoking_allowed: false,
+    notes: 'Looking for a quiet apartment near public transport.',
+  },
+  contract_data: null,
+  staff_notes: null,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  closed_at: null,
+  close_reason: null,
 };
 
 // Map case status to portal stage number
@@ -259,6 +297,8 @@ export default function PortalDashboard() {
   // Use demo data or real data
   const displayKeyHandover = isDemoMode ? DEMO_KEY_HANDOVER : keyHandover;
   const displayUserName = isDemoMode ? 'Demo User' : profile?.name;
+  const displayProfile = isDemoMode ? DEMO_PROFILE : profile;
+  const displayCase = isDemoMode ? DEMO_CASE : activeCase;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
@@ -306,10 +346,10 @@ export default function PortalDashboard() {
           {currentStage === 1 && (
             <CriteriaSummary 
               key="stage-1" 
-              profile={profile}
-              criteria={activeCase.initial_criteria}
-              caseStatus={activeCase.status}
-              contractData={activeCase.contract_data}
+              profile={displayProfile}
+              criteria={displayCase.initial_criteria}
+              caseStatus={displayCase.status}
+              contractData={displayCase.contract_data}
               onNextStep={handleNextStep}
               onSign={signContract}
               readOnly={isReadOnly}
