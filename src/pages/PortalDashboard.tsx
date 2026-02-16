@@ -191,19 +191,23 @@ export default function PortalDashboard() {
     }
   }, [user, authLoading, navigate]);
 
+  const scrollToContent = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleResearchComplete = async (apartment: SelectedApartment, questions?: string) => {
-    // Find the proposal and update its status (including landlord questions)
     const proposal = proposals.find(p => p.id === apartment.id);
     if (proposal) {
       const { error } = await updateProposalFeedback(proposal.id, 'liked', undefined, undefined, questions);
       if (!error) {
         setSelectedApartment(apartment);
         setCurrentStage(3);
+        scrollToContent();
       }
     } else {
-      // Fallback for demo mode
       setSelectedApartment(apartment);
       setCurrentStage(3);
+      scrollToContent();
     }
   };
 
@@ -218,11 +222,13 @@ export default function PortalDashboard() {
     const nextStage = Math.min(currentStage + 1, 5);
     setCurrentStage(nextStage);
     setHighestStage(prev => Math.max(prev, nextStage));
+    scrollToContent();
   };
 
   const handleBackToResearch = () => {
     setSelectedApartment(null);
     setCurrentStage(2);
+    scrollToContent();
   };
 
   // Get pending proposals for Research stage
