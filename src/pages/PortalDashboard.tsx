@@ -168,9 +168,10 @@ export default function PortalDashboard() {
   }, [activeCase?.id, currentStage, unreadStages, markStageAsRead]);
 
   // Sync stage with case status (only if not in demo mode)
+  // Only advance forward — never snap back when user has manually progressed ahead
   useEffect(() => {
     if (!isDemoMode) {
-      setCurrentStage(caseStage);
+      setCurrentStage(prev => Math.max(prev, caseStage));
       setHighestStage(prev => Math.max(prev, caseStage));
     }
   }, [caseStage, isDemoMode]);
