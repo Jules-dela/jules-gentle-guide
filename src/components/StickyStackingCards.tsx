@@ -1,11 +1,13 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
+import precisionSourcingImg from "@/assets/precision-sourcing.png";
 
 const cards = [
   {
     title: "Precision Sourcing",
     description: "We monitor the market 24/7. Access verified listings and 'hidden' gems in Lausanne before the crowds do.",
     bgColor: "bg-[hsl(220,20%,97%)]",
+    image: precisionSourcingImg,
   },
   {
     title: "Professional Viewings",
@@ -69,6 +71,16 @@ const Card = ({ card, index, totalCards }: CardProps) => {
 
           {/* Placeholder with gradient overlay */}
           <div className={`order-first ${isReversed ? 'lg:order-1' : 'lg:order-2'}`}>
+            {card.image ? (
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-lg">
+                <img 
+                  src={card.image} 
+                  alt={card.title}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+            ) : (
             <div 
               className="aspect-[4/3] rounded-2xl bg-gradient-to-br from-primary via-primary to-navy-light relative overflow-hidden flex items-center justify-center"
             >
@@ -93,6 +105,7 @@ const Card = ({ card, index, totalCards }: CardProps) => {
                 </p>
               </div>
             </div>
+            )}
           </div>
         </div>
       </div>
