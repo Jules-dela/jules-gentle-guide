@@ -87,18 +87,13 @@ const Card = ({ card, index, totalCards }: CardProps) => {
 
         {/* Visual side — icon + stat */}
         <div className={`bg-primary p-8 md:p-12 lg:p-16 flex items-center justify-center ${isReversed ? 'lg:order-1' : 'lg:order-2'}`}>
-          <div className="flex flex-col items-center text-center gap-6">
-            <div className={`w-20 h-20 md:w-24 md:h-24 rounded-2xl ${card.iconBg} flex items-center justify-center shadow-sm`}>
-              <Icon className={`w-10 h-10 md:w-12 md:h-12 ${card.iconColor}`} />
-            </div>
-            <div>
-              <p className="text-4xl md:text-5xl font-bold text-primary-foreground tracking-tight">
-                {card.stat}
-              </p>
-              <p className="text-sm md:text-base text-primary-foreground/70 mt-1 font-medium">
-                {card.statLabel}
-              </p>
-            </div>
+          <div className="flex flex-col items-center text-center gap-2">
+            <p className="text-5xl md:text-6xl font-bold text-primary-foreground tracking-tight">
+              {card.stat}
+            </p>
+            <p className="text-sm md:text-base text-primary-foreground/70 font-medium">
+              {card.statLabel}
+            </p>
           </div>
         </div>
       </div>
