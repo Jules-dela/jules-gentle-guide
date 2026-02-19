@@ -57,12 +57,12 @@ const Card = ({ card, index, totalCards }: CardProps) => {
         top: `${topOffset}px`,
         zIndex: index + 1,
       }}
-      className={`sticky mb-8 last:mb-0 ${card.bgColor} rounded-3xl shadow-lg border border-border/50 overflow-hidden`}
+      className="sticky mb-8 last:mb-0 rounded-3xl shadow-lg border border-border/50 overflow-hidden"
     >
-      <div className="p-8 md:p-12 lg:p-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-          {/* Content */}
-          <div className={`space-y-6 ${isReversed ? 'lg:order-2' : 'lg:order-1'}`}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 items-stretch">
+        {/* Text side - white background */}
+        <div className={`p-8 md:p-12 lg:p-16 bg-white flex items-center ${isReversed ? 'lg:order-2' : 'lg:order-1'}`}>
+          <div className="space-y-6">
             <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground leading-tight">
               {card.title}
             </h3>
@@ -70,23 +70,21 @@ const Card = ({ card, index, totalCards }: CardProps) => {
               {card.description}
             </p>
           </div>
+        </div>
 
-          {/* Placeholder with gradient overlay */}
-          <div className={`order-first ${isReversed ? 'lg:order-1' : 'lg:order-2'}`}>
-            {card.image ? (
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-lg">
-                <img 
-                  src={card.image} 
-                  alt={card.title}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-            ) : (
-            <div 
-              className="aspect-[4/3] rounded-2xl bg-gradient-to-br from-primary via-primary to-navy-light relative overflow-hidden flex items-center justify-center"
-            >
-              {/* Subtle pattern overlay */}
+        {/* Image side - navy blue background */}
+        <div className={`bg-primary p-6 md:p-8 lg:p-10 flex items-center justify-center ${isReversed ? 'lg:order-1' : 'lg:order-2'}`}>
+          {card.image ? (
+            <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-lg">
+              <img 
+                src={card.image} 
+                alt={card.title}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          ) : (
+            <div className="aspect-[4/3] w-full rounded-2xl bg-primary-foreground/10 relative overflow-hidden flex items-center justify-center">
               <div className="absolute inset-0 opacity-10">
                 <div className="absolute inset-0" style={{
                   backgroundImage: `radial-gradient(circle at 25% 25%, hsl(var(--primary-foreground)) 1px, transparent 1px),
@@ -94,10 +92,8 @@ const Card = ({ card, index, totalCards }: CardProps) => {
                   backgroundSize: '24px 24px'
                 }} />
               </div>
-              {/* Glow effect */}
               <div className="absolute top-1/4 right-1/4 w-32 h-32 bg-primary-foreground/10 rounded-full blur-3xl" />
               <div className="absolute bottom-1/4 left-1/4 w-24 h-24 bg-primary-foreground/5 rounded-full blur-2xl" />
-              
               <div className="text-center p-8 relative z-10">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-primary-foreground/20 backdrop-blur-sm flex items-center justify-center border border-primary-foreground/10">
                   <div className="w-8 h-8 rounded-lg bg-primary-foreground/30" />
@@ -107,8 +103,7 @@ const Card = ({ card, index, totalCards }: CardProps) => {
                 </p>
               </div>
             </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </motion.div>
