@@ -1,34 +1,47 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
-import precisionSourcingImg from "@/assets/precision-sourcing.png";
-import professionalViewingsImg from "@/assets/professional-viewings.png";
-import goldStandardDossierImg from "@/assets/gold-standard-dossier.png";
-import keyHandoverImg from "@/assets/key-handover.jpg";
+import { Search, Video, FileCheck, Key } from "lucide-react";
 
 const cards = [
   {
     title: "Precision Sourcing",
     description: "We monitor the market 24/7. Access verified listings and 'hidden' gems in Lausanne before the crowds do.",
-    bgColor: "bg-[hsl(220,20%,97%)]",
-    image: precisionSourcingImg,
+    icon: Search,
+    accent: "from-blue-500/10 to-indigo-500/10",
+    iconBg: "bg-blue-500/10",
+    iconColor: "text-blue-600",
+    stat: "24/7",
+    statLabel: "Market monitoring",
   },
   {
     title: "Professional Viewings",
     description: "We visit every property for you. Get high-definition video tours and neighborhood reports without leaving your home.",
-    bgColor: "bg-[hsl(210,30%,96%)]",
-    image: professionalViewingsImg,
+    icon: Video,
+    accent: "from-emerald-500/10 to-teal-500/10",
+    iconBg: "bg-emerald-500/10",
+    iconColor: "text-emerald-600",
+    stat: "HD",
+    statLabel: "Video walkthroughs",
   },
   {
     title: "The Gold-Standard Dossier",
     description: "Don't get rejected for paperwork. We build a perfect Swiss-standard application dossier that gets you to the top of the pile.",
-    bgColor: "bg-[hsl(215,25%,95%)]",
-    image: goldStandardDossierImg,
+    icon: FileCheck,
+    accent: "from-amber-500/10 to-orange-500/10",
+    iconBg: "bg-amber-500/10",
+    iconColor: "text-amber-600",
+    stat: "100%",
+    statLabel: "Swiss-compliant",
   },
   {
     title: "Key-in-Hand Arrival",
     description: "From lease signing to the final inspection (État des Lieux), we handle the stress. You just show up and unlock your new life.",
-    bgColor: "bg-[hsl(225,20%,94%)]",
-    image: keyHandoverImg,
+    icon: Key,
+    accent: "from-violet-500/10 to-purple-500/10",
+    iconBg: "bg-violet-500/10",
+    iconColor: "text-violet-600",
+    stat: "0",
+    statLabel: "Stress for you",
   },
 ];
 
@@ -48,9 +61,9 @@ const Card = ({ card, index, totalCards }: CardProps) => {
   const scale = useTransform(scrollYProgress, [0, 1], [0.9, 1]);
   const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.6, 0.9, 1]);
 
-  // Calculate top offset for stacking effect
   const topOffset = 100 + index * 20;
   const isReversed = index % 2 === 1;
+  const Icon = card.icon;
 
   return (
     <motion.div
@@ -61,11 +74,11 @@ const Card = ({ card, index, totalCards }: CardProps) => {
         top: `${topOffset}px`,
         zIndex: index + 1,
       }}
-      className="sticky mb-8 last:mb-0 rounded-3xl shadow-lg border border-border/50 overflow-hidden"
+      className="sticky mb-8 last:mb-0 rounded-3xl shadow-lg border border-border/50 overflow-hidden bg-card"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 items-stretch">
-        {/* Text side - white background */}
-        <div className={`p-8 md:p-12 lg:p-16 bg-white flex items-center ${isReversed ? 'lg:order-2' : 'lg:order-1'}`}>
+        {/* Text side */}
+        <div className={`p-8 md:p-12 lg:p-16 bg-card flex items-center ${isReversed ? 'lg:order-2' : 'lg:order-1'}`}>
           <div className="space-y-6">
             <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground leading-tight">
               {card.title}
@@ -76,38 +89,21 @@ const Card = ({ card, index, totalCards }: CardProps) => {
           </div>
         </div>
 
-        {/* Image side - navy blue background */}
-        <div className={`bg-primary p-6 md:p-8 lg:p-10 flex items-center justify-center ${isReversed ? 'lg:order-1' : 'lg:order-2'}`}>
-          {card.image ? (
-            <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-lg">
-              <img 
-                src={card.image} 
-                alt={card.title}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
+        {/* Visual side — icon + stat */}
+        <div className={`bg-gradient-to-br ${card.accent} p-8 md:p-12 lg:p-16 flex items-center justify-center ${isReversed ? 'lg:order-1' : 'lg:order-2'}`}>
+          <div className="flex flex-col items-center text-center gap-6">
+            <div className={`w-20 h-20 md:w-24 md:h-24 rounded-2xl ${card.iconBg} flex items-center justify-center shadow-sm`}>
+              <Icon className={`w-10 h-10 md:w-12 md:h-12 ${card.iconColor}`} />
             </div>
-          ) : (
-            <div className="aspect-[4/3] w-full rounded-2xl bg-primary-foreground/10 relative overflow-hidden flex items-center justify-center">
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute inset-0" style={{
-                  backgroundImage: `radial-gradient(circle at 25% 25%, hsl(var(--primary-foreground)) 1px, transparent 1px),
-                                    radial-gradient(circle at 75% 75%, hsl(var(--primary-foreground)) 1px, transparent 1px)`,
-                  backgroundSize: '24px 24px'
-                }} />
-              </div>
-              <div className="absolute top-1/4 right-1/4 w-32 h-32 bg-primary-foreground/10 rounded-full blur-3xl" />
-              <div className="absolute bottom-1/4 left-1/4 w-24 h-24 bg-primary-foreground/5 rounded-full blur-2xl" />
-              <div className="text-center p-8 relative z-10">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-primary-foreground/20 backdrop-blur-sm flex items-center justify-center border border-primary-foreground/10">
-                  <div className="w-8 h-8 rounded-lg bg-primary-foreground/30" />
-                </div>
-                <p className="text-sm text-primary-foreground/70">
-                  Mockup placeholder
-                </p>
-              </div>
+            <div>
+              <p className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
+                {card.stat}
+              </p>
+              <p className="text-sm md:text-base text-muted-foreground mt-1 font-medium">
+                {card.statLabel}
+              </p>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </motion.div>
@@ -121,7 +117,7 @@ export const StickyStackingCards = () => {
   return (
     <section id="features" className="py-24 md:py-32">
       <div className="container max-w-6xl">
-        <motion.div 
+        <motion.div
           ref={headingRef}
           className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
@@ -142,7 +138,6 @@ export const StickyStackingCards = () => {
               totalCards={cards.length}
             />
           ))}
-          {/* Extra spacer for last card to unstick */}
           <div className="h-[30vh]" />
         </div>
       </div>
