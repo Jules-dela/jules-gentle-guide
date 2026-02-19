@@ -9,10 +9,24 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // Initialize Supabase client with service role for full access
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = [
+  'https://uni-key.ch',
+  'https://www.uni-key.ch',
+  'https://unikey.lovable.app',
+  'https://id-preview--8630e333-bd64-418b-b58e-5a1f7997dc70.lovable.app',
+  'http://localhost:5173',
+  'http://localhost:8080',
+];
+
+function getCorsHeaders(origin: string | null) {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin)
+    ? origin
+    : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  };
+}
 
 // Rate limit configuration
 const RATE_LIMIT_MAX_REQUESTS = 5;
@@ -134,6 +148,8 @@ function determineClientType(university: string | null | undefined): 'student' |
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
