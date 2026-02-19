@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import precisionSourcingImg from "@/assets/precision-sourcing.png";
+import professionalViewingsImg from "@/assets/professional-viewings.png";
 
 const cards = [
   {
@@ -13,6 +14,7 @@ const cards = [
     title: "Professional Viewings",
     description: "We visit every property for you. Get high-definition video tours and neighborhood reports without leaving your home.",
     bgColor: "bg-[hsl(210,30%,96%)]",
+    image: professionalViewingsImg,
   },
   {
     title: "The Gold-Standard Dossier",
