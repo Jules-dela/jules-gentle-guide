@@ -325,10 +325,10 @@ export function useClientPortal(): UseClientPortalReturn {
     }
 
     try {
-      const { error } = await supabase
-        .from('cases')
-        .update({ contract_data: JSON.parse(JSON.stringify(contractData)) })
-        .eq('id', activeCase.id);
+      const { error } = await supabase.rpc('sign_contract', {
+        p_case_id: activeCase.id,
+        p_contract_data: JSON.parse(JSON.stringify(contractData)),
+      });
 
       if (error) throw error;
       
