@@ -2,6 +2,8 @@ import { useRef } from "react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import precisionSourcingImg from "@/assets/precision-sourcing.png";
 import professionalViewingsImg from "@/assets/professional-viewings.png";
+import goldStandardDossierImg from "@/assets/gold-standard-dossier.jpg";
+import keyHandoverImg from "@/assets/key-handover.jpg";
 
 const cards = [
   {
@@ -20,11 +22,13 @@ const cards = [
     title: "The Gold-Standard Dossier",
     description: "Don't get rejected for paperwork. We build a perfect Swiss-standard application dossier that gets you to the top of the pile.",
     bgColor: "bg-[hsl(215,25%,95%)]",
+    image: goldStandardDossierImg,
   },
   {
     title: "Key-in-Hand Arrival",
     description: "From lease signing to the final inspection (État des Lieux), we handle the stress. You just show up and unlock your new life.",
     bgColor: "bg-[hsl(225,20%,94%)]",
+    image: keyHandoverImg,
   },
 ];
 
