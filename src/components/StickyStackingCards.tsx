@@ -1,53 +1,31 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
-import { Search, Video, FileCheck, Key } from "lucide-react";
 
 const cards = [
   {
     title: "Precision Sourcing",
     description: "We monitor the market 24/7. Access verified listings and 'hidden' gems in Lausanne before the crowds do.",
-    icon: Search,
-    iconBg: "bg-primary-foreground/15",
-    iconColor: "text-primary-foreground",
-    stat: "24/7",
-    statLabel: "Market monitoring",
   },
   {
     title: "Professional Viewings",
     description: "We visit every property for you. Get high-definition video tours and neighborhood reports without leaving your home.",
-    icon: Video,
-    iconBg: "bg-primary-foreground/15",
-    iconColor: "text-primary-foreground",
-    stat: "HD",
-    statLabel: "Video walkthroughs",
   },
   {
     title: "The Gold-Standard Dossier",
     description: "Don't get rejected for paperwork. We build a perfect Swiss-standard application dossier that gets you to the top of the pile.",
-    icon: FileCheck,
-    iconBg: "bg-primary-foreground/15",
-    iconColor: "text-primary-foreground",
-    stat: "100%",
-    statLabel: "Swiss-compliant",
   },
   {
     title: "Key-in-Hand Arrival",
     description: "From lease signing to the final inspection (État des Lieux), we handle the stress. You just show up and unlock your new life.",
-    icon: Key,
-    iconBg: "bg-primary-foreground/15",
-    iconColor: "text-primary-foreground",
-    stat: "0",
-    statLabel: "Stress for you",
   },
 ];
 
 interface CardProps {
   card: typeof cards[0];
   index: number;
-  totalCards: number;
 }
 
-const Card = ({ card, index, totalCards }: CardProps) => {
+const Card = ({ card, index }: CardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: cardRef,
@@ -58,8 +36,6 @@ const Card = ({ card, index, totalCards }: CardProps) => {
   const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.6, 0.9, 1]);
 
   const topOffset = 100 + index * 20;
-  const isReversed = index % 2 === 1;
-  const Icon = card.icon;
 
   return (
     <motion.div
@@ -70,32 +46,18 @@ const Card = ({ card, index, totalCards }: CardProps) => {
         top: `${topOffset}px`,
         zIndex: index + 1,
       }}
-      className="sticky mb-8 last:mb-0 rounded-3xl shadow-lg border border-border/50 overflow-hidden bg-card"
+      className="sticky mb-8 last:mb-0 rounded-3xl shadow-lg border-l-4 border-primary bg-card overflow-hidden"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 items-stretch">
-        {/* Text side */}
-        <div className={`p-8 md:p-12 lg:p-16 bg-card flex items-center ${isReversed ? 'lg:order-2' : 'lg:order-1'}`}>
-          <div className="space-y-6">
-            <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground leading-tight">
-              {card.title}
-            </h3>
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-              {card.description}
-            </p>
-          </div>
-        </div>
-
-        {/* Visual side — icon + stat */}
-        <div className={`bg-primary p-8 md:p-12 lg:p-16 flex items-center justify-center ${isReversed ? 'lg:order-1' : 'lg:order-2'}`}>
-          <div className="flex flex-col items-center text-center gap-2">
-            <p className="text-5xl md:text-6xl font-bold text-primary-foreground tracking-tight">
-              {card.stat}
-            </p>
-            <p className="text-sm md:text-base text-primary-foreground/70 font-medium">
-              {card.statLabel}
-            </p>
-          </div>
-        </div>
+      <div className="p-8 md:p-12 lg:p-16 space-y-4">
+        <span className="text-sm font-semibold text-primary tracking-wide uppercase">
+          Step {index + 1}
+        </span>
+        <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground leading-tight">
+          {card.title}
+        </h3>
+        <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl">
+          {card.description}
+        </p>
       </div>
     </motion.div>
   );
@@ -107,7 +69,7 @@ export const StickyStackingCards = () => {
 
   return (
     <section id="features" className="py-24 md:py-32">
-      <div className="container max-w-6xl">
+      <div className="container max-w-4xl">
         <motion.div
           ref={headingRef}
           className="text-center mb-16"
@@ -122,12 +84,7 @@ export const StickyStackingCards = () => {
 
         <div className="relative">
           {cards.map((card, index) => (
-            <Card
-              key={card.title}
-              card={card}
-              index={index}
-              totalCards={cards.length}
-            />
+            <Card key={card.title} card={card} index={index} />
           ))}
           <div className="h-[30vh]" />
         </div>
