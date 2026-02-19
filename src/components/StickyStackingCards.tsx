@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import precisionSourcingImg from "@/assets/precision-sourcing.png";
 import professionalViewingsImg from "@/assets/professional-viewings.png";
-import goldStandardDossierImg from "@/assets/gold-standard-dossier.jpg";
+import goldStandardDossierImg from "@/assets/gold-standard-dossier.png";
 import keyHandoverImg from "@/assets/key-handover.jpg";
 
 const cards = [
