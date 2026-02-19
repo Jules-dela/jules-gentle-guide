@@ -522,6 +522,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      sign_contract: {
+        Args: { p_case_id: string; p_contract_data: Json }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "user"
