@@ -7,9 +7,8 @@ const cards = [
     title: "Precision Sourcing",
     description: "We monitor the market 24/7. Access verified listings and 'hidden' gems in Lausanne before the crowds do.",
     icon: Search,
-    accent: "from-blue-500/10 to-indigo-500/10",
-    iconBg: "bg-blue-500/10",
-    iconColor: "text-blue-600",
+    iconBg: "bg-primary-foreground/15",
+    iconColor: "text-primary-foreground",
     stat: "24/7",
     statLabel: "Market monitoring",
   },
@@ -17,9 +16,8 @@ const cards = [
     title: "Professional Viewings",
     description: "We visit every property for you. Get high-definition video tours and neighborhood reports without leaving your home.",
     icon: Video,
-    accent: "from-emerald-500/10 to-teal-500/10",
-    iconBg: "bg-emerald-500/10",
-    iconColor: "text-emerald-600",
+    iconBg: "bg-primary-foreground/15",
+    iconColor: "text-primary-foreground",
     stat: "HD",
     statLabel: "Video walkthroughs",
   },
@@ -27,9 +25,8 @@ const cards = [
     title: "The Gold-Standard Dossier",
     description: "Don't get rejected for paperwork. We build a perfect Swiss-standard application dossier that gets you to the top of the pile.",
     icon: FileCheck,
-    accent: "from-amber-500/10 to-orange-500/10",
-    iconBg: "bg-amber-500/10",
-    iconColor: "text-amber-600",
+    iconBg: "bg-primary-foreground/15",
+    iconColor: "text-primary-foreground",
     stat: "100%",
     statLabel: "Swiss-compliant",
   },
@@ -37,9 +34,8 @@ const cards = [
     title: "Key-in-Hand Arrival",
     description: "From lease signing to the final inspection (État des Lieux), we handle the stress. You just show up and unlock your new life.",
     icon: Key,
-    accent: "from-violet-500/10 to-purple-500/10",
-    iconBg: "bg-violet-500/10",
-    iconColor: "text-violet-600",
+    iconBg: "bg-primary-foreground/15",
+    iconColor: "text-primary-foreground",
     stat: "0",
     statLabel: "Stress for you",
   },
@@ -90,16 +86,16 @@ const Card = ({ card, index, totalCards }: CardProps) => {
         </div>
 
         {/* Visual side — icon + stat */}
-        <div className={`bg-gradient-to-br ${card.accent} p-8 md:p-12 lg:p-16 flex items-center justify-center ${isReversed ? 'lg:order-1' : 'lg:order-2'}`}>
+        <div className={`bg-primary p-8 md:p-12 lg:p-16 flex items-center justify-center ${isReversed ? 'lg:order-1' : 'lg:order-2'}`}>
           <div className="flex flex-col items-center text-center gap-6">
             <div className={`w-20 h-20 md:w-24 md:h-24 rounded-2xl ${card.iconBg} flex items-center justify-center shadow-sm`}>
               <Icon className={`w-10 h-10 md:w-12 md:h-12 ${card.iconColor}`} />
             </div>
             <div>
-              <p className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
+              <p className="text-4xl md:text-5xl font-bold text-primary-foreground tracking-tight">
                 {card.stat}
               </p>
-              <p className="text-sm md:text-base text-muted-foreground mt-1 font-medium">
+              <p className="text-sm md:text-base text-primary-foreground/70 mt-1 font-medium">
                 {card.statLabel}
               </p>
             </div>
