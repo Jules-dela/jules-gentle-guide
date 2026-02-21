@@ -36,7 +36,7 @@ const Index = () => {
       <main>
         <Hero />
         
-        <PartnerBanner />
+        
         <StickyStackingCards />
         <FAQ />
         <CriteriaForm />
