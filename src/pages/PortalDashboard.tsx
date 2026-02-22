@@ -123,7 +123,7 @@ function proposalToApartment(proposal: PropertyProposal): SelectedApartment {
 }
 
 export default function PortalDashboard() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const { 
     profile, 
     activeCase, 
@@ -188,8 +188,10 @@ export default function PortalDashboard() {
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/auth');
+    } else if (!authLoading && user && isAdmin) {
+      navigate('/admin');
     }
-  }, [user, authLoading, navigate]);
+  }, [user, isAdmin, authLoading, navigate]);
 
   const scrollToContent = () => {
     setTimeout(() => {
