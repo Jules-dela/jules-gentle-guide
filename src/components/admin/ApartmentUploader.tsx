@@ -1,12 +1,14 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail } from 'lucide-react';
+import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ApartmentCard } from '@/components/portal/ApartmentCard';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAdminNotifications } from '@/hooks/useNotifications';
@@ -36,6 +38,7 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [notifyClient, setNotifyClient] = useState(false);
+  const [previewApartment, setPreviewApartment] = useState<ApartmentDraft | null>(null);
   const { createNotification } = useAdminNotifications();
 
   const addApartment = useCallback(() => {
@@ -245,17 +248,32 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                     <Check className="h-4 w-4 text-green-500" />
                   )}
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeApartment(apt.id);
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    disabled={apt.imagePreviewUrls.length === 0 || !apt.rent || !apt.rooms || !apt.neighborhood}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPreviewApartment(apt);
+                    }}
+                    title="Preview as client"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeApartment(apt.id);
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </button>
 
               <AnimatePresence>
@@ -418,6 +436,34 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
           </Button>
         </div>
       )}
+
+      {/* Client Preview Dialog */}
+      <Dialog open={!!previewApartment} onOpenChange={(open) => !open && setPreviewApartment(null)}>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden rounded-[24px]">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle>Client Preview</DialogTitle>
+          </DialogHeader>
+          <div className="p-6 pt-2 max-h-[80vh] overflow-y-auto">
+            {previewApartment && (
+              <ApartmentCard
+                apartment={{
+                  id: previewApartment.id,
+                  images: previewApartment.imagePreviewUrls,
+                  rent: parseFloat(previewApartment.rent) || 0,
+                  rooms: parseFloat(previewApartment.rooms) || 0,
+                  location: '',
+                  neighborhood: previewApartment.neighborhood || 'Unknown',
+                  description: previewApartment.description || '',
+                  amenities: [],
+                }}
+                onLike={() => {}}
+                onDislike={() => {}}
+                readOnly
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
