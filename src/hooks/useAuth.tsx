@@ -37,6 +37,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Force re-login if this is a new browser session (tab was closed)
+    const sessionFlag = sessionStorage.getItem('unikey_session_active');
+    if (!sessionFlag) {
+      // New session — sign out any persisted auth, then mark session active
+      supabase.auth.signOut().then(() => {
+        sessionStorage.setItem('unikey_session_active', 'true');
+        setLoading(false);
+      });
+      return;
+    }
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
