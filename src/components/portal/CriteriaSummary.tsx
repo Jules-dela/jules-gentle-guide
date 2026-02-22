@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { User, Wallet, MapPin, Sparkles, Clock, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ServiceAgreement } from './ServiceAgreement';
-import type { Profile, InitialCriteria, CaseStatus, ContractData } from '@/types/portal';
+import type { Profile, InitialCriteria, CaseStatus, ContractData, ContractSigningInput } from '@/types/portal';
 
 interface CriteriaSummaryProps {
   profile?: Profile | null;
@@ -10,7 +10,7 @@ interface CriteriaSummaryProps {
   caseStatus?: CaseStatus;
   contractData?: ContractData | null;
   onNextStep: () => void;
-  onSign?: (contractData: ContractData) => Promise<{ error: Error | null }>;
+  onSign?: (contractData: ContractSigningInput) => Promise<{ error: Error | null }>;
   readOnly?: boolean;
 }
 
@@ -49,7 +49,7 @@ export function CriteriaSummary({ profile, criteria, caseStatus, contractData, o
   const isSearching = caseStatus === 'request_received' || caseStatus === 'search_in_progress';
   
   // Check if contract is signed
-  const isSigned = !!contractData?.signature_image;
+  const isSigned = !!contractData?.signed;
 
   return (
     <motion.div
@@ -168,7 +168,7 @@ export function CriteriaSummary({ profile, criteria, caseStatus, contractData, o
             clientName={profile?.name || 'Guest'}
             onSign={onSign}
             isSigned={isSigned}
-            existingSignature={contractData}
+            signedTimestamp={contractData?.timestamp}
           />
         </motion.div>
       )}

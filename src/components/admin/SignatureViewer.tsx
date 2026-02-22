@@ -19,21 +19,21 @@ import {
   XCircle 
 } from 'lucide-react';
 
-interface ContractData {
+interface ContractSignatureData {
   signature_image: string;
-  ip_address: string;
-  timestamp: string;
-  user_agent: string;
+  ip_address: string | null;
+  user_agent: string | null;
+  signed_at: string;
   device_info: {
     platform: string;
     language: string;
     screen_width: number;
     screen_height: number;
-  };
+  } | null;
 }
 
 interface SignatureViewerProps {
-  contractData: ContractData | null;
+  contractData: ContractSignatureData | null;
   clientName: string;
 }
 
@@ -46,7 +46,7 @@ export function SignatureViewer({ contractData, clientName }: SignatureViewerPro
     // Create a link to download the signature image
     const link = document.createElement('a');
     link.href = contractData.signature_image;
-    link.download = `signature-${clientName.replace(/\s+/g, '-').toLowerCase()}-${new Date(contractData.timestamp).toISOString().split('T')[0]}.png`;
+    link.download = `signature-${clientName.replace(/\s+/g, '-').toLowerCase()}-${new Date(contractData.signed_at).toISOString().split('T')[0]}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -106,14 +106,14 @@ export function SignatureViewer({ contractData, clientName }: SignatureViewerPro
               <div>
                 <p className="text-xs text-muted-foreground">Signed On</p>
                 <p className="text-sm font-medium">
-                  {new Date(contractData.timestamp).toLocaleDateString('en-GB', {
+                  {new Date(contractData.signed_at).toLocaleDateString('en-GB', {
                     day: 'numeric',
                     month: 'short',
                     year: 'numeric',
                   })}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(contractData.timestamp).toLocaleTimeString('en-GB', {
+                  {new Date(contractData.signed_at).toLocaleTimeString('en-GB', {
                     hour: '2-digit',
                     minute: '2-digit',
                   })}
@@ -126,7 +126,7 @@ export function SignatureViewer({ contractData, clientName }: SignatureViewerPro
               <Globe className="w-4 h-4 text-muted-foreground mt-0.5" />
               <div>
                 <p className="text-xs text-muted-foreground">IP Address</p>
-                <p className="text-sm font-medium font-mono">{contractData.ip_address}</p>
+                <p className="text-sm font-medium font-mono">{contractData.ip_address || 'N/A'}</p>
               </div>
             </div>
 
@@ -135,13 +135,19 @@ export function SignatureViewer({ contractData, clientName }: SignatureViewerPro
               <Monitor className="w-4 h-4 text-muted-foreground mt-0.5" />
               <div className="flex-1">
                 <p className="text-xs text-muted-foreground">Device Information</p>
-                <p className="text-sm font-medium">
-                  {getBrowserInfo(contractData.user_agent)} on {contractData.device_info.platform}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Screen: {contractData.device_info.screen_width}x{contractData.device_info.screen_height} • 
-                  Language: {contractData.device_info.language}
-                </p>
+                {contractData.user_agent && contractData.device_info ? (
+                  <>
+                    <p className="text-sm font-medium">
+                      {getBrowserInfo(contractData.user_agent)} on {contractData.device_info.platform}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Screen: {contractData.device_info.screen_width}x{contractData.device_info.screen_height} • 
+                      Language: {contractData.device_info.language}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Not available</p>
+                )}
               </div>
             </div>
           </div>

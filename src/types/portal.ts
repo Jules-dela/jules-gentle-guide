@@ -27,7 +27,14 @@ export interface Profile {
   created_at: string;
 }
 
+// Client-visible contract data (sensitive fields stored separately in contract_signatures)
 export interface ContractData {
+  signed: boolean;
+  timestamp: string;
+}
+
+// Full contract signing input (used when signing, before data is split)
+export interface ContractSigningInput {
   signature_image: string;
   ip_address: string;
   timestamp: string;

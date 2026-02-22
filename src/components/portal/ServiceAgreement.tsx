@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Eraser, PenLine, Loader2, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface ContractData {
+interface ContractSigningInput {
   signature_image: string;
   ip_address: string;
   timestamp: string;
@@ -22,9 +22,9 @@ interface ContractData {
 
 interface ServiceAgreementProps {
   clientName?: string;
-  onSign: (contractData: ContractData) => Promise<{ error: Error | null }>;
+  onSign: (contractData: ContractSigningInput) => Promise<{ error: Error | null }>;
   isSigned?: boolean;
-  existingSignature?: ContractData | null;
+  signedTimestamp?: string | null;
   isLoading?: boolean;
 }
 
@@ -259,7 +259,7 @@ export function ServiceAgreement({
   clientName = 'Guest',
   onSign, 
   isSigned = false, 
-  existingSignature = null,
+  signedTimestamp = null,
   isLoading = false 
 }: ServiceAgreementProps) {
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
@@ -344,7 +344,7 @@ export function ServiceAgreement({
       const signatureImage = sigCanvas.current.toDataURL('image/png');
       const ipAddress = await getClientIP();
 
-      const contractData: ContractData = {
+      const signingInput: ContractSigningInput = {
         signature_image: signatureImage,
         ip_address: ipAddress,
         timestamp: new Date().toISOString(),
@@ -357,7 +357,7 @@ export function ServiceAgreement({
         },
       };
 
-      const result = await onSign(contractData);
+      const result = await onSign(signingInput);
       if (result.error) {
         console.error('Error signing contract:', result.error);
       }
@@ -369,7 +369,7 @@ export function ServiceAgreement({
   };
 
   // If already signed, show confirmation
-  if (isSigned && existingSignature) {
+  if (isSigned) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -384,28 +384,20 @@ export function ServiceAgreement({
             <div>
               <h3 className="font-semibold text-foreground">Service Agreement Signed</h3>
               <p className="text-sm text-muted-foreground">
-                Signed on {new Date(existingSignature.timestamp).toLocaleDateString('en-GB', {
+                {signedTimestamp ? `Signed on ${new Date(signedTimestamp).toLocaleDateString('en-GB', {
                   day: 'numeric',
                   month: 'long',
                   year: 'numeric',
                   hour: '2-digit',
                   minute: '2-digit',
-                })}
+                })}` : 'Contract signed successfully'}
               </p>
             </div>
           </div>
         </div>
         
         <div className="p-6">
-          <div className="bg-muted/50 rounded-xl p-4">
-            <p className="text-sm text-muted-foreground mb-3">Your Signature:</p>
-            <img 
-              src={existingSignature.signature_image} 
-              alt="Your signature" 
-              className="max-h-20 mx-auto"
-            />
-          </div>
-          <p className="text-xs text-muted-foreground text-center mt-4">
+          <p className="text-xs text-muted-foreground text-center">
             A copy of this agreement has been sent to your email.
           </p>
         </div>

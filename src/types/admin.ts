@@ -1,14 +1,14 @@
-export interface ContractData {
+export interface ContractSignatureData {
   signature_image: string;
-  ip_address: string;
-  timestamp: string;
-  user_agent: string;
+  ip_address: string | null;
+  user_agent: string | null;
+  signed_at: string;
   device_info: {
     platform: string;
     language: string;
     screen_width: number;
     screen_height: number;
-  };
+  } | null;
 }
 
 export interface ClientWithCase {
@@ -35,7 +35,7 @@ export interface ClientWithCase {
   docs_pending_review: boolean;
   dossier_submitted: boolean;
   // Contract signing
-  contract_data: ContractData | null;
+  contract_data: ContractSignatureData | null;
   is_contract_signed: boolean;
 }
 

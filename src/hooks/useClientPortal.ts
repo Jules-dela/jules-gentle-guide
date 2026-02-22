@@ -11,7 +11,7 @@ import type {
   InitialCriteria
 } from '@/types/portal';
 
-interface ContractData {
+interface ContractSigningInput {
   signature_image: string;
   ip_address: string;
   timestamp: string;
@@ -43,7 +43,7 @@ interface UseClientPortalReturn {
   ) => Promise<{ error: Error | null }>;
   uploadDocument: (documentId: string, file: File) => Promise<{ error: Error | null }>;
   confirmKeyHandover: () => Promise<{ error: Error | null }>;
-  signContract: (contractData: ContractData) => Promise<{ error: Error | null }>;
+  signContract: (contractData: ContractSigningInput) => Promise<{ error: Error | null }>;
 }
 
 export function useClientPortal(): UseClientPortalReturn {
@@ -319,7 +319,7 @@ export function useClientPortal(): UseClientPortalReturn {
     }
   };
 
-  const signContract = async (contractData: ContractData) => {
+  const signContract = async (contractData: ContractSigningInput) => {
     if (!activeCase) {
       return { error: new Error('No active case found') };
     }
