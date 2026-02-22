@@ -203,7 +203,7 @@ export function ClientSidePanel({ client, onClose }: ClientSidePanelProps) {
                     <p className="text-sm font-medium text-foreground">Service Agreement</p>
                     <p className="text-xs text-muted-foreground">
                       {client.is_contract_signed 
-                        ? `Signed on ${new Date(client.contract_data?.timestamp || '').toLocaleDateString('en-GB')}`
+                        ? `Signed on ${new Date(client.contract_data?.signed_at || '').toLocaleDateString('en-GB')}`
                         : 'Not yet signed'}
                     </p>
                   </div>

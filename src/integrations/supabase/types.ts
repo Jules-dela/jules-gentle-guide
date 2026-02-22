@@ -172,6 +172,44 @@ export type Database = {
           },
         ]
       }
+      contract_signatures: {
+        Row: {
+          case_id: string
+          device_info: Json | null
+          id: string
+          ip_address: string | null
+          signature_image: string
+          signed_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          case_id: string
+          device_info?: Json | null
+          id?: string
+          ip_address?: string | null
+          signature_image: string
+          signed_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          case_id?: string
+          device_info?: Json | null
+          id?: string
+          ip_address?: string | null
+          signature_image?: string
+          signed_at?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_signatures_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: true
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       housing_applications: {
         Row: {
           budget: string | null

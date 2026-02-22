@@ -36,17 +36,21 @@ export function useAdminDashboard() {
       if (proposalsError) throw proposalsError;
 
       // Fetch all documents for all cases
-      const { data: allDocuments, error: docsError } = await supabase
-        .from('case_documents')
-        .select('*');
+      const [docsRes, signaturesRes] = await Promise.all([
+        supabase.from('case_documents').select('*'),
+        supabase.from('contract_signatures').select('*'),
+      ]);
 
-      if (docsError) throw docsError;
+      if (docsRes.error) throw docsRes.error;
+      const allDocuments = docsRes.data;
+      const allSignatures = signaturesRes.data || [];
 
       // Map profiles to clients with case data
       const clientsWithCases: ClientWithCase[] = (profiles || []).map((profile) => {
         const profileCase = cases?.find((c) => c.client_id === profile.id);
         const criteria = profileCase?.initial_criteria as Record<string, unknown> | null;
-        const contractData = profileCase?.contract_data as unknown as ClientWithCase['contract_data'] | null;
+        const contractData = profileCase?.contract_data as unknown as { signed?: boolean; timestamp?: string } | null;
+        const signature = allSignatures.find((s: any) => s.case_id === profileCase?.id);
 
         // Check for rejected proposals
         const clientProposals = proposals?.filter((p) => p.case_id === profileCase?.id) || [];
@@ -111,8 +115,14 @@ export function useAdminDashboard() {
           docs_total: docsTotal,
           docs_pending_review: docsPendingReview,
           dossier_submitted: dossierSubmitted,
-          contract_data: contractData,
-          is_contract_signed: !!contractData?.signature_image,
+          contract_data: signature ? {
+            signature_image: signature.signature_image,
+            ip_address: signature.ip_address,
+            user_agent: signature.user_agent,
+            signed_at: signature.signed_at,
+            device_info: signature.device_info as any,
+          } : null,
+          is_contract_signed: !!contractData?.signed,
         };
       });
 
