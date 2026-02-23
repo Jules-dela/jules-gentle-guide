@@ -42,8 +42,9 @@ export function useNotifications(caseId: string | null): UseNotificationsReturn 
   const [unreadStages, setUnreadStages] = useState<UnreadStages>({});
   const [loading, setLoading] = useState(true);
   const [pendingNotifications, setPendingNotifications] = useState<StageNotification[]>([]);
-  const [hasShownToast, setHasShownToast] = useState(false);
   const lastSeenKey = caseId ? `unikey_notif_seen_${caseId}` : null;
+  // Track whether we've already toasted this mount via a ref to avoid re-renders
+  const hasToastedRef = useState(() => ({ current: false }))[0];
 
   const checkForNewUpdates = useCallback(async () => {
     if (!caseId || !user) {
@@ -107,7 +108,7 @@ export function useNotifications(caseId: string | null): UseNotificationsReturn 
         n => new Date(n.updated_at).getTime() > lastSeenTime
       );
 
-      if (!hasShownToast && trulyNewPending.length > 0) {
+      if (!hasToastedRef.current && trulyNewPending.length > 0) {
         const firstNotif = trulyNewPending[0];
         const firstMetadata = typeof firstNotif.metadata === 'object' && firstNotif.metadata !== null
           ? firstNotif.metadata as Record<string, unknown>
@@ -143,7 +144,7 @@ export function useNotifications(caseId: string | null): UseNotificationsReturn 
           duration: 6000,
         });
 
-        setHasShownToast(true);
+        hasToastedRef.current = true;
       }
 
       // Persist the latest notification timestamp so we don't re-toast next visit
@@ -159,7 +160,7 @@ export function useNotifications(caseId: string | null): UseNotificationsReturn 
     } finally {
       setLoading(false);
     }
-  }, [caseId, user, hasShownToast]);
+  }, [caseId, user]);
 
   const markStageAsRead = useCallback(async (targetCaseId: string, stage: number) => {
     if (!user) return;
@@ -216,7 +217,7 @@ export function useNotifications(caseId: string | null): UseNotificationsReturn 
           filter: `case_id=eq.${caseId}`,
         },
         () => {
-          setHasShownToast(false); // Reset so new notifications show toast
+          hasToastedRef.current = false; // Reset so new realtime notifications show toast
           checkForNewUpdates();
         }
       )
