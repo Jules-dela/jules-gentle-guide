@@ -43,6 +43,7 @@ export function useNotifications(caseId: string | null): UseNotificationsReturn 
   const [loading, setLoading] = useState(true);
   const [pendingNotifications, setPendingNotifications] = useState<StageNotification[]>([]);
   const [hasShownToast, setHasShownToast] = useState(false);
+  const lastSeenKey = caseId ? `unikey_notif_seen_${caseId}` : null;
 
   const checkForNewUpdates = useCallback(async () => {
     if (!caseId || !user) {
@@ -99,9 +100,15 @@ export function useNotifications(caseId: string | null): UseNotificationsReturn 
       setUnreadStages(unread);
       setPendingNotifications(pending);
 
-      // Show toast notification for unread updates (only once per session)
-      if (!hasShownToast && pending.length > 0) {
-        const firstNotif = pending[0];
+      // Show toast only for notifications newer than what user last saw
+      const lastSeen = lastSeenKey ? localStorage.getItem(lastSeenKey) : null;
+      const lastSeenTime = lastSeen ? new Date(lastSeen).getTime() : 0;
+      const trulyNewPending = pending.filter(
+        n => new Date(n.updated_at).getTime() > lastSeenTime
+      );
+
+      if (!hasShownToast && trulyNewPending.length > 0) {
+        const firstNotif = trulyNewPending[0];
         const firstMetadata = typeof firstNotif.metadata === 'object' && firstNotif.metadata !== null
           ? firstNotif.metadata as Record<string, unknown>
           : {};
@@ -131,14 +138,21 @@ export function useNotifications(caseId: string | null): UseNotificationsReturn 
           description: message,
           action: {
             label: 'View',
-            onClick: () => {
-              // Navigate handled by the component using the hook
-            },
+            onClick: () => {},
           },
           duration: 6000,
         });
-        
+
         setHasShownToast(true);
+      }
+
+      // Persist the latest notification timestamp so we don't re-toast next visit
+      if (pending.length > 0 && lastSeenKey) {
+        const latestTime = pending.reduce((max, n) => {
+          const t = new Date(n.updated_at).getTime();
+          return t > max ? t : max;
+        }, 0);
+        localStorage.setItem(lastSeenKey, new Date(latestTime).toISOString());
       }
     } catch (err) {
       console.error('Error checking notifications:', err);
