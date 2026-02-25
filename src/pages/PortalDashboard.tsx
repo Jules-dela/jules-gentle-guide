@@ -186,12 +186,13 @@ export default function PortalDashboard() {
   }, [proposals, selectedApartment, isDemoMode]);
 
   useEffect(() => {
+    if (isDemoMode) return;
     if (!authLoading && !user) {
       navigate('/auth');
     } else if (!authLoading && user && isAdmin) {
       navigate('/admin');
     }
-  }, [user, isAdmin, authLoading, navigate]);
+  }, [user, isAdmin, authLoading, navigate, isDemoMode]);
 
   const scrollToContent = () => {
     setTimeout(() => {
