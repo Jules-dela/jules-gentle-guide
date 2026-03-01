@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, RefreshCw, Loader2, Home, MessageSquare } from 'lucide-react';
+import { Check, X, RefreshCw, Loader2, Home, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface Proposal {
   id: string;
@@ -28,6 +30,8 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [clearing, setClearing] = useState(false);
+  const [galleryProposal, setGalleryProposal] = useState<Proposal | null>(null);
+  const [galleryIndex, setGalleryIndex] = useState(0);
 
   useEffect(() => {
     fetchProposals();
@@ -171,8 +175,16 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
             }`}>
               <CardContent className="p-3">
                 <div className="flex items-start gap-3">
-                  {/* Thumbnail */}
-                  <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0">
+                  {/* Thumbnail - clickable to open gallery */}
+                  <button
+                    className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+                    onClick={() => {
+                      if (proposal.photos && proposal.photos.length > 0) {
+                        setGalleryProposal(proposal);
+                        setGalleryIndex(0);
+                      }
+                    }}
+                  >
                     {proposal.photos && proposal.photos[0] ? (
                       <img
                         src={proposal.photos[0]}
@@ -184,7 +196,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
                         <Home className="h-6 w-6 text-muted-foreground/50" />
                       </div>
                     )}
-                  </div>
+                  </button>
 
                   {/* Details */}
                   <div className="flex-1 min-w-0">
@@ -257,6 +269,58 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
           </p>
         </motion.div>
       )}
+      {/* Photo Gallery Dialog */}
+      <Dialog open={!!galleryProposal} onOpenChange={(open) => !open && setGalleryProposal(null)}>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden">
+          <DialogHeader className="p-4 pb-0">
+            <DialogTitle className="text-sm">
+              {galleryProposal?.neighbourhood || 'Property'} · {galleryProposal?.rooms} rooms · CHF {galleryProposal?.rent?.toLocaleString()}
+            </DialogTitle>
+          </DialogHeader>
+          {galleryProposal?.photos && galleryProposal.photos.length > 0 && (
+            <div className="relative">
+              <img
+                src={galleryProposal.photos[galleryIndex]}
+                alt={`Property photo ${galleryIndex + 1}`}
+                className="w-full aspect-video object-cover"
+              />
+              {galleryProposal.photos.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setGalleryIndex(prev => prev > 0 ? prev - 1 : galleryProposal.photos!.length - 1)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background shadow-md"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setGalleryIndex(prev => prev < galleryProposal.photos!.length - 1 ? prev + 1 : 0)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background shadow-md"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                    {galleryProposal.photos.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setGalleryIndex(i)}
+                        className={cn(
+                          'w-2 h-2 rounded-full transition-all',
+                          i === galleryIndex ? 'bg-white w-5' : 'bg-white/50'
+                        )}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+              <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-foreground/60 backdrop-blur-sm">
+                <span className="text-background text-xs font-medium">
+                  {galleryIndex + 1}/{galleryProposal.photos.length}
+                </span>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
