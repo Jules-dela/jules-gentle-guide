@@ -236,11 +236,14 @@ export default function PortalDashboard() {
     scrollToContent();
   };
 
-  // Get pending proposals for Research stage
-  const pendingProposals = useMemo(() => 
-    proposals.filter(p => p.client_status === 'pending').map(proposalToApartment),
-    [proposals]
-  );
+  // Get proposals for Research stage - show all when read-only, only pending when active
+  const researchProposals = useMemo(() => {
+    if (currentStage < highestStage) {
+      // Read-only: show all proposals so user can still browse images
+      return proposals.map(proposalToApartment);
+    }
+    return proposals.filter(p => p.client_status === 'pending').map(proposalToApartment);
+  }, [proposals, currentStage, highestStage]);
 
   // Loading state (skip for demo mode)
   if (!isDemoMode && (authLoading || portalLoading)) {
@@ -371,7 +374,7 @@ export default function PortalDashboard() {
           {currentStage === 2 && (
             <ResearchGallery 
               key="stage-2" 
-              proposals={pendingProposals}
+              proposals={researchProposals}
               onComplete={handleResearchComplete}
               onReject={handleRejectProposal}
               readOnly={isReadOnly}
