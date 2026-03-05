@@ -1,0 +1,1 @@
+UPDATE cases SET status = 'proposals_available' WHERE id = '5488c576-91a1-498d-8ba7-ea9a5425327a';
