@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ApartmentUploader } from './ApartmentUploader';
 import { FeedbackTracker } from './FeedbackTracker';
 import { VisitReportUploader } from './VisitReportUploader';
@@ -14,12 +15,25 @@ import { HandoverManager } from './HandoverManager';
 import { ContractClosurePanel } from './ContractClosurePanel';
 import { SignatureViewer, SignedBadge } from './SignatureViewer';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import type { ClientWithCase } from '@/types/admin';
 
 interface ClientSidePanelProps {
   client: ClientWithCase | null;
   onClose: () => void;
+  onStatusChange?: () => void;
 }
+
+const caseStatuses = [
+  'request_received',
+  'search_in_progress',
+  'proposals_available',
+  'visit_in_progress',
+  'documents_preparation',
+  'application_review',
+  'key_handover_scheduled',
+  'closed',
+] as const;
 
 const stageLabels: Record<string, string> = {
   request_received: 'Request Received',
@@ -72,11 +86,31 @@ interface FullCriteria {
   notes?: string;
 }
 
-export function ClientSidePanel({ client, onClose }: ClientSidePanelProps) {
+export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSidePanelProps) {
   const [criteria, setCriteria] = useState<FullCriteria | null>(null);
   const [loadingCriteria, setLoadingCriteria] = useState(false);
   const [showFullCriteria, setShowFullCriteria] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+
+  const handleStatusChange = useCallback(async (newStatus: string) => {
+    if (!client?.case_id || newStatus === client.case_status) return;
+    setUpdatingStatus(true);
+    try {
+      const { error } = await supabase
+        .from('cases')
+        .update({ status: newStatus as typeof caseStatuses[number] })
+        .eq('id', client.case_id);
+      if (error) throw error;
+      toast({ title: 'Status updated', description: `Case moved to "${stageLabels[newStatus]}"` });
+      onStatusChange?.();
+    } catch (err) {
+      console.error('Error updating status:', err);
+      toast({ title: 'Error', description: 'Failed to update case status.', variant: 'destructive' });
+    } finally {
+      setUpdatingStatus(false);
+    }
+  }, [client?.case_id, client?.case_status, onStatusChange]);
 
   const getInitials = (name: string) => {
     return name
@@ -173,9 +207,32 @@ export function ClientSidePanel({ client, onClose }: ClientSidePanelProps) {
                       {client.is_contract_signed && <SignedBadge isSigned={true} />}
                     </div>
                     <p className="text-sm text-muted-foreground">{client.client_type || 'Student'}</p>
-                    <Badge variant="secondary" className="text-xs mt-1">
-                      {stageLabels[client.case_status] || client.case_status}
-                    </Badge>
+                    {client.case_id ? (
+                      <Select
+                        value={client.case_status}
+                        onValueChange={handleStatusChange}
+                        disabled={updatingStatus}
+                      >
+                        <SelectTrigger className="h-7 w-auto text-xs mt-1 gap-1">
+                          {updatingStatus ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <SelectValue />
+                          )}
+                        </SelectTrigger>
+                        <SelectContent>
+                          {caseStatuses.map((status) => (
+                            <SelectItem key={status} value={status} className="text-xs">
+                              {stageLabels[status]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs mt-1">
+                        No case
+                      </Badge>
+                    )}
                   </div>
                 </div>
 

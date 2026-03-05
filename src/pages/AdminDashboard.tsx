@@ -107,6 +107,7 @@ export default function AdminDashboard() {
       <ClientSidePanel
         client={selectedClient}
         onClose={() => setSelectedClient(null)}
+        onStatusChange={refetch}
       />
     </AdminLayout>
   );
