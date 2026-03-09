@@ -14,7 +14,7 @@ import { KeyHandoverStage } from '@/components/portal/KeyHandoverStage';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import type { CaseStatus, PropertyProposal, KeyHandover, Profile, Case, InitialCriteria } from '@/types/portal';
+import type { CaseStatus, PropertyProposal, KeyHandover, Profile, Case } from '@/types/portal';
 
 // Demo data for preview mode
 const DEMO_APARTMENT: SelectedApartment = {
@@ -35,7 +35,7 @@ const DEMO_APARTMENT: SelectedApartment = {
 const DEMO_KEY_HANDOVER: KeyHandover = {
   id: 'demo-handover',
   case_id: 'demo-case',
-  scheduled_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 1 week from now
+  scheduled_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   scheduled_time: '10:00',
   location: 'Rue de la Louve 12, 1003 Lausanne',
   contact_person: 'Jules',
@@ -45,7 +45,6 @@ const DEMO_KEY_HANDOVER: KeyHandover = {
   created_at: new Date().toISOString(),
 };
 
-// Demo profile for preview mode
 const DEMO_PROFILE: Profile = {
   id: 'demo-profile',
   user_id: 'demo-user',
@@ -57,7 +56,6 @@ const DEMO_PROFILE: Profile = {
   created_at: new Date().toISOString(),
 };
 
-// Demo case for preview mode
 const DEMO_CASE: Case = {
   id: 'demo-case',
   client_id: 'demo-profile',
@@ -83,30 +81,27 @@ const DEMO_CASE: Case = {
   close_reason: null,
 };
 
-// Map case status to portal stage number
 function getStageFromStatus(status: CaseStatus | undefined): number {
   if (!status) return 1;
-  
   switch (status) {
     case 'request_received':
     case 'search_in_progress':
-      return 1; // Criteria stage - waiting for proposals
+      return 1;
     case 'proposals_available':
-      return 2; // Research stage - browsing proposals
+      return 2;
     case 'visit_in_progress':
-      return 3; // Viewings stage
+      return 3;
     case 'documents_preparation':
     case 'application_review':
-      return 4; // Documents stage
+      return 4;
     case 'key_handover_scheduled':
     case 'closed':
-      return 5; // Handover stage
+      return 5;
     default:
       return 1;
   }
 }
 
-// Convert PropertyProposal to SelectedApartment format
 function proposalToApartment(proposal: PropertyProposal): SelectedApartment {
   return {
     id: proposal.id,
@@ -125,50 +120,34 @@ function proposalToApartment(proposal: PropertyProposal): SelectedApartment {
 export default function PortalDashboard() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const { 
-    profile, 
-    activeCase, 
-    proposals, 
-    documents, 
-    keyHandover,
-    loading: portalLoading, 
-    error,
-    updateProposalFeedback,
-    uploadDocument,
-    signContract,
-    refetch
+    profile, activeCase, proposals, documents, keyHandover,
+    loading: portalLoading, error,
+    updateProposalFeedback, uploadDocument, signContract, refetch
   } = useClientPortal();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
-  // Check for demo mode via URL parameter
   const isDemoMode = searchParams.get('demo') === 'true';
   const demoStage = searchParams.get('stage') ? parseInt(searchParams.get('stage')!, 10) : null;
   
-  // Notifications hook
   const { unreadStages, markStageAsRead } = useNotifications(activeCase?.id || null);
   
-  // Determine stage from case status
   const caseStage = useMemo(() => getStageFromStatus(activeCase?.status), [activeCase?.status]);
   
-  // Track highest stage reached (for read-only mode when viewing past stages)
   const [highestStage, setHighestStage] = useState(isDemoMode && demoStage ? demoStage : 1);
   const [currentStage, setCurrentStage] = useState(isDemoMode && demoStage ? demoStage : 1);
   const [selectedApartment, setSelectedApartment] = useState<SelectedApartment | null>(
     isDemoMode ? DEMO_APARTMENT : null
   );
   
-  // Determine if viewing a previous stage (read-only mode)
   const isReadOnly = currentStage < highestStage;
 
-  // Mark stage as read when viewing it
   useEffect(() => {
     if (activeCase?.id && currentStage && unreadStages[currentStage]?.hasNew) {
       markStageAsRead(activeCase.id, currentStage);
     }
   }, [activeCase?.id, currentStage, unreadStages, markStageAsRead]);
 
-  // Sync stage with case status (only if not in demo mode)
-  // Only advance forward — never snap back when user has manually progressed ahead
   useEffect(() => {
     if (!isDemoMode) {
       setCurrentStage(prev => Math.max(prev, caseStage));
@@ -176,12 +155,15 @@ export default function PortalDashboard() {
     }
   }, [caseStage, isDemoMode]);
 
-  // Find liked proposal for stages 3-5 (only if not in demo mode)
+  // Find first liked proposal with published visit for stage 3+
   useEffect(() => {
     if (isDemoMode) return;
-    const likedProposal = proposals.find(p => p.client_status === 'liked');
-    if (likedProposal && !selectedApartment) {
-      setSelectedApartment(proposalToApartment(likedProposal));
+    const likedProposals = proposals.filter(p => p.client_status === 'liked');
+    // Prefer the one with a published visit report
+    const published = likedProposals.find(p => p.visit_published);
+    const target = published || likedProposals[0];
+    if (target && !selectedApartment) {
+      setSelectedApartment(proposalToApartment(target));
     }
   }, [proposals, selectedApartment, isDemoMode]);
 
@@ -200,19 +182,12 @@ export default function PortalDashboard() {
     }, 100);
   };
 
-  const handleResearchComplete = async (apartment: SelectedApartment, questions?: string) => {
+  // Like handler — records like but does NOT advance stage
+  const handleResearchLike = async (apartment: SelectedApartment, questions?: string) => {
     const proposal = proposals.find(p => p.id === apartment.id);
     if (proposal) {
-      const { error } = await updateProposalFeedback(proposal.id, 'liked', undefined, undefined, questions);
-      if (!error) {
-        setSelectedApartment(apartment);
-        setCurrentStage(3);
-        scrollToContent();
-      }
-    } else {
-      setSelectedApartment(apartment);
-      setCurrentStage(3);
-      scrollToContent();
+      await updateProposalFeedback(proposal.id, 'liked', undefined, undefined, questions);
+      await refetch();
     }
   };
 
@@ -236,13 +211,18 @@ export default function PortalDashboard() {
     scrollToContent();
   };
 
-  // Get pending proposals for Research stage
+  // Pending proposals for swiping
   const pendingProposals = useMemo(() => 
     proposals.filter(p => p.client_status === 'pending').map(proposalToApartment),
     [proposals]
   );
 
-  // Loading state (skip for demo mode)
+  // Count of liked proposals
+  const likedCount = useMemo(() => 
+    proposals.filter(p => p.client_status === 'liked').length,
+    [proposals]
+  );
+
   if (!isDemoMode && (authLoading || portalLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
@@ -251,10 +231,8 @@ export default function PortalDashboard() {
     );
   }
 
-  // Skip auth check in demo mode
   if (!isDemoMode && !user) return null;
 
-  // Error state (skip for demo mode)
   if (!isDemoMode && error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
@@ -279,7 +257,6 @@ export default function PortalDashboard() {
     );
   }
 
-  // No profile/case state - show welcome message (skip for demo mode)
   if (!isDemoMode && (!profile || !activeCase)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
@@ -296,9 +273,7 @@ export default function PortalDashboard() {
               It looks like you don't have an active housing search yet. 
               Submit an application on our homepage to get started!
             </p>
-            <Button onClick={() => navigate('/')}>
-              Start Your Search
-            </Button>
+            <Button onClick={() => navigate('/')}>Start Your Search</Button>
           </motion.div>
         </div>
         <Footer />
@@ -306,7 +281,6 @@ export default function PortalDashboard() {
     );
   }
   
-  // Use demo data or real data
   const displayKeyHandover = isDemoMode ? DEMO_KEY_HANDOVER : keyHandover;
   const displayUserName = isDemoMode ? 'Demo User' : profile?.name;
   const displayProfile = isDemoMode ? DEMO_PROFILE : profile;
@@ -314,20 +288,15 @@ export default function PortalDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
-      {/* Reuse Landing Page Header */}
       <Header />
-      
-      {/* Spacer for fixed header */}
       <div className="h-[72px]" />
       
-      {/* Progress Tracker */}
       <TrackerProgressBar 
         currentStage={currentStage} 
         onStageClick={setCurrentStage} 
         unreadStages={unreadStages}
       />
       
-      {/* Return to Current Stage Banner */}
       <AnimatePresence>
         {isReadOnly && (
           <motion.div
@@ -337,14 +306,8 @@ export default function PortalDashboard() {
             className="container mx-auto px-4 mt-4"
           >
             <div className="bg-primary/10 border border-primary/20 rounded-lg px-4 py-3 flex items-center justify-between gap-4">
-              <p className="text-sm text-muted-foreground">
-                You're viewing a previous stage
-              </p>
-              <Button 
-                size="sm" 
-                onClick={() => setCurrentStage(highestStage)}
-                className="shrink-0"
-              >
+              <p className="text-sm text-muted-foreground">You're viewing a previous stage</p>
+              <Button size="sm" onClick={() => setCurrentStage(highestStage)} className="shrink-0">
                 Return to Current Stage
               </Button>
             </div>
@@ -352,7 +315,6 @@ export default function PortalDashboard() {
         )}
       </AnimatePresence>
       
-      {/* Main Content Area */}
       <main className="container mx-auto px-4 py-12">
         <AnimatePresence mode="wait">
           {currentStage === 1 && (
@@ -372,9 +334,10 @@ export default function PortalDashboard() {
             <ResearchGallery 
               key="stage-2" 
               proposals={pendingProposals}
-              onComplete={handleResearchComplete}
+              onLike={handleResearchLike}
               onReject={handleRejectProposal}
               readOnly={isReadOnly}
+              likedCount={likedCount}
             />
           )}
           
@@ -411,7 +374,6 @@ export default function PortalDashboard() {
         </AnimatePresence>
       </main>
       
-      {/* Footer */}
       <Footer />
     </div>
   );

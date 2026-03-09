@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ApartmentCard } from './ApartmentCard';
 import { FeedbackPopup } from './FeedbackPopup';
 import { LandlordQuestionsModal } from './LandlordQuestionsModal';
-import { Check, Search } from 'lucide-react';
+import { Check, Search, Heart } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 export interface SelectedApartment {
@@ -19,9 +19,10 @@ export interface SelectedApartment {
 
 interface ResearchGalleryProps {
   proposals?: SelectedApartment[];
-  onComplete: (apartment: SelectedApartment, questions?: string) => void;
+  onLike: (apartment: SelectedApartment, questions?: string) => void;
   onReject?: (proposalId: string, reasons: string[], notes?: string) => Promise<void>;
   readOnly?: boolean;
+  likedCount?: number;
 }
 
 // Fallback dummy apartments for demo/development
@@ -38,7 +39,7 @@ const dummyApartments: SelectedApartment[] = [
     rooms: 2.5,
     location: 'Lausanne',
     neighborhood: 'Sous-Gare',
-    description: 'Charming apartment in the heart of Lausanne with stunning lake views. Recently renovated with modern finishes while maintaining its original character. Perfect for young professionals or students.',
+    description: 'Charming apartment in the heart of Lausanne with stunning lake views.',
     amenities: ['Lake view', 'Modern kitchen', 'Hardwood floors', 'In-unit laundry', 'Balcony', 'Storage room'],
   },
   {
@@ -52,7 +53,7 @@ const dummyApartments: SelectedApartment[] = [
     rooms: 2,
     location: 'Lausanne',
     neighborhood: 'Flon',
-    description: 'Contemporary studio in the vibrant Flon district. Walking distance to shops, restaurants, and nightlife. Ideal for students at EPFL or UNIL with easy metro access.',
+    description: 'Contemporary studio in the vibrant Flon district.',
     amenities: ['Open floor plan', 'Built-in wardrobes', 'Metro nearby', 'Gym access', 'Bike storage', 'Concierge'],
   },
   {
@@ -67,13 +68,12 @@ const dummyApartments: SelectedApartment[] = [
     rooms: 3.5,
     location: 'Lausanne',
     neighborhood: 'Ouchy',
-    description: 'Spacious family apartment steps from Lake Geneva and the Olympic Museum. Bright living spaces with panoramic views. Quiet, residential neighborhood with excellent schools nearby.',
+    description: 'Spacious family apartment steps from Lake Geneva.',
     amenities: ['Panoramic views', 'Guest bedroom', 'Parking included', 'Large terrace', 'Modern appliances', 'Pet friendly'],
   },
 ];
 
-export function ResearchGallery({ proposals, onComplete, onReject, readOnly = false }: ResearchGalleryProps) {
-  // Use real proposals if available, otherwise use demo data
+export function ResearchGallery({ proposals, onLike, onReject, readOnly = false, likedCount = 0 }: ResearchGalleryProps) {
   const apartments = useMemo(() => 
     proposals && proposals.length > 0 ? proposals : dummyApartments,
     [proposals]
@@ -85,7 +85,6 @@ export function ResearchGallery({ proposals, onComplete, onReject, readOnly = fa
   const [showSuccess, setShowSuccess] = useState(false);
   const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set());
 
-  // Filter out rejected apartments
   const availableApartments = useMemo(() => 
     apartments.filter(apt => !rejectedIds.has(apt.id)),
     [apartments, rejectedIds]
@@ -95,7 +94,6 @@ export function ResearchGallery({ proposals, onComplete, onReject, readOnly = fa
 
   const handleLike = useCallback(() => {
     if (!currentApartment) return;
-    // Show questions modal instead of immediately completing
     setShowQuestionsModal(true);
   }, [currentApartment]);
 
@@ -103,11 +101,22 @@ export function ResearchGallery({ proposals, onComplete, onReject, readOnly = fa
     if (!currentApartment) return;
     setShowQuestionsModal(false);
     setShowSuccess(true);
+    
+    // Record the like via parent (DB update)
+    onLike(currentApartment, questions);
+    
     setTimeout(() => {
       setShowSuccess(false);
-      onComplete(currentApartment, questions);
+      // Move to next available apartment instead of advancing stage
+      if (availableApartments.length > 1) {
+        // Remove the liked one from view and adjust index
+        setRejectedIds(prev => new Set([...prev, currentApartment.id]));
+        if (currentIndex >= availableApartments.length - 2) {
+          setCurrentIndex(0);
+        }
+      }
     }, 2000);
-  }, [onComplete, currentApartment]);
+  }, [onLike, currentApartment, availableApartments.length, currentIndex]);
 
   const handleQuestionsClose = useCallback(() => {
     setShowQuestionsModal(false);
@@ -120,22 +129,18 @@ export function ResearchGallery({ proposals, onComplete, onReject, readOnly = fa
   const handleFeedbackSubmit = useCallback(async (reasons: string[], notes?: string) => {
     if (!currentApartment) return;
     
-    // Call the reject handler if available (for real data)
     if (onReject) {
       await onReject(currentApartment.id, reasons, notes);
     }
     
-    // Track rejected locally
     setRejectedIds(prev => new Set([...prev, currentApartment.id]));
     setShowFeedback(false);
     
-    // Show toast notification
     toast({
       title: "Searching for new matches...",
       description: "We're refining your search based on your feedback.",
     });
     
-    // Move to next apartment or loop back
     if (currentIndex >= availableApartments.length - 1) {
       setCurrentIndex(0);
     }
@@ -149,14 +154,23 @@ export function ResearchGallery({ proposals, onComplete, onReject, readOnly = fa
   if (availableApartments.length === 0) {
     return (
       <div className="relative min-h-[600px] py-8 flex flex-col items-center justify-center">
+        {likedCount > 0 && (
+          <div className="mb-4 flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10">
+            <Heart className="w-4 h-4 text-primary fill-primary" />
+            <span className="text-sm font-medium text-primary">{likedCount} liked</span>
+          </div>
+        )}
         <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
           <Search className="w-10 h-10 text-primary" />
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-2 text-center">
-          No More Proposals
+          {likedCount > 0 ? 'All Caught Up!' : 'No More Proposals'}
         </h2>
         <p className="text-muted-foreground text-center max-w-sm">
-          You've reviewed all available apartments. We're searching for more matches based on your feedback!
+          {likedCount > 0 
+            ? "You've reviewed all available apartments. We'll schedule viewings for your liked properties!"
+            : "You've reviewed all available apartments. We're searching for more matches based on your feedback!"
+          }
         </p>
       </div>
     );
@@ -177,6 +191,17 @@ export function ResearchGallery({ proposals, onComplete, onReject, readOnly = fa
         <p className="text-muted-foreground">
           Swipe through properties we've hand-picked based on your criteria
         </p>
+        {/* Liked counter */}
+        {likedCount > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-full bg-primary/10"
+          >
+            <Heart className="w-3.5 h-3.5 text-primary fill-primary" />
+            <span className="text-sm font-medium text-primary">{likedCount} liked</span>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Progress indicator */}
@@ -242,10 +267,9 @@ export function ResearchGallery({ proposals, onComplete, onReject, readOnly = fa
               transition={{ delay: 0.4 }}
               className="text-muted-foreground text-center max-w-sm"
             >
-              We're scheduling a professional viewing for you...
+              We've noted your interest. Keep browsing for more options!
             </motion.p>
             
-            {/* Loading dots */}
             <motion.div 
               className="flex gap-1.5 mt-6"
               initial={{ opacity: 0 }}
@@ -272,14 +296,12 @@ export function ResearchGallery({ proposals, onComplete, onReject, readOnly = fa
         )}
       </AnimatePresence>
 
-      {/* Feedback Popup */}
       <FeedbackPopup
         isOpen={showFeedback}
         onClose={handleFeedbackClose}
         onSubmit={handleFeedbackSubmit}
       />
 
-      {/* Landlord Questions Modal - Step 2.5 */}
       <LandlordQuestionsModal
         isOpen={showQuestionsModal}
         onClose={handleQuestionsClose}

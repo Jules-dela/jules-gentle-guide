@@ -18,6 +18,7 @@ interface Proposal {
   rejection_reasons: string[] | null;
   rejection_notes: string | null;
   photos: string[] | null;
+  client_visit_questions: string | null;
   created_at: string;
 }
 
@@ -32,30 +33,21 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
   const [clearing, setClearing] = useState(false);
   const [galleryProposal, setGalleryProposal] = useState<Proposal | null>(null);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [questionsProposal, setQuestionsProposal] = useState<Proposal | null>(null);
 
   useEffect(() => {
     fetchProposals();
 
-    // Set up realtime subscription
     const channel = supabase
       .channel(`proposals-${caseId}`)
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'property_proposals',
-          filter: `case_id=eq.${caseId}`,
-        },
-        () => {
-          fetchProposals();
-        }
+        { event: '*', schema: 'public', table: 'property_proposals', filter: `case_id=eq.${caseId}` },
+        () => { fetchProposals(); }
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [caseId]);
 
   const fetchProposals = async () => {
@@ -78,7 +70,6 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
   const handleClearAndRestart = async () => {
     setClearing(true);
     try {
-      // Delete all proposals for this case
       const { error } = await supabase
         .from('property_proposals')
         .delete()
@@ -86,20 +77,12 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
 
       if (error) throw error;
 
-      toast({
-        title: "Search cleared",
-        description: "All proposals have been removed. You can now add new apartments.",
-      });
-
+      toast({ title: "Search cleared", description: "All proposals have been removed." });
       setProposals([]);
       onClearSearch();
     } catch (err) {
       console.error('Error clearing proposals:', err);
-      toast({
-        title: "Error",
-        description: "Failed to clear proposals. Please try again.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to clear proposals.", variant: "destructive" });
     } finally {
       setClearing(false);
     }
@@ -107,6 +90,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
 
   const allRejected = proposals.length > 0 && proposals.every(p => p.client_status === 'rejected');
   const hasLiked = proposals.some(p => p.client_status === 'liked');
+  const likedCount = proposals.filter(p => p.client_status === 'liked').length;
 
   if (loading) {
     return (
@@ -120,12 +104,8 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
     return (
       <div className="py-6 text-center">
         <MessageSquare className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-        <p className="text-sm text-muted-foreground">
-          No proposals sent yet
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Add apartments above to start getting feedback
-        </p>
+        <p className="text-sm text-muted-foreground">No proposals sent yet</p>
+        <p className="text-xs text-muted-foreground mt-1">Add apartments above to start getting feedback</p>
       </div>
     );
   }
@@ -136,7 +116,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
         <div>
           <h4 className="text-sm font-semibold text-foreground">Client Feedback</h4>
           <p className="text-xs text-muted-foreground">
-            {proposals.length} apartment{proposals.length !== 1 ? 's' : ''} sent
+            {proposals.length} sent · {likedCount} liked
           </p>
         </div>
         {allRejected && (
@@ -147,11 +127,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
             disabled={clearing}
             className="gap-1.5 text-destructive hover:text-destructive"
           >
-            {clearing ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4" />
-            )}
+            {clearing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             Clear & Restart
           </Button>
         )}
@@ -175,7 +151,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
             }`}>
               <CardContent className="p-3">
                 <div className="flex items-start gap-3">
-                  {/* Thumbnail - clickable to open gallery */}
+                  {/* Thumbnail */}
                   <button
                     className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
                     onClick={() => {
@@ -186,11 +162,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
                     }}
                   >
                     {proposal.photos && proposal.photos[0] ? (
-                      <img
-                        src={proposal.photos[0]}
-                        alt="Property"
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={proposal.photos[0]} alt="Property" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Home className="h-6 w-6 text-muted-foreground/50" />
@@ -215,9 +187,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
                         </div>
                       )}
                       {proposal.client_status === 'pending' && (
-                        <Badge variant="secondary" className="text-xs">
-                          Pending
-                        </Badge>
+                        <Badge variant="secondary" className="text-xs">Pending</Badge>
                       )}
                     </div>
                     
@@ -225,22 +195,30 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
                       {proposal.rooms} rooms · CHF {proposal.rent?.toLocaleString()}
                     </p>
 
+                    {/* Visit questions — clickable for liked proposals */}
+                    {proposal.client_status === 'liked' && proposal.client_visit_questions && (
+                      <button
+                        onClick={() => setQuestionsProposal(proposal)}
+                        className="mt-2 flex items-start gap-1.5 text-left group w-full"
+                      >
+                        <MessageSquare className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
+                        <span className="text-xs text-amber-700 line-clamp-1 group-hover:underline">
+                          {proposal.client_visit_questions}
+                        </span>
+                      </button>
+                    )}
+
                     {/* Rejection reasons */}
                     {proposal.client_status === 'rejected' && proposal.rejection_reasons && (
                       <div className="mt-2 flex flex-wrap gap-1">
                         {proposal.rejection_reasons.map((reason, i) => (
-                          <Badge 
-                            key={i} 
-                            variant="outline" 
-                            className="text-xs bg-red-50 text-red-700 border-red-200"
-                          >
+                          <Badge key={i} variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
                             {reason}
                           </Badge>
                         ))}
                       </div>
                     )}
 
-                    {/* Rejection notes */}
                     {proposal.client_status === 'rejected' && proposal.rejection_notes && (
                       <p className="text-xs text-muted-foreground mt-2 italic">
                         "{proposal.rejection_notes}"
@@ -262,13 +240,36 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
         >
           <Check className="h-5 w-5 text-green-600 mx-auto mb-1" />
           <p className="text-sm font-medium text-green-800">
-            Client has selected a property!
+            Client has liked {likedCount} {likedCount === 1 ? 'property' : 'properties'}!
           </p>
           <p className="text-xs text-green-600 mt-0.5">
-            Proceed to schedule a viewing
+            Proceed to schedule viewings
           </p>
         </motion.div>
       )}
+
+      {/* Questions Dialog */}
+      <Dialog open={!!questionsProposal} onOpenChange={(open) => !open && setQuestionsProposal(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-sm flex items-center gap-2">
+              <MessageSquare className="h-4 w-4 text-amber-600" />
+              Client Questions for Visit
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              {questionsProposal?.neighbourhood} · {questionsProposal?.rooms} rooms · CHF {questionsProposal?.rent?.toLocaleString()}
+            </p>
+            <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
+              <p className="text-sm text-amber-900 whitespace-pre-wrap leading-relaxed">
+                {questionsProposal?.client_visit_questions}
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Photo Gallery Dialog */}
       <Dialog open={!!galleryProposal} onOpenChange={(open) => !open && setGalleryProposal(null)}>
         <DialogContent className="max-w-2xl p-0 overflow-hidden">
