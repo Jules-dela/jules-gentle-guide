@@ -101,6 +101,7 @@ export interface PropertyProposal {
   rejection_reasons: string[];
   rejection_notes: string | null;
   client_visit_questions: string | null;
+  visit_published: boolean | null;
   created_at: string;
 }
 
