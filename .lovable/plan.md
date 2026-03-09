@@ -1,49 +1,124 @@
 
+# Fix Password Reset "Link Expired" Issue
 
-## Plan: Multi-Like Support + Admin Improvements
+## Problem Analysis
 
-### Problem Summary
-1. **Client portal**: Liking an apartment immediately advances to Stage 3, preventing liking multiple apartments
-2. **Admin FeedbackTracker**: Client visit questions are not visible (only shown in VisitReportUploader)
-3. **Admin VisitReportUploader**: Uses `.maybeSingle()` to fetch liked proposals — if multiple are liked, this query fails. Also, it only manages one liked proposal at a time
+Based on the auth logs and code review, the password reset links are failing because of how the recovery token flow is handled:
 
-### Changes
+1. **One-time token consumption**: The recovery link token gets consumed when Supabase's `/verify` endpoint processes it
+2. **Session not being captured**: The `ResetPassword.tsx` page doesn't wait for Supabase to process the URL hash tokens before checking for a session
+3. **Race condition with AuthProvider**: The `AuthProvider` may be checking the session before the URL hash tokens are processed by Supabase's client library
 
-#### 1. Client Portal — Allow Multiple Likes (ResearchGallery + PortalDashboard)
+## Root Cause
 
-**`src/pages/PortalDashboard.tsx`**:
-- Change `handleResearchComplete` to NOT advance to stage 3. Instead, mark the proposal as liked, show success animation, then return to the gallery showing remaining pending proposals.
-- Keep `pendingProposals` filter as-is (only pending ones shown for swiping).
-- Remove the logic that sets `selectedApartment` and moves to stage 3 on like — stage advancement will now be driven by the admin changing case status to `visit_in_progress`.
+When clicking the email link:
+1. Supabase `/verify` endpoint consumes the one-time token
+2. Supabase redirects to `/reset-password#access_token=...&type=recovery`
+3. The page loads and immediately calls `getSession()` before Supabase client processes the hash
+4. No session found → shows "expired" error → redirects to `/auth`
 
-**`src/components/portal/ResearchGallery.tsx`**:
-- After the success animation, instead of calling `onComplete` which triggers stage advancement, just move to the next pending card. Rename/refactor `onComplete` to `onLike` to clarify it only records the like without advancing.
-- Show a counter of liked apartments (e.g., "2 liked").
+## Solution
 
-#### 2. Admin FeedbackTracker — Show Visit Questions
+### Step 1: Update ResetPassword.tsx to properly handle recovery tokens
 
-**`src/components/admin/FeedbackTracker.tsx`**:
-- Add `client_visit_questions` to the `Proposal` interface (already exists in DB column).
-- Fetch `client_visit_questions` (already fetched via `select('*')`).
-- For liked proposals that have questions, show a clickable `MessageSquare` icon. Clicking opens a small dialog/popover showing the full question text.
+Modify the session detection to:
+1. First check if there's a recovery event in the URL hash
+2. Wait for the `onAuthStateChange` event with `PASSWORD_RECOVERY` type
+3. Only then verify the session is valid
 
-#### 3. Admin VisitReportUploader — Support Multiple Liked Proposals
+```text
+Key changes:
+- Listen for PASSWORD_RECOVERY auth event instead of just checking session
+- Add a small delay to allow Supabase client to process URL hash
+- Handle the recovery session specifically
+```
 
-**`src/components/admin/VisitReportUploader.tsx`**:
-- Change query from `.maybeSingle()` to fetch ALL liked proposals (remove `.maybeSingle()`, use array).
-- Show a list/selector of liked proposals so admin can pick which one to write a visit report for.
-- Each liked proposal gets its own visit report form (photos, pros, cons, publish).
-- The "No visit scheduled yet" empty state only shows when zero proposals are liked.
+### Step 2: Prevent Auth page from interfering
 
-#### 4. Portal Stage 3 — Handle Multiple Liked Proposals
+Update `Auth.tsx` to NOT redirect users who land on `/reset-password` route. Currently the `AuthProvider` might redirect authenticated users away before they can reset their password.
 
-**`src/pages/PortalDashboard.tsx`**:
-- Instead of finding a single liked proposal for stage 3, find ALL liked proposals.
-- Pass the relevant liked proposal(s) to the VisitReport component. Initially, show the one that has `visit_published = true`.
+### Step 3: Add explicit hash handling
 
-### Files to Edit
-- `src/components/portal/ResearchGallery.tsx` — keep user on gallery after like
-- `src/pages/PortalDashboard.tsx` — multi-like logic, stage 3 multi-proposal support
-- `src/components/admin/FeedbackTracker.tsx` — show clickable visit questions
-- `src/components/admin/VisitReportUploader.tsx` — support multiple liked proposals with a selector
+Add code to detect and handle the URL hash parameters that Supabase includes after verification:
+- Check for `#access_token` and `type=recovery` in URL
+- Use `supabase.auth.setSession()` if needed to establish the recovery session
 
+## Technical Implementation
+
+### File: src/pages/ResetPassword.tsx
+
+```typescript
+useEffect(() => {
+  // Handle the recovery session from URL hash
+  const handleRecoverySession = async () => {
+    // Check if we have hash params (Supabase recovery redirect)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+    const type = hashParams.get('type');
+    
+    if (type === 'recovery' && accessToken && refreshToken) {
+      // Set the session from URL tokens
+      const { error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+      
+      if (!error) {
+        setIsValidSession(true);
+        // Clean up URL
+        window.history.replaceState(null, '', window.location.pathname);
+        return;
+      }
+    }
+    
+    // Fallback: check existing session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      setIsValidSession(true);
+    } else {
+      toast({
+        title: "Invalid or expired link",
+        description: "Please request a new password reset link.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+    }
+  };
+  
+  handleRecoverySession();
+}, [navigate, toast]);
+```
+
+### File: src/hooks/useAuth.tsx
+
+Add check to prevent auto-redirect during password recovery:
+
+```typescript
+// In the auth state change listener, check for recovery event
+supabase.auth.onAuthStateChange((event, session) => {
+  // Don't trigger admin checks for PASSWORD_RECOVERY events
+  if (event === 'PASSWORD_RECOVERY') {
+    setSession(session);
+    setUser(session?.user ?? null);
+    return; // Don't check admin or trigger redirects
+  }
+  // ... rest of existing logic
+});
+```
+
+## Expected Outcome
+
+After these changes:
+1. User clicks the email reset link
+2. Supabase verifies the token and redirects with session in URL hash
+3. `ResetPassword.tsx` explicitly captures the tokens from the hash
+4. Session is established and user can set their new password
+5. No more "expired" errors on first click
+
+## Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/pages/ResetPassword.tsx` | Add URL hash token handling |
+| `src/hooks/useAuth.tsx` | Handle PASSWORD_RECOVERY event specially |
