@@ -95,16 +95,7 @@ export const Header = () => {
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-8">
             <button 
-              onClick={() => scrollToSection('partners')} 
-              className={cn(
-                "text-[16px] font-normal hover:opacity-80 transition-all duration-300",
-                useDarkText ? "text-primary" : "text-white"
-              )}
-            >
-              Partners
-            </button>
-            <button 
-              onClick={() => scrollToSection('features')} 
+              onClick={() => scrollToSection('features')}
               className={cn(
                 "text-[16px] font-normal hover:opacity-80 transition-all duration-300",
                 useDarkText ? "text-primary" : "text-white"
