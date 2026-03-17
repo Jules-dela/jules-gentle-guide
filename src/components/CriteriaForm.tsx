@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { ChevronRight, ChevronLeft, CheckCircle2, User, Home, Settings, Send, CalendarIcon } from "lucide-react";
+import { ServiceAgreement } from "@/components/portal/ServiceAgreement";
 
 // Validation schema
 const criteriaSchema = z.object({
