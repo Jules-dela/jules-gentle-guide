@@ -180,12 +180,35 @@ export const CriteriaForm = () => {
 
       if (emailError) console.error("Portal creation error:", emailError);
 
+      // Store submission data for contract signing
+      setSubmittedName(data.name);
+      setSubmittedCaseId(result?.caseId || null);
+
+      // Auto-login if new user with temp password returned
+      if (result?.isNewUser && result?.tempPassword) {
+        setIsAutoLoggingIn(true);
+        try {
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: data.email,
+            password: result.tempPassword,
+          });
+          if (signInError) {
+            console.error("Auto-login failed:", signInError);
+          }
+        } catch (loginErr) {
+          console.error("Auto-login error:", loginErr);
+        } finally {
+          setIsAutoLoggingIn(false);
+        }
+      } else if (!result?.isNewUser) {
+        // Existing user - try to check if already logged in
+        // They'll need to sign from the portal
+      }
+
       setIsSuccess(true);
       toast({
-        title: "🎉 Application submitted!",
-        description: result?.isNewUser 
-          ? "Check your email for your portal login credentials!"
-          : "Your case has been created. Check your email for details.",
+        title: "✅ Application submitted!",
+        description: "Please sign the service agreement below to activate your search.",
       });
     } catch (error) {
       console.error("Submission error:", error);
@@ -199,10 +222,61 @@ export const CriteriaForm = () => {
     }
   };
 
+  const handleContractSign = async (contractData: {
+    signature_image: string;
+    ip_address: string;
+    timestamp: string;
+    user_agent: string;
+    device_info: {
+      platform: string;
+      language: string;
+      screen_width: number;
+      screen_height: number;
+    };
+  }) => {
+    if (!submittedCaseId) {
+      return { error: new Error('No case found') };
+    }
+
+    try {
+      const { error } = await supabase.rpc('sign_contract', {
+        p_case_id: submittedCaseId,
+        p_contract_data: JSON.parse(JSON.stringify(contractData)),
+      });
+
+      if (error) throw error;
+
+      // Send contract receipt email
+      try {
+        await supabase.functions.invoke('send-contract-receipt', {
+          body: {
+            clientName: submittedName,
+            clientEmail: form.getValues('email'),
+            signedAt: contractData.timestamp,
+          },
+        });
+      } catch (emailErr) {
+        console.error('Error sending contract receipt email:', emailErr);
+      }
+
+      setContractSigned(true);
+      toast({
+        title: "🎉 Contract signed!",
+        description: "Your housing search is now active. Check your email for portal access details.",
+      });
+      return { error: null };
+    } catch (err) {
+      return { error: err instanceof Error ? err : new Error('Failed to sign contract') };
+    }
+  };
+
   const resetForm = () => {
     form.reset();
     setCurrentStep(1);
     setIsSuccess(false);
+    setSubmittedCaseId(null);
+    setSubmittedName('');
+    setContractSigned(false);
   };
 
   return (
