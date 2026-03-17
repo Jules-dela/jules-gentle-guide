@@ -125,6 +125,7 @@ const applicationSchema = z.object({
   petsAllowed: z.boolean().optional().nullable(),
   smokingAllowed: z.boolean().optional().nullable(),
   notes: z.string().trim().max(2000, "Notes too long").optional().nullable(),
+  movingDate: z.string().max(100).optional().nullable(),
   website: z.string().max(0).optional().nullable(),
 });
 

@@ -94,7 +94,7 @@ export const CriteriaForm = () => {
     
     switch (step) {
       case 1:
-        fieldsToValidate = ["name", "email", "phone", "university"];
+        fieldsToValidate = ["name", "email", "phone", "university", "movingDate"];
         break;
       case 2:
         fieldsToValidate = ["neighbourhood", "budget", "rooms", "duration", "type", "roommates"];
