@@ -690,6 +690,7 @@ export const CriteriaForm = () => {
                                       field.onChange(value);
                                       if (value === "no") {
                                         form.setValue("roommateDetail", "");
+                                        form.setValue("roommateCount", "");
                                       }
                                     }} value={field.value}>
                                       <FormControl>
