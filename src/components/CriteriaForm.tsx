@@ -23,7 +23,7 @@ import { ChevronRight, ChevronLeft, CheckCircle2, User, Home, Settings, Send, Ca
 const criteriaSchema = z.object({
   name: z.string().trim().min(1, { message: "Full name is required" }).max(100),
   email: z.string().trim().email({ message: "Invalid email address" }).max(255),
-  phone: z.string().trim().max(20).optional().or(z.literal("")),
+  phone: z.string().trim().min(1, { message: "Phone number is required" }).max(20),
   university: z.string().trim().max(100).optional().or(z.literal("")),
   movingDate: z.date({ required_error: "Please select your preferred moving date" }),
   neighbourhood: z.string().min(1, { message: "Please select a neighbourhood" }),
@@ -369,7 +369,7 @@ export const CriteriaForm = () => {
                                   name="phone"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>Phone (optional)</FormLabel>
+                                      <FormLabel>Phone</FormLabel>
                                       <FormControl>
                                         <Input 
                                           type="tel" 
