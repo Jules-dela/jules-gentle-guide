@@ -489,6 +489,7 @@ const handler = async (req: Request): Promise<Response> => {
         caseId: newCase.id,
         isNewUser,
         portalUrl,
+        ...(isNewUser && tempPassword ? { tempPassword } : {}),
       }),
       {
         status: 200,
