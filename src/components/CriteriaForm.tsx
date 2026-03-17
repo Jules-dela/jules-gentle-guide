@@ -300,41 +300,55 @@ export const CriteriaForm = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                className="flex flex-col items-center justify-center py-16 md:py-24 text-center"
+                className="flex flex-col items-center justify-center py-8 md:py-12"
               >
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 15 }}
-                  className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-primary/10 flex items-center justify-center mb-6"
-                >
-                  <CheckCircle2 className="w-10 h-10 md:w-12 md:h-12 text-primary" />
-                </motion.div>
-                <motion.h2
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4"
-                >
-                  We're on it!
-                </motion.h2>
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="text-muted-foreground text-lg md:text-xl max-w-md mb-8"
-                >
-                  Check your email soon. We'll start matching you with the perfect apartment right away.
-                </motion.p>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  <Button variant="outline" onClick={resetForm}>
-                    Submit another request
-                  </Button>
-                </motion.div>
+                {isAutoLoggingIn ? (
+                  <div className="text-center space-y-4">
+                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto animate-pulse">
+                      <CheckCircle2 className="w-8 h-8 text-primary" />
+                    </div>
+                    <p className="text-muted-foreground text-lg">Setting up your account...</p>
+                  </div>
+                ) : contractSigned ? (
+                  <div className="text-center space-y-6">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                      className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto"
+                    >
+                      <CheckCircle2 className="w-10 h-10 md:w-12 md:h-12 text-primary" />
+                    </motion.div>
+                    <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+                      You're all set! 🎉
+                    </h2>
+                    <p className="text-muted-foreground text-lg max-w-md mx-auto">
+                      Your application is submitted and the service agreement is signed. We'll start searching for your perfect apartment right away.
+                    </p>
+                    <p className="text-muted-foreground text-sm">
+                      Check your email for your portal login credentials to track your search progress.
+                    </p>
+                    <Button variant="outline" onClick={resetForm}>
+                      Submit another request
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="w-full max-w-2xl mx-auto space-y-6">
+                    <div className="text-center space-y-2">
+                      <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+                        Almost there! ✍️
+                      </h2>
+                      <p className="text-muted-foreground text-lg">
+                        Please read and sign the service agreement below to activate your housing search.
+                      </p>
+                    </div>
+                    <ServiceAgreement
+                      clientName={submittedName}
+                      onSign={handleContractSign}
+                      isSigned={false}
+                    />
+                  </div>
+                )}
               </motion.div>
             ) : (
               <motion.div
