@@ -171,7 +171,7 @@ export const CriteriaForm = () => {
           rooms: data.rooms,
           duration: data.duration,
           propertyType: data.type,
-          roommatePreference: data.roommates,
+          roommatePreference: data.roommates === "yes" ? `Yes - ${data.roommateDetail || "not specified"}` : "No",
           furnished: data.furnished,
           nearTransport: data.nearTransport,
           petsAllowed: data.pets,
