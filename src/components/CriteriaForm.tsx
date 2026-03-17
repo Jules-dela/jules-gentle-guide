@@ -860,9 +860,9 @@ export const CriteriaForm = () => {
                                     <div className="space-y-1 leading-none">
                                       <FormLabel className="text-sm font-normal">
                                         I have read and accept the{" "}
-                                        <Link to="/privacy-policy" className="text-primary underline hover:text-primary/80">
+                                        <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
                                           Privacy Policy
-                                        </Link>
+                                        </a>
                                         . I consent to the processing of my personal data in accordance with Swiss Federal Act on Data Protection (FADP) and GDPR.
                                       </FormLabel>
                                       <FormMessage />
