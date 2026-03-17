@@ -431,7 +431,7 @@ export function ServiceAgreement({
 
       {/* Contract Text - Read-only scrollable area */}
       <div className="relative" ref={scrollContainerRef}>
-        <ScrollArea className="h-80 bg-muted/20">
+        <ScrollArea className="h-60 md:h-80 bg-muted/20">
           <div className="px-6 py-5">
             <pre 
               className="text-sm text-foreground/85 whitespace-pre-wrap leading-relaxed"
