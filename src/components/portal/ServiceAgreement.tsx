@@ -106,7 +106,7 @@ Unikey does not:
 5. FEES, INVOICING, AND PAYMENT CONDITIONS
 
 5.1 SERVICE FEE
-The Client agrees to pay Unikey a service fee equal to five percent (5%) of the gross annual rent (12 months) of the selected property, as stated in the signed rental agreement or confirmed reservation document.
+The Client agrees to pay Unikey a service fee equal to one month rent of the selected property, as stated in the signed rental agreement or confirmed reservation document.
 
 5.2 WHEN THE FEE BECOMES DUE
 The service fee becomes immediately and fully due once BOTH of the following conditions are met:
