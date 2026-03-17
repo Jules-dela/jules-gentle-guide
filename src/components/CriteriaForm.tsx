@@ -563,16 +563,16 @@ export const CriteriaForm = () => {
                                         </FormControl>
                                         <SelectContent>
                                           <SelectItem value="no-preference">No preference</SelectItem>
+                                          <SelectItem value="belmont-sur-lausanne">Belmont-Sur-Lausanne</SelectItem>
                                           <SelectItem value="chailly">Chailly</SelectItem>
                                           <SelectItem value="cite-flon">Cité/Flon</SelectItem>
-                                          <SelectItem value="renens">Renens</SelectItem>
                                           <SelectItem value="epalinges">Epalinges</SelectItem>
-                                          <SelectItem value="sallaz">Sallaz</SelectItem>
-                                          <SelectItem value="mont-sur-lausanne">Mont-Sur-Lausanne</SelectItem>
                                           <SelectItem value="lutry">Lutry</SelectItem>
-                                          <SelectItem value="belmont-sur-lausanne">Belmont-Sur-Lausanne</SelectItem>
-                                          <SelectItem value="vers-chez-les-blancs">Vers Chez les Blancs</SelectItem>
+                                          <SelectItem value="mont-sur-lausanne">Mont-Sur-Lausanne</SelectItem>
+                                          <SelectItem value="renens">Renens</SelectItem>
+                                          <SelectItem value="sallaz">Sallaz</SelectItem>
                                           <SelectItem value="savigny">Savigny</SelectItem>
+                                          <SelectItem value="vers-chez-les-blancs">Vers Chez les Blancs</SelectItem>
                                         </SelectContent>
                                       </Select>
                                       <FormMessage />
