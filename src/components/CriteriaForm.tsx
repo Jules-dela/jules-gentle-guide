@@ -34,6 +34,7 @@ const criteriaSchema = z.object({
   type: z.string().min(1, { message: "Please select property type" }),
   roommates: z.string().min(1, { message: "Please select roommate preference" }),
   roommateDetail: z.string().optional().or(z.literal("")),
+  roommateCount: z.string().optional().or(z.literal("")),
   furnished: z.boolean().default(true),
   nearTransport: z.boolean().default(true),
   pets: z.boolean().default(false),
@@ -81,6 +82,7 @@ export const CriteriaForm = () => {
       type: "studio",
       roommates: "",
       roommateDetail: "",
+      roommateCount: "",
       furnished: true,
       nearTransport: true,
       pets: false,
@@ -148,7 +150,7 @@ export const CriteriaForm = () => {
           rooms: data.rooms,
           duration: data.duration,
           property_type: data.type,
-          roommate_preference: data.roommates === "yes" ? `Yes - ${data.roommateDetail || "not specified"}` : "No",
+          roommate_preference: data.roommates === "yes" ? `Yes - ${data.roommateDetail || "not specified"} (${data.roommateCount || "?"} roommates)` : "No",
           furnished: data.furnished,
           near_transport: data.nearTransport,
           pets_allowed: data.pets,
@@ -171,7 +173,7 @@ export const CriteriaForm = () => {
           rooms: data.rooms,
           duration: data.duration,
           propertyType: data.type,
-          roommatePreference: data.roommates === "yes" ? `Yes - ${data.roommateDetail || "not specified"}` : "No",
+          roommatePreference: data.roommates === "yes" ? `Yes - ${data.roommateDetail || "not specified"} (${data.roommateCount || "?"} roommates)` : "No",
           furnished: data.furnished,
           nearTransport: data.nearTransport,
           petsAllowed: data.pets,
@@ -688,6 +690,7 @@ export const CriteriaForm = () => {
                                       field.onChange(value);
                                       if (value === "no") {
                                         form.setValue("roommateDetail", "");
+                                        form.setValue("roommateCount", "");
                                       }
                                     }} value={field.value}>
                                       <FormControl>
@@ -705,27 +708,52 @@ export const CriteriaForm = () => {
                                 )}
                               />
                               {form.watch("roommates") === "yes" && (
-                                <FormField
-                                  control={form.control}
-                                  name="roommateDetail"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Roommate arrangement</FormLabel>
-                                      <Select onValueChange={field.onChange} value={field.value}>
-                                        <FormControl>
-                                          <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
-                                            <SelectValue placeholder="Select arrangement" />
-                                          </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                          <SelectItem value="sharing-with-friend">Sharing with a friend</SelectItem>
-                                          <SelectItem value="joining-shared-flat">Joining a shared flat</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
+                                <>
+                                  <FormField
+                                    control={form.control}
+                                    name="roommateDetail"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Roommate arrangement</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                          <FormControl>
+                                            <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                              <SelectValue placeholder="Select arrangement" />
+                                            </SelectTrigger>
+                                          </FormControl>
+                                          <SelectContent>
+                                            <SelectItem value="sharing-with-friend">Sharing with a friend</SelectItem>
+                                            <SelectItem value="joining-shared-flat">Joining a shared flat</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name="roommateCount"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>How many roommates?</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                          <FormControl>
+                                            <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                              <SelectValue placeholder="Select number" />
+                                            </SelectTrigger>
+                                          </FormControl>
+                                          <SelectContent>
+                                            <SelectItem value="1">1</SelectItem>
+                                            <SelectItem value="2">2</SelectItem>
+                                            <SelectItem value="3">3</SelectItem>
+                                            <SelectItem value="4+">4+</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </>
                               )}
                             </motion.div>
                           )}
