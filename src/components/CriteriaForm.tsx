@@ -682,23 +682,50 @@ export const CriteriaForm = () => {
                                 name="roommates"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>Roommates</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormLabel>Open to roommates?</FormLabel>
+                                    <Select onValueChange={(value) => {
+                                      field.onChange(value);
+                                      if (value === "no") {
+                                        form.setValue("roommateDetail", "");
+                                      }
+                                    }} value={field.value}>
                                       <FormControl>
                                         <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
-                                          <SelectValue placeholder="Select preference" />
+                                          <SelectValue placeholder="Select" />
                                         </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
-                                        <SelectItem value="0">No roommates</SelectItem>
-                                        <SelectItem value="1">1 roommate</SelectItem>
-                                        <SelectItem value="2+">2+ roommates</SelectItem>
+                                        <SelectItem value="yes">Yes</SelectItem>
+                                        <SelectItem value="no">No</SelectItem>
                                       </SelectContent>
                                     </Select>
                                     <FormMessage />
                                   </FormItem>
                                 )}
                               />
+                              {form.watch("roommates") === "yes" && (
+                                <FormField
+                                  control={form.control}
+                                  name="roommateDetail"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Roommate arrangement</FormLabel>
+                                      <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                          <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                            <SelectValue placeholder="Select arrangement" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="sharing-with-friend">Sharing with a friend</SelectItem>
+                                          <SelectItem value="joining-shared-flat">Joining a shared flat</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              )}
                             </motion.div>
                           )}
 
