@@ -488,7 +488,7 @@ export function ServiceAgreement({
                   ref={sigCanvas}
                   penColor="#1e3a8a"
                   canvasProps={{
-                    className: 'w-full h-32 cursor-crosshair',
+                    className: 'w-full h-40 md:h-32 cursor-crosshair',
                     style: { touchAction: 'none' }
                   }}
                   onEnd={checkSignatureEmpty}
