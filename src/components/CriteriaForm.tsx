@@ -58,6 +58,10 @@ export const CriteriaForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [submittedCaseId, setSubmittedCaseId] = useState<string | null>(null);
+  const [submittedName, setSubmittedName] = useState<string>('');
+  const [contractSigned, setContractSigned] = useState(false);
+  const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
 
