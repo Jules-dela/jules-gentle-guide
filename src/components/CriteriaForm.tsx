@@ -799,7 +799,7 @@ export const CriteriaForm = () => {
                                     <FormControl>
                                       <Textarea 
                                         placeholder="Tell us about location preferences, accessibility needs, or anything important to you." 
-                                        className="min-h-28 bg-white/50 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:bg-white/70 transition-all resize-none"
+                                        className="min-h-28 bg-foreground text-background placeholder:text-muted-foreground/60 backdrop-blur-sm border-foreground/30 focus:border-primary/50 transition-all resize-none"
                                         {...field}
                                       />
                                     </FormControl>
