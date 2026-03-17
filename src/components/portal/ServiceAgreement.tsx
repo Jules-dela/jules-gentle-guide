@@ -478,7 +478,7 @@ export function ServiceAgreement({
               <div className="flex items-center gap-2">
                 <PenLine className="w-4 h-4 text-primary" />
                 <p className="text-sm font-medium text-foreground">
-                  Please sign here to authorize Jules to begin your search
+                  Please sign here to authorize Unikey to begin your search
                 </p>
               </div>
 
