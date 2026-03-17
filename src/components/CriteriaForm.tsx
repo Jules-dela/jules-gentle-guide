@@ -80,6 +80,7 @@ export const CriteriaForm = () => {
       duration: "",
       type: "studio",
       roommates: "",
+      roommateDetail: "",
       furnished: true,
       nearTransport: true,
       pets: false,
