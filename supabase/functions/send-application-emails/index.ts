@@ -321,6 +321,7 @@ const handler = async (req: Request): Promise<Response> => {
           <tr><td style="padding: 8px 0; color: #6B7280;">Email:</td><td style="padding: 8px 0;"><a href="mailto:${escapeHtml(data.email)}">${escapeHtml(data.email)}</a></td></tr>
           <tr><td style="padding: 8px 0; color: #6B7280;">Phone:</td><td style="padding: 8px 0;">${safeField(data.phone, "Not provided")}</td></tr>
           <tr><td style="padding: 8px 0; color: #6B7280;">University:</td><td style="padding: 8px 0;">${safeField(data.university, "Not specified")}</td></tr>
+          <tr><td style="padding: 8px 0; color: #6B7280;">Moving Date:</td><td style="padding: 8px 0;">${safeField(data.movingDate, "Not specified")}</td></tr>
         </table>
 
         <h2 style="color: #374151; margin-top: 24px;">Housing Preferences</h2>
