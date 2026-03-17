@@ -33,6 +33,7 @@ const criteriaSchema = z.object({
   duration: z.string().min(1, { message: "Please select duration" }),
   type: z.string().min(1, { message: "Please select property type" }),
   roommates: z.string().min(1, { message: "Please select roommate preference" }),
+  roommateDetail: z.string().optional().or(z.literal("")),
   furnished: z.boolean().default(true),
   nearTransport: z.boolean().default(true),
   pets: z.boolean().default(false),
