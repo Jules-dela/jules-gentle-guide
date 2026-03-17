@@ -112,7 +112,7 @@ function generateSecurePassword(): string {
 const applicationSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name too long"),
   email: z.string().trim().email("Invalid email").max(255, "Email too long"),
-  phone: z.string().trim().max(20, "Phone too long").optional().nullable(),
+  phone: z.string().trim().min(1, "Phone is required").max(20, "Phone too long"),
   university: z.string().trim().max(100, "University name too long").optional().nullable(),
   neighbourhood: z.string().max(100, "Neighbourhood too long").optional().nullable(),
   budget: z.string().max(50, "Budget too long").optional().nullable(),
