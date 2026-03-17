@@ -33,6 +33,7 @@ const criteriaSchema = z.object({
   duration: z.string().min(1, { message: "Please select duration" }),
   type: z.string().min(1, { message: "Please select property type" }),
   roommates: z.string().min(1, { message: "Please select roommate preference" }),
+  roommateDetail: z.string().optional().or(z.literal("")),
   furnished: z.boolean().default(true),
   nearTransport: z.boolean().default(true),
   pets: z.boolean().default(false),
@@ -79,6 +80,7 @@ export const CriteriaForm = () => {
       duration: "",
       type: "studio",
       roommates: "",
+      roommateDetail: "",
       furnished: true,
       nearTransport: true,
       pets: false,
@@ -146,7 +148,7 @@ export const CriteriaForm = () => {
           rooms: data.rooms,
           duration: data.duration,
           property_type: data.type,
-          roommate_preference: data.roommates,
+          roommate_preference: data.roommates === "yes" ? `Yes - ${data.roommateDetail || "not specified"}` : "No",
           furnished: data.furnished,
           near_transport: data.nearTransport,
           pets_allowed: data.pets,
@@ -169,7 +171,7 @@ export const CriteriaForm = () => {
           rooms: data.rooms,
           duration: data.duration,
           propertyType: data.type,
-          roommatePreference: data.roommates,
+          roommatePreference: data.roommates === "yes" ? `Yes - ${data.roommateDetail || "not specified"}` : "No",
           furnished: data.furnished,
           nearTransport: data.nearTransport,
           petsAllowed: data.pets,
@@ -566,6 +568,11 @@ export const CriteriaForm = () => {
                                           <SelectItem value="renens">Renens</SelectItem>
                                           <SelectItem value="epalinges">Epalinges</SelectItem>
                                           <SelectItem value="sallaz">Sallaz</SelectItem>
+                                          <SelectItem value="mont-sur-lausanne">Mont-Sur-Lausanne</SelectItem>
+                                          <SelectItem value="lutry">Lutry</SelectItem>
+                                          <SelectItem value="belmont-sur-lausanne">Belmont-Sur-Lausanne</SelectItem>
+                                          <SelectItem value="vers-chez-les-blancs">Vers Chez les Blancs</SelectItem>
+                                          <SelectItem value="savigny">Savigny</SelectItem>
                                         </SelectContent>
                                       </Select>
                                       <FormMessage />
@@ -676,23 +683,50 @@ export const CriteriaForm = () => {
                                 name="roommates"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>Roommates</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormLabel>Open to roommates?</FormLabel>
+                                    <Select onValueChange={(value) => {
+                                      field.onChange(value);
+                                      if (value === "no") {
+                                        form.setValue("roommateDetail", "");
+                                      }
+                                    }} value={field.value}>
                                       <FormControl>
                                         <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
-                                          <SelectValue placeholder="Select preference" />
+                                          <SelectValue placeholder="Select" />
                                         </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
-                                        <SelectItem value="0">No roommates</SelectItem>
-                                        <SelectItem value="1">1 roommate</SelectItem>
-                                        <SelectItem value="2+">2+ roommates</SelectItem>
+                                        <SelectItem value="yes">Yes</SelectItem>
+                                        <SelectItem value="no">No</SelectItem>
                                       </SelectContent>
                                     </Select>
                                     <FormMessage />
                                   </FormItem>
                                 )}
                               />
+                              {form.watch("roommates") === "yes" && (
+                                <FormField
+                                  control={form.control}
+                                  name="roommateDetail"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Roommate arrangement</FormLabel>
+                                      <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                          <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                            <SelectValue placeholder="Select arrangement" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="sharing-with-friend">Sharing with a friend</SelectItem>
+                                          <SelectItem value="joining-shared-flat">Joining a shared flat</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              )}
                             </motion.div>
                           )}
 
