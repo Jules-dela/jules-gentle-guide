@@ -369,7 +369,7 @@ export const CriteriaForm = () => {
                                   name="phone"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>Phone (optional)</FormLabel>
+                                      <FormLabel>Phone</FormLabel>
                                       <FormControl>
                                         <Input 
                                           type="tel" 
