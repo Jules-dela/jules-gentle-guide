@@ -566,6 +566,11 @@ export const CriteriaForm = () => {
                                           <SelectItem value="renens">Renens</SelectItem>
                                           <SelectItem value="epalinges">Epalinges</SelectItem>
                                           <SelectItem value="sallaz">Sallaz</SelectItem>
+                                          <SelectItem value="mont-sur-lausanne">Mont-Sur-Lausanne</SelectItem>
+                                          <SelectItem value="lutry">Lutry</SelectItem>
+                                          <SelectItem value="belmont-sur-lausanne">Belmont-Sur-Lausanne</SelectItem>
+                                          <SelectItem value="vers-chez-les-blancs">Vers Chez les Blancs</SelectItem>
+                                          <SelectItem value="savigny">Savigny</SelectItem>
                                         </SelectContent>
                                       </Select>
                                       <FormMessage />
