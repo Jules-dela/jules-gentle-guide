@@ -431,7 +431,7 @@ export function ServiceAgreement({
 
       {/* Contract Text - Read-only scrollable area */}
       <div className="relative" ref={scrollContainerRef}>
-        <ScrollArea className="h-80 bg-muted/20">
+        <ScrollArea className="h-60 md:h-80 bg-muted/20">
           <div className="px-6 py-5">
             <pre 
               className="text-sm text-foreground/85 whitespace-pre-wrap leading-relaxed"
@@ -478,7 +478,7 @@ export function ServiceAgreement({
               <div className="flex items-center gap-2">
                 <PenLine className="w-4 h-4 text-primary" />
                 <p className="text-sm font-medium text-foreground">
-                  Please sign here to authorize Jules to begin your search
+                  Please sign here to authorize Unikey to begin your search
                 </p>
               </div>
 
@@ -488,7 +488,7 @@ export function ServiceAgreement({
                   ref={sigCanvas}
                   penColor="#1e3a8a"
                   canvasProps={{
-                    className: 'w-full h-32 cursor-crosshair',
+                    className: 'w-full h-40 md:h-32 cursor-crosshair',
                     style: { touchAction: 'none' }
                   }}
                   onEnd={checkSignatureEmpty}
