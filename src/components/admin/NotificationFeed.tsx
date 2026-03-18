@@ -22,7 +22,7 @@ const interactionConfig: Record<string, { icon: React.ElementType; color: string
   visit_instructions: { icon: MessageSquare, color: 'text-amber-600', bgColor: 'bg-amber-100', priority: true },
 };
 
-export function NotificationFeed({ interactions, isLoading, className }: NotificationFeedProps) {
+export function NotificationFeed({ interactions, isLoading, className, onDismiss }: NotificationFeedProps) {
   const getInteractionInfo = (type: string) => {
     return interactionConfig[type] || { icon: Bell, color: 'text-gray-600', bgColor: 'bg-gray-100' };
   };
