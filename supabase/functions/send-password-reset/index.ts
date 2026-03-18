@@ -158,6 +158,25 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
+    // Validate redirectTo against allowlist to prevent open redirect / account takeover
+    let redirectOrigin: string;
+    try {
+      redirectOrigin = new URL(redirectTo).origin;
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid redirectTo URL" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!ALLOWED_REDIRECT_ORIGINS.includes(redirectOrigin)) {
+      console.error("Blocked disallowed redirectTo origin:", redirectOrigin);
+      return new Response(
+        JSON.stringify({ error: "Invalid redirect URL" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Create Supabase admin client
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
