@@ -154,6 +154,7 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
   const [budgetFilter, setBudgetFilter] = useState<string>('all');
   const [areaFilter, setAreaFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [sharingFilter, setSharingFilter] = useState<string>('all');
 
   // Extract unique values for filter dropdowns
   const filterOptions = useMemo(() => {
@@ -163,7 +164,7 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
     return { budgets: budgets.sort(), areas: areas.sort(), types: types.sort() };
   }, [clients]);
 
-  const hasActiveFilters = budgetFilter !== 'all' || areaFilter !== 'all' || typeFilter !== 'all';
+  const hasActiveFilters = budgetFilter !== 'all' || areaFilter !== 'all' || typeFilter !== 'all' || sharingFilter !== 'all';
 
   const clearFilters = () => {
     setBudgetFilter('all');
