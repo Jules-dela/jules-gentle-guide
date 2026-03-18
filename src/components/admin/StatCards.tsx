@@ -41,14 +41,22 @@ function StatCard({ title, count, icon: Icon, colorClass, bgColorClass, highligh
   );
 }
 
+export type StatFilter = 'completed' | 'in_progress' | 'action_required' | 'dossiers_ready' | null;
+
 interface StatCardsProps {
   completed: number;
   inProgress: number;
   issues: number;
   dossiersReady?: number;
+  activeFilter?: StatFilter;
+  onFilterChange?: (filter: StatFilter) => void;
 }
 
-export function StatCards({ completed, inProgress, issues, dossiersReady = 0 }: StatCardsProps) {
+export function StatCards({ completed, inProgress, issues, dossiersReady = 0, activeFilter, onFilterChange }: StatCardsProps) {
+  const toggle = (filter: StatFilter) => {
+    onFilterChange?.(activeFilter === filter ? null : filter);
+  };
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
       <StatCard
@@ -57,6 +65,8 @@ export function StatCards({ completed, inProgress, issues, dossiersReady = 0 }: 
         icon={CheckCircle2}
         colorClass="text-emerald-600"
         bgColorClass="bg-emerald-100"
+        active={activeFilter === 'completed'}
+        onClick={() => toggle('completed')}
       />
       <StatCard
         title="In Progress"
@@ -64,6 +74,8 @@ export function StatCards({ completed, inProgress, issues, dossiersReady = 0 }: 
         icon={Clock}
         colorClass="text-amber-600"
         bgColorClass="bg-amber-100"
+        active={activeFilter === 'in_progress'}
+        onClick={() => toggle('in_progress')}
       />
       <StatCard
         title="Action Required"
@@ -72,6 +84,8 @@ export function StatCards({ completed, inProgress, issues, dossiersReady = 0 }: 
         colorClass="text-red-600"
         bgColorClass="bg-red-100"
         highlight={issues > 0}
+        active={activeFilter === 'action_required'}
+        onClick={() => toggle('action_required')}
       />
       <StatCard
         title="Dossiers Ready"
@@ -80,6 +94,8 @@ export function StatCards({ completed, inProgress, issues, dossiersReady = 0 }: 
         colorClass="text-primary"
         bgColorClass="bg-primary/10"
         highlight={dossiersReady > 0}
+        active={activeFilter === 'dossiers_ready'}
+        onClick={() => toggle('dossiers_ready')}
       />
     </div>
   );
