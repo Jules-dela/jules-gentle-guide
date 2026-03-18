@@ -279,6 +279,8 @@ const handler = async (req: Request): Promise<Response> => {
       petsAllowed: data.petsAllowed,
       smokingAllowed: data.smokingAllowed,
       notes: data.notes,
+      movingDate: data.movingDate,
+      university: data.university,
     };
 
     const { data: newCase, error: caseError } = await supabase

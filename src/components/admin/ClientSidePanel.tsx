@@ -84,6 +84,8 @@ interface FullCriteria {
   propertyType?: string;
   roommatePreference?: string;
   notes?: string;
+  movingDate?: string;
+  university?: string;
 }
 
 export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSidePanelProps) {
