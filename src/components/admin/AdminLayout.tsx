@@ -20,6 +20,7 @@ interface AdminLayoutProps {
 
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
+  { to: '/admin/waitlist', icon: Bell, label: 'Waitlist', end: false },
 ];
 
 function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {

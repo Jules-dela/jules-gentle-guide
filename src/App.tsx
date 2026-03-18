@@ -9,6 +9,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminWaitlist from "./pages/AdminWaitlist";
 import PortalDashboard from "./pages/PortalDashboard";
 import PortalProposals from "./pages/PortalProposals";
 import PortalDocuments from "./pages/PortalDocuments";
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/login" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/waitlist" element={<AdminWaitlist />} />
             <Route path="/portal" element={<PortalDashboard />} />
             <Route path="/portal/proposals" element={<PortalProposals />} />
             <Route path="/portal/documents" element={<PortalDocuments />} />
