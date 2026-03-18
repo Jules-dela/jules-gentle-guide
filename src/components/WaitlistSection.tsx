@@ -17,10 +17,13 @@ export const WaitlistSection = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!phone.trim() || !phone.startsWith("+")) {
+    // Strip spaces, dashes, dots, and parens — keep leading +
+    const normalized = "+" + phone.replace(/[^\d]/g, "");
+    
+    if (!/^\+\d{7,15}$/.test(normalized)) {
       toast({
         title: "Invalid phone number",
-        description: "Please enter your phone number starting with '+'.",
+        description: "Please enter a valid international number, e.g. +41 79 123 45 67.",
         variant: "destructive",
       });
       return;
@@ -28,7 +31,7 @@ export const WaitlistSection = () => {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from("waitlist").insert({ phone: phone.trim() });
+      const { error } = await supabase.from("waitlist").insert({ phone: normalized });
       if (error) throw error;
 
       setIsSuccess(true);
