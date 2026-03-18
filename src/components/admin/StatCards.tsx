@@ -9,6 +9,8 @@ interface StatCardProps {
   colorClass: string;
   bgColorClass: string;
   highlight?: boolean;
+  active?: boolean;
+  onClick?: () => void;
 }
 
 function StatCard({ title, count, icon: Icon, colorClass, bgColorClass, highlight }: StatCardProps) {
