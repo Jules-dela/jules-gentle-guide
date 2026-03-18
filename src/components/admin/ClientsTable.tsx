@@ -149,6 +149,25 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
 
 export function ClientsTable({ clients, onClientClick, isLoading }: ClientsTableProps) {
   const [filter, setFilter] = useState<'active' | 'archived'>('active');
+  const [budgetFilter, setBudgetFilter] = useState<string>('all');
+  const [areaFilter, setAreaFilter] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+
+  // Extract unique values for filter dropdowns
+  const filterOptions = useMemo(() => {
+    const budgets = [...new Set(clients.map(c => c.budget).filter(Boolean))] as string[];
+    const areas = [...new Set(clients.map(c => c.neighbourhood).filter(Boolean))] as string[];
+    const types = [...new Set(clients.map(c => c.property_type).filter(Boolean))] as string[];
+    return { budgets: budgets.sort(), areas: areas.sort(), types: types.sort() };
+  }, [clients]);
+
+  const hasActiveFilters = budgetFilter !== 'all' || areaFilter !== 'all' || typeFilter !== 'all';
+
+  const clearFilters = () => {
+    setBudgetFilter('all');
+    setAreaFilter('all');
+    setTypeFilter('all');
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -179,10 +198,19 @@ export function ClientsTable({ clients, onClientClick, isLoading }: ClientsTable
     return `${activity} ${timeAgo}`;
   };
 
-  // Filter clients based on tab
+  // Filter clients based on tab + filters
   const activeClients = clients.filter(c => c.case_status !== 'closed');
   const archivedClients = clients.filter(c => c.case_status === 'closed');
-  const displayedClients = filter === 'active' ? activeClients : archivedClients;
+  const baseClients = filter === 'active' ? activeClients : archivedClients;
+  
+  const displayedClients = useMemo(() => {
+    return baseClients.filter(c => {
+      if (budgetFilter !== 'all' && c.budget !== budgetFilter) return false;
+      if (areaFilter !== 'all' && c.neighbourhood !== areaFilter) return false;
+      if (typeFilter !== 'all' && c.property_type !== typeFilter) return false;
+      return true;
+    });
+  }, [baseClients, budgetFilter, areaFilter, typeFilter]);
 
   if (isLoading) {
     return (
