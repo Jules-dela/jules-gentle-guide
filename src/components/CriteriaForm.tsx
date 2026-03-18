@@ -721,9 +721,8 @@ export const CriteriaForm = () => {
                                               <SelectValue placeholder="Select arrangement" />
                                             </SelectTrigger>
                                           </FormControl>
-                                          <SelectContent>
+                                            <SelectContent>
                                             <SelectItem value="sharing-with-friend">Sharing with a friend</SelectItem>
-                                            <SelectItem value="joining-shared-flat">Joining a shared flat</SelectItem>
                                           </SelectContent>
                                         </Select>
                                         <FormMessage />
