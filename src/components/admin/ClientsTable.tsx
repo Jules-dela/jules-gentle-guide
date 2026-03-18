@@ -219,9 +219,14 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
       if (budgetFilter !== 'all' && c.budget !== budgetFilter) return false;
       if (areaFilter !== 'all' && c.neighbourhood !== areaFilter) return false;
       if (typeFilter !== 'all' && c.property_type !== typeFilter) return false;
+      if (sharingFilter !== 'all') {
+        const isSharing = c.roommate_preference ? c.roommate_preference.toLowerCase().startsWith('yes') : false;
+        if (sharingFilter === 'sharing' && !isSharing) return false;
+        if (sharingFilter === 'not_sharing' && isSharing) return false;
+      }
       return true;
     });
-  }, [baseClients, budgetFilter, areaFilter, typeFilter, statFilter]);
+  }, [baseClients, budgetFilter, areaFilter, typeFilter, sharingFilter, statFilter]);
 
   if (isLoading) {
     return (
