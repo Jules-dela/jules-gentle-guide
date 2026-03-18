@@ -234,7 +234,11 @@ export function useAdminDashboard() {
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
 
-      setInteractions(recentInteractions.slice(0, 20));
+      const dismissed = getDismissedIds();
+      const filtered = recentInteractions
+        .filter(i => !dismissed.has(i.id))
+        .slice(0, 20);
+      setInteractions(filtered);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
