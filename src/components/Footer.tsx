@@ -62,7 +62,7 @@ export const Footer = () => {
               </a>
             </div>
             <a 
-              href="https://instagram.com/unikey.ch" 
+              href="https://www.instagram.com/unikey.ch" 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 mt-3 text-sm opacity-90 hover:opacity-100 transition-opacity"
