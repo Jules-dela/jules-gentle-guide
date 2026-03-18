@@ -244,6 +244,55 @@ export function ClientsTable({ clients, onClientClick, isLoading }: ClientsTable
         </TabsList>
       </Tabs>
 
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+        <Select value={budgetFilter} onValueChange={setBudgetFilter}>
+          <SelectTrigger className="w-[140px] h-8 text-xs">
+            <SelectValue placeholder="Budget" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All budgets</SelectItem>
+            {filterOptions.budgets.map(b => (
+              <SelectItem key={b} value={b}>{b}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={areaFilter} onValueChange={setAreaFilter}>
+          <SelectTrigger className="w-[140px] h-8 text-xs">
+            <SelectValue placeholder="Area" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All areas</SelectItem>
+            {filterOptions.areas.map(a => (
+              <SelectItem key={a} value={a}>{a}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-[160px] h-8 text-xs">
+            <SelectValue placeholder="Property type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All types</SelectItem>
+            {filterOptions.types.map(t => (
+              <SelectItem key={t} value={t}>{t}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 px-2 text-xs gap-1">
+            <X className="h-3 w-3" />
+            Clear
+          </Button>
+        )}
+        {hasActiveFilters && (
+          <span className="text-xs text-muted-foreground">
+            {displayedClients.length} result{displayedClients.length !== 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+
       {displayedClients.length === 0 ? (
         <div className="bg-background rounded-xl border">
           <div className="p-8 text-center text-muted-foreground">
