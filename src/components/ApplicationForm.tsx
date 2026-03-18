@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -68,6 +68,7 @@ type ApplicationFormData = z.infer<typeof applicationSchema>;
 
 export const ApplicationForm = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { ref, isVisible } = useScrollAnimation();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -160,12 +161,32 @@ export const ApplicationForm = () => {
         console.error("Portal creation error:", emailError);
       }
 
-      // Show success with portal info
+      // Auto-login for new users and redirect to portal for immediate contract signing
+      if (result?.isNewUser && result?.tempPassword) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: result.tempPassword,
+        });
+
+        if (!signInError) {
+          toast({
+            title: "🎉 Welcome to Unikey!",
+            description: "Please sign the service agreement to start your housing search.",
+          });
+          form.reset();
+          navigate('/portal');
+          return;
+        } else {
+          console.error("Auto-login failed:", signInError);
+        }
+      }
+
+      // Fallback: show success with portal info (existing users or auto-login failure)
       toast({
         title: "🎉 Application submitted!",
         description: result?.isNewUser 
           ? "Check your email for your portal login credentials!"
-          : "Your case has been created. Check your email for details.",
+          : "Your case has been updated. Log in to your portal to continue.",
       });
       
       form.reset();
