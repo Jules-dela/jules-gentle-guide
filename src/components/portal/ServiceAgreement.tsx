@@ -266,10 +266,10 @@ export function ServiceAgreement({
         animate={{ opacity: 1, y: 0 }}
         className="bg-background rounded-[32px] shadow-xl border border-border overflow-hidden"
       >
-        <div className="bg-emerald-500/10 px-6 py-4 border-b border-border">
+        <div className="bg-green-500/10 px-6 py-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
               <h3 className="font-semibold text-foreground">Service Agreement Signed</h3>
