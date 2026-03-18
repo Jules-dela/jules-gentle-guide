@@ -112,6 +112,7 @@ export default function AdminDashboard() {
                 isLoading={loading}
                 className="h-64 sm:h-80 lg:h-[500px]"
                 onDismiss={() => setShowNotifications(false)}
+                onMarkAllRead={clearInteractions}
               />
             </div>
           )}
