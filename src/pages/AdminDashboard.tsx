@@ -70,14 +70,27 @@ export default function AdminDashboard() {
         />
 
         {/* Main Content - Stack on mobile, grid on desktop */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className={cn("grid grid-cols-1 gap-4 sm:gap-6", showNotifications && "lg:grid-cols-3")}>
           {/* Master Table */}
-          <div className="lg:col-span-2 order-2 lg:order-1">
-            <div className="mb-3 sm:mb-4">
-              <h2 className="text-base sm:text-lg font-semibold text-foreground">All Students</h2>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Tap to view details
-              </p>
+          <div className={cn(showNotifications ? "lg:col-span-2" : "", "order-2 lg:order-1")}>
+            <div className="mb-3 sm:mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-base sm:text-lg font-semibold text-foreground">All Students</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Tap to view details
+                </p>
+              </div>
+              {!showNotifications && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowNotifications(true)}
+                  className="gap-2"
+                >
+                  <Bell className="h-4 w-4" />
+                  <span className="hidden sm:inline">Show Feed</span>
+                </Button>
+              )}
             </div>
             <ClientsTable
               clients={clients}
@@ -87,13 +100,16 @@ export default function AdminDashboard() {
           </div>
 
           {/* Notification Feed - Shows first on mobile */}
-          <div className="lg:col-span-1 order-1 lg:order-2">
-            <NotificationFeed 
-              interactions={interactions} 
-              isLoading={loading}
-              className="h-64 sm:h-80 lg:h-[500px]"
-            />
-          </div>
+          {showNotifications && (
+            <div className="lg:col-span-1 order-1 lg:order-2">
+              <NotificationFeed 
+                interactions={interactions} 
+                isLoading={loading}
+                className="h-64 sm:h-80 lg:h-[500px]"
+                onDismiss={() => setShowNotifications(false)}
+              />
+            </div>
+          )}
         </div>
 
         {/* Error State */}
