@@ -107,6 +107,7 @@ export function useAdminDashboard() {
           neighbourhood: criteria?.neighbourhood as string | null,
           rooms: criteria?.rooms as string | null,
           duration: criteria?.duration as string | null,
+          property_type: criteria?.property_type as string | null,
           last_activity: lastActivity,
           last_activity_at: lastActivityAt,
           needs_attention: allRejected || hasRejections,

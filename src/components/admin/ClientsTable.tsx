@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { 
@@ -13,8 +13,10 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { ChevronRight, FileText, Archive, Award } from 'lucide-react';
+import { ChevronRight, FileText, Archive, Filter, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { SignedBadge } from './SignatureViewer';
 import type { ClientWithCase } from '@/types/admin';
 
@@ -147,6 +149,25 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
 
 export function ClientsTable({ clients, onClientClick, isLoading }: ClientsTableProps) {
   const [filter, setFilter] = useState<'active' | 'archived'>('active');
+  const [budgetFilter, setBudgetFilter] = useState<string>('all');
+  const [areaFilter, setAreaFilter] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+
+  // Extract unique values for filter dropdowns
+  const filterOptions = useMemo(() => {
+    const budgets = [...new Set(clients.map(c => c.budget).filter(Boolean))] as string[];
+    const areas = [...new Set(clients.map(c => c.neighbourhood).filter(Boolean))] as string[];
+    const types = [...new Set(clients.map(c => c.property_type).filter(Boolean))] as string[];
+    return { budgets: budgets.sort(), areas: areas.sort(), types: types.sort() };
+  }, [clients]);
+
+  const hasActiveFilters = budgetFilter !== 'all' || areaFilter !== 'all' || typeFilter !== 'all';
+
+  const clearFilters = () => {
+    setBudgetFilter('all');
+    setAreaFilter('all');
+    setTypeFilter('all');
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -177,10 +198,19 @@ export function ClientsTable({ clients, onClientClick, isLoading }: ClientsTable
     return `${activity} ${timeAgo}`;
   };
 
-  // Filter clients based on tab
+  // Filter clients based on tab + filters
   const activeClients = clients.filter(c => c.case_status !== 'closed');
   const archivedClients = clients.filter(c => c.case_status === 'closed');
-  const displayedClients = filter === 'active' ? activeClients : archivedClients;
+  const baseClients = filter === 'active' ? activeClients : archivedClients;
+  
+  const displayedClients = useMemo(() => {
+    return baseClients.filter(c => {
+      if (budgetFilter !== 'all' && c.budget !== budgetFilter) return false;
+      if (areaFilter !== 'all' && c.neighbourhood !== areaFilter) return false;
+      if (typeFilter !== 'all' && c.property_type !== typeFilter) return false;
+      return true;
+    });
+  }, [baseClients, budgetFilter, areaFilter, typeFilter]);
 
   if (isLoading) {
     return (
@@ -213,6 +243,55 @@ export function ClientsTable({ clients, onClientClick, isLoading }: ClientsTable
           </TabsTrigger>
         </TabsList>
       </Tabs>
+
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+        <Select value={budgetFilter} onValueChange={setBudgetFilter}>
+          <SelectTrigger className="w-[140px] h-8 text-xs">
+            <SelectValue placeholder="Budget" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All budgets</SelectItem>
+            {filterOptions.budgets.map(b => (
+              <SelectItem key={b} value={b}>{b}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={areaFilter} onValueChange={setAreaFilter}>
+          <SelectTrigger className="w-[140px] h-8 text-xs">
+            <SelectValue placeholder="Area" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All areas</SelectItem>
+            {filterOptions.areas.map(a => (
+              <SelectItem key={a} value={a}>{a}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-[160px] h-8 text-xs">
+            <SelectValue placeholder="Property type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All types</SelectItem>
+            {filterOptions.types.map(t => (
+              <SelectItem key={t} value={t}>{t}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 px-2 text-xs gap-1">
+            <X className="h-3 w-3" />
+            Clear
+          </Button>
+        )}
+        {hasActiveFilters && (
+          <span className="text-xs text-muted-foreground">
+            {displayedClients.length} result{displayedClients.length !== 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
 
       {displayedClients.length === 0 ? (
         <div className="bg-background rounded-xl border">
