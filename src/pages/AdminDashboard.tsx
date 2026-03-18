@@ -18,6 +18,7 @@ export default function AdminDashboard() {
   const { clients, interactions, stats, loading, error, refetch } = useAdminDashboard();
   const [selectedClient, setSelectedClient] = useState<ClientWithCase | null>(null);
   const [showNotifications, setShowNotifications] = useState(true);
+  const [statFilter, setStatFilter] = useState<StatFilter>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
