@@ -149,7 +149,7 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
   );
 }
 
-export function ClientsTable({ clients, onClientClick, isLoading }: ClientsTableProps) {
+export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: ClientsTableProps) {
   const [filter, setFilter] = useState<'active' | 'archived'>('active');
   const [budgetFilter, setBudgetFilter] = useState<string>('all');
   const [areaFilter, setAreaFilter] = useState<string>('all');
