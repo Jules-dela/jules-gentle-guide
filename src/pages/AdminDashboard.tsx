@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminDashboard } from '@/hooks/useAdminDashboard';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { StatCards } from '@/components/admin/StatCards';
+import { StatCards, StatFilter } from '@/components/admin/StatCards';
 import { ClientsTable } from '@/components/admin/ClientsTable';
 import { NotificationFeed } from '@/components/admin/NotificationFeed';
 import { ClientSidePanel } from '@/components/admin/ClientSidePanel';
