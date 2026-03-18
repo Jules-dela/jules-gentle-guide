@@ -41,7 +41,9 @@ const Index = () => {
         
         <StickyStackingCards />
         <FAQ />
-        <CriteriaForm />
+        {/* UNIKEY FORM - kept for future use, do not delete */}
+        {/* <CriteriaForm /> */}
+        <WaitlistSection />
       </main>
       <Footer />
       <BackToTop />
