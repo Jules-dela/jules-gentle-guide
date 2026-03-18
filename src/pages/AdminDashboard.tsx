@@ -16,6 +16,7 @@ export default function AdminDashboard() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const { clients, interactions, stats, loading, error, refetch } = useAdminDashboard();
   const [selectedClient, setSelectedClient] = useState<ClientWithCase | null>(null);
+  const [showNotifications, setShowNotifications] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
