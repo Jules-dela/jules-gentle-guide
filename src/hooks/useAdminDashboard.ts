@@ -283,6 +283,13 @@ export function useAdminDashboard() {
     };
   }, [fetchClients]);
 
+  const clearInteractions = useCallback(() => {
+    const dismissed = getDismissedIds();
+    interactions.forEach(i => dismissed.add(i.id));
+    saveDismissedIds(dismissed);
+    setInteractions([]);
+  }, [interactions]);
+
   return {
     clients,
     interactions,
@@ -290,5 +297,6 @@ export function useAdminDashboard() {
     loading,
     error,
     refetch: fetchClients,
+    clearInteractions,
   };
 }
