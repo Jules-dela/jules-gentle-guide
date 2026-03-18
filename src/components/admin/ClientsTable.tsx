@@ -19,6 +19,7 @@ import { ChevronRight, FileText, Archive, Filter, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SignedBadge } from './SignatureViewer';
 import type { ClientWithCase } from '@/types/admin';
+import type { StatFilter } from './StatCards';
 
 // Document badge component
 function DocsBadge({ uploaded, total, pendingReview }: { 
@@ -68,6 +69,7 @@ interface ClientsTableProps {
   clients: ClientWithCase[];
   onClientClick: (client: ClientWithCase) => void;
   isLoading?: boolean;
+  statFilter?: StatFilter;
 }
 
 // Mobile Card View
@@ -147,7 +149,7 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
   );
 }
 
-export function ClientsTable({ clients, onClientClick, isLoading }: ClientsTableProps) {
+export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: ClientsTableProps) {
   const [filter, setFilter] = useState<'active' | 'archived'>('active');
   const [budgetFilter, setBudgetFilter] = useState<string>('all');
   const [areaFilter, setAreaFilter] = useState<string>('all');
@@ -198,19 +200,26 @@ export function ClientsTable({ clients, onClientClick, isLoading }: ClientsTable
     return `${activity} ${timeAgo}`;
   };
 
+  // Auto-switch tab based on stat filter
+  const effectiveTab = statFilter === 'completed' ? 'archived' : filter;
+
   // Filter clients based on tab + filters
   const activeClients = clients.filter(c => c.case_status !== 'closed');
   const archivedClients = clients.filter(c => c.case_status === 'closed');
-  const baseClients = filter === 'active' ? activeClients : archivedClients;
+  const baseClients = effectiveTab === 'active' ? activeClients : archivedClients;
   
   const displayedClients = useMemo(() => {
     return baseClients.filter(c => {
+      // Apply stat filter
+      if (statFilter === 'action_required' && !c.needs_attention) return false;
+      if (statFilter === 'dossiers_ready' && !c.dossier_submitted) return false;
+      // Apply dropdown filters
       if (budgetFilter !== 'all' && c.budget !== budgetFilter) return false;
       if (areaFilter !== 'all' && c.neighbourhood !== areaFilter) return false;
       if (typeFilter !== 'all' && c.property_type !== typeFilter) return false;
       return true;
     });
-  }, [baseClients, budgetFilter, areaFilter, typeFilter]);
+  }, [baseClients, budgetFilter, areaFilter, typeFilter, statFilter]);
 
   if (isLoading) {
     return (

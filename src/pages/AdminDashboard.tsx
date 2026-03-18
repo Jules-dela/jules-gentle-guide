@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminDashboard } from '@/hooks/useAdminDashboard';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { StatCards } from '@/components/admin/StatCards';
+import { StatCards, StatFilter } from '@/components/admin/StatCards';
 import { ClientsTable } from '@/components/admin/ClientsTable';
 import { NotificationFeed } from '@/components/admin/NotificationFeed';
 import { ClientSidePanel } from '@/components/admin/ClientSidePanel';
@@ -18,6 +18,7 @@ export default function AdminDashboard() {
   const { clients, interactions, stats, loading, error, refetch } = useAdminDashboard();
   const [selectedClient, setSelectedClient] = useState<ClientWithCase | null>(null);
   const [showNotifications, setShowNotifications] = useState(true);
+  const [statFilter, setStatFilter] = useState<StatFilter>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -68,6 +69,8 @@ export default function AdminDashboard() {
           inProgress={stats.inProgress}
           issues={stats.issues}
           dossiersReady={stats.dossiersReady}
+          activeFilter={statFilter}
+          onFilterChange={setStatFilter}
         />
 
         {/* Main Content - Stack on mobile, grid on desktop */}
@@ -97,6 +100,7 @@ export default function AdminDashboard() {
               clients={clients}
               onClientClick={setSelectedClient}
               isLoading={loading}
+              statFilter={statFilter}
             />
           </div>
 
