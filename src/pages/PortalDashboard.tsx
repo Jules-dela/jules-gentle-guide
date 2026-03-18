@@ -149,11 +149,11 @@ export default function PortalDashboard() {
   }, [activeCase?.id, currentStage, unreadStages, markStageAsRead]);
 
   // If contract is not signed, lock to stage 1 regardless of case status
-  const contractNotSigned = !isDemoMode && displayCase && !displayCase.contract_data?.signed;
+  const contractSigned = isDemoMode || !!(activeCase?.contract_data as { signed?: boolean })?.signed;
 
   useEffect(() => {
     if (!isDemoMode) {
-      if (contractNotSigned) {
+      if (!contractSigned) {
         // Force stage 1 until contract is signed
         setCurrentStage(1);
         setHighestStage(1);
@@ -162,7 +162,7 @@ export default function PortalDashboard() {
         setHighestStage(prev => Math.max(prev, caseStage));
       }
     }
-  }, [caseStage, isDemoMode, contractNotSigned]);
+  }, [caseStage, isDemoMode, contractSigned]);
 
   // Find first liked proposal with published visit for stage 3+
   useEffect(() => {
