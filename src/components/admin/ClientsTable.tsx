@@ -19,6 +19,7 @@ import { ChevronRight, FileText, Archive, Filter, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SignedBadge } from './SignatureViewer';
 import type { ClientWithCase } from '@/types/admin';
+import type { StatFilter } from './StatCards';
 
 // Document badge component
 function DocsBadge({ uploaded, total, pendingReview }: { 
