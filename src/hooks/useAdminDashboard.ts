@@ -108,6 +108,7 @@ export function useAdminDashboard() {
           rooms: criteria?.rooms as string | null,
           duration: criteria?.duration as string | null,
           property_type: criteria?.property_type as string | null,
+          roommate_preference: (criteria?.roommatePreference || criteria?.roommate_preference) as string | null,
           last_activity: lastActivity,
           last_activity_at: lastActivityAt,
           needs_attention: allRejected || hasRejections,
