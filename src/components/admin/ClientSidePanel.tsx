@@ -366,14 +366,11 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
                                 </div>
                               </div>
                               <div className="flex items-start gap-2 text-sm">
-                                <Home className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                                <Users className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                                 <div>
                                   <span className="text-muted-foreground block text-xs">Roommates</span>
                                   <span className="font-medium">
-                                    {criteria.roommatePreference === '0' ? 'None' :
-                                     criteria.roommatePreference === '1' ? '1' :
-                                     criteria.roommatePreference === '2' ? '2' :
-                                     criteria.roommatePreference === '3+' ? '3+' : 'Flexible'}
+                                    {criteria.roommatePreference === 'No' ? 'No' : criteria.roommatePreference || 'Flexible'}
                                   </span>
                                 </div>
                               </div>
