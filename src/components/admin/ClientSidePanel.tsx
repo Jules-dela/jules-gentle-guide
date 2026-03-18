@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, Phone, MapPin, CreditCard, Calendar, Home, FileText, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { X, Mail, Phone, MapPin, CreditCard, Calendar, Home, FileText, ChevronDown, ChevronUp, Loader2, GraduationCap, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -47,14 +47,21 @@ const stageLabels: Record<string, string> = {
 };
 
 const neighbourhoodLabels: Record<string, string> = {
-  'cite-flon': 'Cité / Flon',
-  'sous-gare': 'Sous-Gare',
-  'ouchy': 'Ouchy',
+  'no-preference': 'No preference',
+  'belmont-sur-lausanne': 'Belmont-Sur-Lausanne',
   'chailly': 'Chailly',
+  'cite-flon': 'Cité / Flon',
+  'epalinges': 'Épalinges',
+  'lutry': 'Lutry',
+  'mont-sur-lausanne': 'Mont-Sur-Lausanne',
+  'morges': 'Morges',
+  'ouchy': 'Ouchy',
+  'prilly': 'Prilly',
   'pully': 'Pully',
   'renens': 'Renens',
-  'prilly': 'Prilly',
-  'morges': 'Morges',
+  'savigny': 'Savigny',
+  'sous-gare': 'Sous-Gare',
+  'vers-chez-les-blancs': 'Vers Chez les Blancs',
 };
 
 const budgetLabels: Record<string, string> = {
@@ -84,6 +91,8 @@ interface FullCriteria {
   propertyType?: string;
   roommatePreference?: string;
   notes?: string;
+  movingDate?: string;
+  university?: string;
 }
 
 export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSidePanelProps) {
@@ -323,6 +332,26 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
                             <span className="font-medium">{criteria?.duration ? `${criteria.duration} months` : client.duration || 'Flexible'}</span>
                           </div>
                         </div>
+                        <div className="flex items-start gap-2 text-sm">
+                          <Calendar className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                          <div>
+                            <span className="text-muted-foreground block text-xs">Moving Date</span>
+                            <span className="font-medium">
+                              {criteria?.movingDate 
+                                ? new Date(criteria.movingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                                : 'Not set'}
+                            </span>
+                          </div>
+                        </div>
+                        {(criteria?.university || client.company_school) && (
+                          <div className="flex items-start gap-2 text-sm">
+                            <GraduationCap className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                            <div>
+                              <span className="text-muted-foreground block text-xs">University / School</span>
+                              <span className="font-medium">{criteria?.university || client.company_school}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Extended criteria */}
@@ -344,14 +373,11 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
                                 </div>
                               </div>
                               <div className="flex items-start gap-2 text-sm">
-                                <Home className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                                <Users className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                                 <div>
                                   <span className="text-muted-foreground block text-xs">Roommates</span>
                                   <span className="font-medium">
-                                    {criteria.roommatePreference === '0' ? 'None' :
-                                     criteria.roommatePreference === '1' ? '1' :
-                                     criteria.roommatePreference === '2' ? '2' :
-                                     criteria.roommatePreference === '3+' ? '3+' : 'Flexible'}
+                                    {criteria.roommatePreference === 'No' ? 'No' : criteria.roommatePreference || 'Flexible'}
                                   </span>
                                 </div>
                               </div>
