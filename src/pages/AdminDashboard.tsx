@@ -69,6 +69,8 @@ export default function AdminDashboard() {
           inProgress={stats.inProgress}
           issues={stats.issues}
           dossiersReady={stats.dossiersReady}
+          activeFilter={statFilter}
+          onFilterChange={setStatFilter}
         />
 
         {/* Main Content - Stack on mobile, grid on desktop */}
