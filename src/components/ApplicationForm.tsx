@@ -237,7 +237,7 @@ export const ApplicationForm = () => {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone (optional)</FormLabel>
+                        <FormLabel>Phone</FormLabel>
                         <FormControl>
                           <Input type="tel" placeholder="+41 79 123 45 67" {...field} />
                         </FormControl>
