@@ -10,6 +10,7 @@ interface NotificationFeedProps {
   interactions: ClientInteraction[];
   isLoading?: boolean;
   className?: string;
+  onDismiss?: () => void;
 }
 
 const interactionConfig: Record<string, { icon: React.ElementType; color: string; bgColor: string; priority?: boolean }> = {
@@ -21,7 +22,7 @@ const interactionConfig: Record<string, { icon: React.ElementType; color: string
   visit_instructions: { icon: MessageSquare, color: 'text-amber-600', bgColor: 'bg-amber-100', priority: true },
 };
 
-export function NotificationFeed({ interactions, isLoading, className }: NotificationFeedProps) {
+export function NotificationFeed({ interactions, isLoading, className, onDismiss }: NotificationFeedProps) {
   const getInteractionInfo = (type: string) => {
     return interactionConfig[type] || { icon: Bell, color: 'text-gray-600', bgColor: 'bg-gray-100' };
   };
@@ -54,7 +55,7 @@ export function NotificationFeed({ interactions, isLoading, className }: Notific
       transition={{ delay: 0.2 }}
       className={cn("bg-background rounded-xl border flex flex-col", className)}
     >
-      <div className="p-3 sm:p-4 border-b shrink-0">
+      <div className="p-3 sm:p-4 border-b shrink-0 flex items-center justify-between">
         <h3 className="font-semibold text-foreground flex items-center gap-2 text-sm sm:text-base">
           <Bell className="h-4 w-4" />
           Recent Interactions
@@ -64,6 +65,15 @@ export function NotificationFeed({ interactions, isLoading, className }: Notific
             </Badge>
           )}
         </h3>
+        {onDismiss && (
+          <button
+            onClick={onDismiss}
+            className="p-1 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+            aria-label="Dismiss notifications"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
       
       <ScrollArea className="flex-1">
