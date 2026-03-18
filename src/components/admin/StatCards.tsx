@@ -13,17 +13,19 @@ interface StatCardProps {
   onClick?: () => void;
 }
 
-function StatCard({ title, count, icon: Icon, colorClass, bgColorClass, highlight }: StatCardProps) {
+function StatCard({ title, count, icon: Icon, colorClass, bgColorClass, highlight, active, onClick }: StatCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      onClick={onClick}
       className={cn(
-        'bg-background rounded-xl border p-4 sm:p-6 flex items-center gap-3 sm:gap-4 relative overflow-hidden',
-        highlight && 'ring-2 ring-primary/50'
+        'bg-background rounded-xl border p-4 sm:p-6 flex items-center gap-3 sm:gap-4 relative overflow-hidden cursor-pointer hover:bg-muted/50 transition-colors active:scale-[0.98]',
+        highlight && 'ring-2 ring-primary/50',
+        active && 'ring-2 ring-foreground/30 bg-muted/50'
       )}
     >
-      {highlight && (
+      {highlight && !active && (
         <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] px-2 py-0.5 rounded-bl-lg font-medium">
           NEW
         </span>
