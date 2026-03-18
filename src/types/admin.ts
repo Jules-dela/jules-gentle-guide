@@ -25,6 +25,7 @@ export interface ClientWithCase {
   neighbourhood: string | null;
   rooms: string | null;
   duration: string | null;
+  property_type: string | null;
   last_activity: string | null;
   last_activity_at: string | null;
   needs_attention: boolean;
