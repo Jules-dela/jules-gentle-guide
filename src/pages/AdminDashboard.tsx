@@ -100,6 +100,7 @@ export default function AdminDashboard() {
               clients={clients}
               onClientClick={setSelectedClient}
               isLoading={loading}
+              statFilter={statFilter}
             />
           </div>
 
