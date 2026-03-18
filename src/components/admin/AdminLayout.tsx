@@ -20,9 +20,6 @@ interface AdminLayoutProps {
 
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
-  { to: '/admin/clients', icon: Users, label: 'Clients' },
-  { to: '/admin/applications', icon: FileText, label: 'Applications' },
-  { to: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 
 function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
