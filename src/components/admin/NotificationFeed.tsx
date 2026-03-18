@@ -11,6 +11,7 @@ interface NotificationFeedProps {
   isLoading?: boolean;
   className?: string;
   onDismiss?: () => void;
+  onMarkAllRead?: () => void;
 }
 
 const interactionConfig: Record<string, { icon: React.ElementType; color: string; bgColor: string; priority?: boolean }> = {
@@ -22,7 +23,7 @@ const interactionConfig: Record<string, { icon: React.ElementType; color: string
   visit_instructions: { icon: MessageSquare, color: 'text-amber-600', bgColor: 'bg-amber-100', priority: true },
 };
 
-export function NotificationFeed({ interactions, isLoading, className, onDismiss }: NotificationFeedProps) {
+export function NotificationFeed({ interactions, isLoading, className, onDismiss, onMarkAllRead }: NotificationFeedProps) {
   const getInteractionInfo = (type: string) => {
     return interactionConfig[type] || { icon: Bell, color: 'text-gray-600', bgColor: 'bg-gray-100' };
   };
@@ -65,15 +66,25 @@ export function NotificationFeed({ interactions, isLoading, className, onDismiss
             </Badge>
           )}
         </h3>
-        {onDismiss && (
-          <button
-            onClick={onDismiss}
-            className="p-1 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-            aria-label="Dismiss notifications"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {interactions.length > 0 && onMarkAllRead && (
+            <button
+              onClick={onMarkAllRead}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Mark all read
+            </button>
+          )}
+          {onDismiss && (
+            <button
+              onClick={onDismiss}
+              className="p-1 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              aria-label="Dismiss notifications"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
       
       <ScrollArea className="flex-1">

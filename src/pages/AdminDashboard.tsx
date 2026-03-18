@@ -15,7 +15,7 @@ import type { ClientWithCase } from '@/types/admin';
 
 export default function AdminDashboard() {
   const { user, isAdmin, loading: authLoading } = useAuth();
-  const { clients, interactions, stats, loading, error, refetch } = useAdminDashboard();
+  const { clients, interactions, stats, loading, error, refetch, clearInteractions } = useAdminDashboard();
   const [selectedClient, setSelectedClient] = useState<ClientWithCase | null>(null);
   const [showNotifications, setShowNotifications] = useState(true);
   const [statFilter, setStatFilter] = useState<StatFilter>(null);
@@ -49,7 +49,7 @@ export default function AdminDashboard() {
             <p className="text-sm text-muted-foreground hidden sm:block">Track all student housing searches</p>
           </div>
           <div className="flex items-center gap-2">
-            <NotificationBell interactions={interactions} />
+            <NotificationBell interactions={interactions} onMarkAllRead={clearInteractions} />
             <Button
               variant="outline"
               size="sm"
@@ -112,6 +112,7 @@ export default function AdminDashboard() {
                 isLoading={loading}
                 className="h-64 sm:h-80 lg:h-[500px]"
                 onDismiss={() => setShowNotifications(false)}
+                onMarkAllRead={clearInteractions}
               />
             </div>
           )}

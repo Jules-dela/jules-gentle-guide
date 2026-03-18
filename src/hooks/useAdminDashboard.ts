@@ -2,6 +2,21 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { ClientWithCase, ClientInteraction, AdminStats } from '@/types/admin';
 
+const DISMISSED_KEY = 'unikey_admin_dismissed_notifications';
+
+function getDismissedIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DISMISSED_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveDismissedIds(ids: Set<string>) {
+  localStorage.setItem(DISMISSED_KEY, JSON.stringify([...ids]));
+}
+
 export function useAdminDashboard() {
   const [clients, setClients] = useState<ClientWithCase[]>([]);
   const [interactions, setInteractions] = useState<ClientInteraction[]>([]);
@@ -219,7 +234,11 @@ export function useAdminDashboard() {
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
 
-      setInteractions(recentInteractions.slice(0, 20));
+      const dismissed = getDismissedIds();
+      const filtered = recentInteractions
+        .filter(i => !dismissed.has(i.id))
+        .slice(0, 20);
+      setInteractions(filtered);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
@@ -264,6 +283,13 @@ export function useAdminDashboard() {
     };
   }, [fetchClients]);
 
+  const clearInteractions = useCallback(() => {
+    const dismissed = getDismissedIds();
+    interactions.forEach(i => dismissed.add(i.id));
+    saveDismissedIds(dismissed);
+    setInteractions([]);
+  }, [interactions]);
+
   return {
     clients,
     interactions,
@@ -271,5 +297,6 @@ export function useAdminDashboard() {
     loading,
     error,
     refetch: fetchClients,
+    clearInteractions,
   };
 }
