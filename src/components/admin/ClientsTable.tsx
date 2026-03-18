@@ -154,6 +154,7 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
   const [budgetFilter, setBudgetFilter] = useState<string>('all');
   const [areaFilter, setAreaFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [sharingFilter, setSharingFilter] = useState<string>('all');
 
   // Extract unique values for filter dropdowns
   const filterOptions = useMemo(() => {
@@ -163,12 +164,13 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
     return { budgets: budgets.sort(), areas: areas.sort(), types: types.sort() };
   }, [clients]);
 
-  const hasActiveFilters = budgetFilter !== 'all' || areaFilter !== 'all' || typeFilter !== 'all';
+  const hasActiveFilters = budgetFilter !== 'all' || areaFilter !== 'all' || typeFilter !== 'all' || sharingFilter !== 'all';
 
   const clearFilters = () => {
     setBudgetFilter('all');
     setAreaFilter('all');
     setTypeFilter('all');
+    setSharingFilter('all');
   };
 
   const getInitials = (name: string) => {
@@ -217,9 +219,14 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
       if (budgetFilter !== 'all' && c.budget !== budgetFilter) return false;
       if (areaFilter !== 'all' && c.neighbourhood !== areaFilter) return false;
       if (typeFilter !== 'all' && c.property_type !== typeFilter) return false;
+      if (sharingFilter !== 'all') {
+        const isSharing = c.roommate_preference ? c.roommate_preference.toLowerCase().startsWith('yes') : false;
+        if (sharingFilter === 'sharing' && !isSharing) return false;
+        if (sharingFilter === 'not_sharing' && isSharing) return false;
+      }
       return true;
     });
-  }, [baseClients, budgetFilter, areaFilter, typeFilter, statFilter]);
+  }, [baseClients, budgetFilter, areaFilter, typeFilter, sharingFilter, statFilter]);
 
   if (isLoading) {
     return (
@@ -287,6 +294,16 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
             {filterOptions.types.map(t => (
               <SelectItem key={t} value={t}>{t}</SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+        <Select value={sharingFilter} onValueChange={setSharingFilter}>
+          <SelectTrigger className="w-[140px] h-8 text-xs">
+            <SelectValue placeholder="Sharing" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="sharing">Sharing flat</SelectItem>
+            <SelectItem value="not_sharing">Not sharing</SelectItem>
           </SelectContent>
         </Select>
         {hasActiveFilters && (
