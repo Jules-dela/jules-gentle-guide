@@ -47,14 +47,21 @@ const stageLabels: Record<string, string> = {
 };
 
 const neighbourhoodLabels: Record<string, string> = {
-  'cite-flon': 'Cité / Flon',
-  'sous-gare': 'Sous-Gare',
-  'ouchy': 'Ouchy',
+  'no-preference': 'No preference',
+  'belmont-sur-lausanne': 'Belmont-Sur-Lausanne',
   'chailly': 'Chailly',
+  'cite-flon': 'Cité / Flon',
+  'epalinges': 'Épalinges',
+  'lutry': 'Lutry',
+  'mont-sur-lausanne': 'Mont-Sur-Lausanne',
+  'morges': 'Morges',
+  'ouchy': 'Ouchy',
+  'prilly': 'Prilly',
   'pully': 'Pully',
   'renens': 'Renens',
-  'prilly': 'Prilly',
-  'morges': 'Morges',
+  'savigny': 'Savigny',
+  'sous-gare': 'Sous-Gare',
+  'vers-chez-les-blancs': 'Vers Chez les Blancs',
 };
 
 const budgetLabels: Record<string, string> = {
