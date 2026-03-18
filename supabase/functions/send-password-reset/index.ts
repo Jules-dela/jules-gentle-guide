@@ -14,6 +14,15 @@ const ALLOWED_ORIGINS = [
   'http://localhost:8080',
 ];
 
+const ALLOWED_REDIRECT_ORIGINS = [
+  'https://uni-key.ch',
+  'https://www.uni-key.ch',
+  'https://unikey.lovable.app',
+  'https://id-preview--8630e333-bd64-418b-b58e-5a1f7997dc70.lovable.app',
+  'http://localhost:5173',
+  'http://localhost:8080',
+];
+
 function getCorsHeaders(origin: string | null) {
   const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin)
     ? origin
