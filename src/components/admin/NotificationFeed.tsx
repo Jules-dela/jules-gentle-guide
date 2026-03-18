@@ -11,6 +11,7 @@ interface NotificationFeedProps {
   isLoading?: boolean;
   className?: string;
   onDismiss?: () => void;
+  onMarkAllRead?: () => void;
 }
 
 const interactionConfig: Record<string, { icon: React.ElementType; color: string; bgColor: string; priority?: boolean }> = {
