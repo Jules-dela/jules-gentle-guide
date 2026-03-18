@@ -66,15 +66,25 @@ export function NotificationFeed({ interactions, isLoading, className, onDismiss
             </Badge>
           )}
         </h3>
-        {onDismiss && (
-          <button
-            onClick={onDismiss}
-            className="p-1 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-            aria-label="Dismiss notifications"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {interactions.length > 0 && onMarkAllRead && (
+            <button
+              onClick={onMarkAllRead}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Mark all read
+            </button>
+          )}
+          {onDismiss && (
+            <button
+              onClick={onDismiss}
+              className="p-1 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              aria-label="Dismiss notifications"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
       
       <ScrollArea className="flex-1">
