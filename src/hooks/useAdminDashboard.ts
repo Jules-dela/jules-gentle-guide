@@ -2,6 +2,21 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { ClientWithCase, ClientInteraction, AdminStats } from '@/types/admin';
 
+const DISMISSED_KEY = 'unikey_admin_dismissed_notifications';
+
+function getDismissedIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DISMISSED_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveDismissedIds(ids: Set<string>) {
+  localStorage.setItem(DISMISSED_KEY, JSON.stringify([...ids]));
+}
+
 export function useAdminDashboard() {
   const [clients, setClients] = useState<ClientWithCase[]>([]);
   const [interactions, setInteractions] = useState<ClientInteraction[]>([]);
