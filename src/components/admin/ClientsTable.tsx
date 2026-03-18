@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { 
@@ -13,8 +13,10 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { ChevronRight, FileText, Archive, Award } from 'lucide-react';
+import { ChevronRight, FileText, Archive, Filter, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { SignedBadge } from './SignatureViewer';
 import type { ClientWithCase } from '@/types/admin';
 
