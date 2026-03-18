@@ -112,7 +112,7 @@ export const WaitlistSection = () => {
           {/* Instagram CTA */}
           <div className="mt-14 pt-8 border-t border-border/30">
             <a
-              href="https://instagram.com/unikey.ch"
+              href="https://www.instagram.com/unikey.ch"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2.5 text-muted-foreground hover:text-foreground transition-colors duration-300 group"
