@@ -325,6 +325,26 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
                             <span className="font-medium">{criteria?.duration ? `${criteria.duration} months` : client.duration || 'Flexible'}</span>
                           </div>
                         </div>
+                        <div className="flex items-start gap-2 text-sm">
+                          <Calendar className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                          <div>
+                            <span className="text-muted-foreground block text-xs">Moving Date</span>
+                            <span className="font-medium">
+                              {criteria?.movingDate 
+                                ? new Date(criteria.movingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                                : 'Not set'}
+                            </span>
+                          </div>
+                        </div>
+                        {(criteria?.university || client.company_school) && (
+                          <div className="flex items-start gap-2 text-sm">
+                            <GraduationCap className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                            <div>
+                              <span className="text-muted-foreground block text-xs">University / School</span>
+                              <span className="font-medium">{criteria?.university || client.company_school}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Extended criteria */}
