@@ -55,7 +55,7 @@ export function NotificationFeed({ interactions, isLoading, className, onDismiss
       transition={{ delay: 0.2 }}
       className={cn("bg-background rounded-xl border flex flex-col", className)}
     >
-      <div className="p-3 sm:p-4 border-b shrink-0">
+      <div className="p-3 sm:p-4 border-b shrink-0 flex items-center justify-between">
         <h3 className="font-semibold text-foreground flex items-center gap-2 text-sm sm:text-base">
           <Bell className="h-4 w-4" />
           Recent Interactions
@@ -65,6 +65,15 @@ export function NotificationFeed({ interactions, isLoading, className, onDismiss
             </Badge>
           )}
         </h3>
+        {onDismiss && (
+          <button
+            onClick={onDismiss}
+            className="p-1 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+            aria-label="Dismiss notifications"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
       
       <ScrollArea className="flex-1">
