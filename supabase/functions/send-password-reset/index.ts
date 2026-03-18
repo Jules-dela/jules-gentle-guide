@@ -14,6 +14,15 @@ const ALLOWED_ORIGINS = [
   'http://localhost:8080',
 ];
 
+const ALLOWED_REDIRECT_ORIGINS = [
+  'https://uni-key.ch',
+  'https://www.uni-key.ch',
+  'https://unikey.lovable.app',
+  'https://id-preview--8630e333-bd64-418b-b58e-5a1f7997dc70.lovable.app',
+  'http://localhost:5173',
+  'http://localhost:8080',
+];
+
 function getCorsHeaders(origin: string | null) {
   const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin)
     ? origin
@@ -145,6 +154,25 @@ serve(async (req: Request): Promise<Response> => {
     if (!email || !redirectTo) {
       return new Response(
         JSON.stringify({ error: "Email and redirectTo are required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate redirectTo against allowlist to prevent open redirect / account takeover
+    let redirectOrigin: string;
+    try {
+      redirectOrigin = new URL(redirectTo).origin;
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid redirectTo URL" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!ALLOWED_REDIRECT_ORIGINS.includes(redirectOrigin)) {
+      console.error("Blocked disallowed redirectTo origin:", redirectOrigin);
+      return new Response(
+        JSON.stringify({ error: "Invalid redirect URL" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
