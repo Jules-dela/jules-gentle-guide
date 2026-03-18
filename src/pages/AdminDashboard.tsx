@@ -9,7 +9,8 @@ import { NotificationFeed } from '@/components/admin/NotificationFeed';
 import { ClientSidePanel } from '@/components/admin/ClientSidePanel';
 import { NotificationBell } from '@/components/admin/NotificationBell';
 import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Bell } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { ClientWithCase } from '@/types/admin';
 
 export default function AdminDashboard() {
