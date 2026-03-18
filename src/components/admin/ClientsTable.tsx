@@ -296,6 +296,16 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
             ))}
           </SelectContent>
         </Select>
+        <Select value={sharingFilter} onValueChange={setSharingFilter}>
+          <SelectTrigger className="w-[140px] h-8 text-xs">
+            <SelectValue placeholder="Sharing" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="sharing">Sharing flat</SelectItem>
+            <SelectItem value="not_sharing">Not sharing</SelectItem>
+          </SelectContent>
+        </Select>
         {hasActiveFilters && (
           <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 px-2 text-xs gap-1">
             <X className="h-3 w-3" />
