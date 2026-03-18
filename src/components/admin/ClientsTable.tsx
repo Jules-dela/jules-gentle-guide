@@ -69,6 +69,7 @@ interface ClientsTableProps {
   clients: ClientWithCase[];
   onClientClick: (client: ClientWithCase) => void;
   isLoading?: boolean;
+  statFilter?: StatFilter;
 }
 
 // Mobile Card View
