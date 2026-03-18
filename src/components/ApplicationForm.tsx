@@ -27,9 +27,9 @@ const applicationSchema = z.object({
     .max(255, { message: "Email must be less than 255 characters" }),
   phone: z.string()
     .trim()
+    .min(1, { message: "Phone number is required" })
     .max(20, { message: "Phone number must be less than 20 characters" })
-    .optional()
-    .or(z.literal("")),
+    .regex(/^\+\d/, { message: "Phone must start with international prefix (e.g. +41)" }),
   university: z.string()
     .trim()
     .max(100, { message: "University name must be less than 100 characters" })
@@ -237,7 +237,7 @@ export const ApplicationForm = () => {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone (optional)</FormLabel>
+                        <FormLabel>Phone</FormLabel>
                         <FormControl>
                           <Input type="tel" placeholder="+41 79 123 45 67" {...field} />
                         </FormControl>
