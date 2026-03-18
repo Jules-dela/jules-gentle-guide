@@ -68,6 +68,7 @@ type ApplicationFormData = z.infer<typeof applicationSchema>;
 
 export const ApplicationForm = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { ref, isVisible } = useScrollAnimation();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
