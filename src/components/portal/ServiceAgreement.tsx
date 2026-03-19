@@ -317,7 +317,7 @@ export function ServiceAgreement({
       {/* Contract Document */}
       <div className="relative" ref={scrollContainerRef}>
         <ScrollArea className="h-[28rem] md:h-[32rem] bg-muted/10">
-          <div className="px-6 md:px-10 py-6">
+          <div className="px-6 md:px-10 py-6" style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}>
             {/* ══════════ PAGE 1: Title & Parties ══════════ */}
             <ContractSection>
               <h2 className="text-base font-bold text-foreground text-center mb-1" style={{ fontFamily: "'Inter', sans-serif", fontSize: '15px' }}>
