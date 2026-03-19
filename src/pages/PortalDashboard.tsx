@@ -257,7 +257,7 @@ export default function PortalDashboard() {
 
   // ─── Showcase handlers ──────────────────────────────────────────────────
 
-  const handleShowcaseSign = useCallback(async () => {
+  const handleShowcaseSign = useCallback(async (_contractData: any) => {
     const now = new Date().toISOString();
     setShowcaseContractData({ signed: true, timestamp: now });
     setShowcaseStatus('proposals_available');
