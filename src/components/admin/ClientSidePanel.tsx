@@ -14,6 +14,7 @@ import { DocumentManager } from './DocumentManager';
 import { HandoverManager } from './HandoverManager';
 import { ContractClosurePanel } from './ContractClosurePanel';
 import { SignatureViewer, SignedBadge } from './SignatureViewer';
+import { SignedContractViewer } from './SignedContractViewer';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { ClientWithCase } from '@/types/admin';
@@ -273,10 +274,18 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
                         : 'Not yet signed'}
                     </p>
                   </div>
-                  <SignatureViewer 
-                    contractData={client.contract_data} 
-                    clientName={client.name} 
-                  />
+                  <div className="flex items-center gap-2">
+                    {client.contract_data && (
+                      <SignedContractViewer
+                        contractData={client.contract_data}
+                        clientName={client.name}
+                      />
+                    )}
+                    <SignatureViewer 
+                      contractData={client.contract_data} 
+                      clientName={client.name} 
+                    />
+                  </div>
                 </div>
 
                 <Separator />

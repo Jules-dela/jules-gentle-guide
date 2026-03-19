@@ -175,6 +175,10 @@ export type Database = {
       contract_signatures: {
         Row: {
           case_id: string
+          client_date_of_birth: string | null
+          client_full_name: string | null
+          client_initials: string | null
+          client_nationality: string | null
           device_info: Json | null
           id: string
           ip_address: string | null
@@ -184,6 +188,10 @@ export type Database = {
         }
         Insert: {
           case_id: string
+          client_date_of_birth?: string | null
+          client_full_name?: string | null
+          client_initials?: string | null
+          client_nationality?: string | null
           device_info?: Json | null
           id?: string
           ip_address?: string | null
@@ -193,6 +201,10 @@ export type Database = {
         }
         Update: {
           case_id?: string
+          client_date_of_birth?: string | null
+          client_full_name?: string | null
+          client_initials?: string | null
+          client_nationality?: string | null
           device_info?: Json | null
           id?: string
           ip_address?: string | null

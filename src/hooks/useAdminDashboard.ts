@@ -138,6 +138,10 @@ export function useAdminDashboard() {
             user_agent: signature.user_agent,
             signed_at: signature.signed_at,
             device_info: signature.device_info as any,
+            client_full_name: (signature as any).client_full_name || null,
+            client_date_of_birth: (signature as any).client_date_of_birth || null,
+            client_nationality: (signature as any).client_nationality || null,
+            client_initials: (signature as any).client_initials || null,
           } : null,
           is_contract_signed: !!contractData?.signed,
         };

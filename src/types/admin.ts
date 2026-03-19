@@ -9,6 +9,10 @@ export interface ContractSignatureData {
     screen_width: number;
     screen_height: number;
   } | null;
+  client_full_name: string | null;
+  client_date_of_birth: string | null;
+  client_nationality: string | null;
+  client_initials: string | null;
 }
 
 export interface ClientWithCase {
