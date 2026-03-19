@@ -36,7 +36,6 @@ serve(async (req) => {
         .single();
 
       if (oldProfile) {
-        // Delete old cases and related data
         const { data: oldCases } = await supabase
           .from("cases")
           .select("id")
@@ -50,6 +49,7 @@ serve(async (req) => {
             await supabase.from("key_handover").delete().eq("case_id", c.id);
             await supabase.from("stage_notifications").delete().eq("case_id", c.id);
             await supabase.from("case_status_history").delete().eq("case_id", c.id);
+            await supabase.from("client_stage_views").delete().eq("case_id", c.id);
           }
           await supabase.from("cases").delete().eq("client_id", oldProfile.id);
         }
@@ -86,48 +86,58 @@ serve(async (req) => {
 
     if (profileErr) throw profileErr;
 
-    // 3. Create case with signed contract (so they can proceed)
+    // 3. Create case — UNSIGNED contract (Stage 1) so investor sees the full journey
     const { data: demoCase, error: caseErr } = await supabase
       .from("cases")
       .insert({
         client_id: profile.id,
-        status: "proposals_available",
+        status: "request_received",
         initial_criteria: {
           neighbourhood: "renens",
           budget: "1100-1300",
           rooms: "2",
           duration: "12",
-          propertyType: "apartment",
-          roommatePreference: "0",
+          property_type: "apartment",
+          roommate_preference: "0",
           furnished: true,
-          nearTransport: true,
-          petsAllowed: false,
-          smokingAllowed: false,
-          movingDate: "2026-06-01",
+          near_transport: true,
+          pets_allowed: false,
+          smoking_allowed: false,
+          moving_date: "2026-06-01",
           university: "EPFL",
           notes: "Close to EPFL campus preferred. Ground floor or with elevator.",
         },
-        contract_data: {
-          signed: true,
-          timestamp: new Date().toISOString(),
-        },
+        contract_data: null, // Not signed yet — investor will see the signing flow
       })
       .select("id")
       .single();
 
     if (caseErr) throw caseErr;
 
-    // 4. Add contract signature record
-    await supabase.from("contract_signatures").insert({
-      case_id: demoCase.id,
-      signature_image: "data:image/png;base64,demo",
-      ip_address: "demo",
-      user_agent: "demo-seed",
-      signed_at: new Date().toISOString(),
-    });
-
-    // 5. Add property proposals (mix of statuses)
+    // 4. Add property proposals with Unsplash photos (will appear after contract signing)
     const proposals = [
+      {
+        case_id: demoCase.id,
+        address: "Rue de la Barre 10, 1005 Lausanne",
+        neighbourhood: "Lausanne Centre",
+        property_type: "studio",
+        rent: 1050,
+        charges: 90,
+        rooms: 1,
+        size_sqm: 30,
+        client_status: "pending",
+        tags: ["City Center", "Metro Nearby", "Compact"],
+        description: "Small studio near the city center. Limited natural light, no balcony. Shared laundry in basement. Suitable for a single student on a tight budget.",
+        agency_info: "ImmoVaud SA – Contact: Julie Martin, +41 21 678 90 12",
+        visit_published: false,
+        visit_pros: [],
+        visit_cons: [],
+        photos: [
+          "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80",
+        ],
+      },
       {
         case_id: demoCase.id,
         address: "Chemin des Triaudes 4, 1024 Ecublens",
@@ -137,74 +147,53 @@ serve(async (req) => {
         charges: 120,
         rooms: 2,
         size_sqm: 48,
-        client_status: "liked",
-        tags: ["Near EPFL", "Renovated", "Balcony"],
+        client_status: "pending",
+        tags: ["Near EPFL", "Renovated", "Balcony", "Dishwasher", "Elevator"],
         description: "Bright 2-room apartment just 8 minutes walk from the EPFL campus. Recently renovated kitchen and bathroom. South-facing balcony with views of the lake. Shared laundry in basement. Available from June 1st.",
         agency_info: "Régie du Rhône – Contact: Marc Dupont, +41 21 345 67 89",
         visit_published: true,
         visit_pros: ["Natural light throughout the day", "Modern kitchen appliances", "Quiet residential street", "5 min to metro M1"],
         visit_cons: ["No dishwasher", "Street parking only"],
-        visit_photos: [],
-      },
-      {
-        case_id: demoCase.id,
-        address: "Avenue du Tir-Fédéral 28, 1024 Ecublens",
-        neighbourhood: "Ecublens",
-        property_type: "studio",
-        rent: 980,
-        charges: 80,
-        rooms: 1,
-        size_sqm: 32,
-        client_status: "pending",
-        tags: ["Furnished", "Close to metro", "Compact"],
-        description: "Cozy furnished studio ideal for a student. All-inclusive charges. Walking distance to Ecublens metro station (M1). Laundry room and bike storage available.",
-        agency_info: "ImmoVaud SA – Contact: Julie Martin, +41 21 678 90 12",
-        visit_published: false,
-        visit_pros: [],
-        visit_cons: [],
-        visit_photos: [],
-      },
-      {
-        case_id: demoCase.id,
-        address: "Rue de Genève 85, 1004 Lausanne",
-        neighbourhood: "Sévelin",
-        property_type: "apartment",
-        rent: 1380,
-        charges: 150,
-        rooms: 3,
-        size_sqm: 62,
-        client_status: "rejected",
-        rejection_reasons: ["Too far from campus", "Above budget"],
-        rejection_notes: "Nice apartment but commute would be 35+ minutes and total cost exceeds my budget.",
-        tags: ["Spacious", "City center", "Terrace"],
-        description: "Spacious 3-room apartment in the heart of Lausanne with a private terrace. Open-plan living area. Close to Flon district and all amenities.",
-        agency_info: "Bentley Properties – Contact: Sarah Weber, +41 21 234 56 78",
-        visit_published: false,
-        visit_pros: [],
-        visit_cons: [],
-        visit_photos: [],
+        visit_photos: [
+          "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80",
+        ],
+        photos: [
+          "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&auto=format&fit=crop&q=80",
+        ],
       },
     ];
 
     await supabase.from("property_proposals").insert(proposals);
 
-    // 6. Add case documents (mix of statuses)
+    // 5. Add case documents — all validated for smooth demo
     const documents = [
       { case_id: demoCase.id, document_type: "id", label: "Passport / ID Card", status: "validated", validated_at: new Date().toISOString() },
-      { case_id: demoCase.id, document_type: "salary", label: "Proof of Income / Scholarship", status: "uploaded" },
-      { case_id: demoCase.id, document_type: "insurance", label: "Liability Insurance (RC)", status: "missing" },
-      { case_id: demoCase.id, document_type: "debt_certificate", label: "Debt Collection Certificate", status: "missing" },
+      { case_id: demoCase.id, document_type: "salary", label: "Proof of Income / Scholarship", status: "validated", validated_at: new Date().toISOString() },
+      { case_id: demoCase.id, document_type: "insurance", label: "Liability Insurance (RC)", status: "validated", validated_at: new Date().toISOString() },
+      { case_id: demoCase.id, document_type: "debt_certificate", label: "Debt Collection Certificate", status: "validated", validated_at: new Date().toISOString() },
       { case_id: demoCase.id, document_type: "enrollment", label: "EPFL Enrollment Certificate", status: "validated", validated_at: new Date().toISOString() },
     ];
 
     await supabase.from("case_documents").insert(documents);
 
-    // 7. Add stage notifications
-    await supabase.from("stage_notifications").insert([
-      { case_id: demoCase.id, stage: 1, notification_type: "update", metadata: { message: "Welcome! Please sign your service agreement." } },
-      { case_id: demoCase.id, stage: 2, notification_type: "update", metadata: { message: "Your search is underway. We're scanning listings in Ecublens & Renens." } },
-      { case_id: demoCase.id, stage: 3, notification_type: "update", metadata: { message: "3 new property proposals are ready for your review!" } },
-    ]);
+    // 6. Add key handover entry
+    const handoverDate = new Date();
+    handoverDate.setDate(handoverDate.getDate() + 14); // 2 weeks from now
+    
+    await supabase.from("key_handover").insert({
+      case_id: demoCase.id,
+      scheduled_date: handoverDate.toISOString().split("T")[0],
+      scheduled_time: "10:00",
+      location: "Chemin des Triaudes 4, 1024 Ecublens",
+      contact_person: "Marc Dupont",
+      contact_phone: "+41 21 345 67 89",
+      confirmed_by_client: false,
+      notes: "Please bring your ID and a copy of the signed lease. Meet at the building entrance.",
+    });
 
     return new Response(
       JSON.stringify({
@@ -213,7 +202,7 @@ serve(async (req) => {
           email: DEMO_EMAIL,
           password: DEMO_PASSWORD,
         },
-        message: `Demo client "${DEMO_NAME}" created with 3 proposals, 5 documents, and a signed contract. Case is at "proposals_available" stage.`,
+        message: `Demo client "${DEMO_NAME}" seeded at Stage 1 (unsigned contract). 2 proposals with photos, 5 validated documents, and key handover ready. Log in and walk through the full journey!`,
       }),
       { headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
