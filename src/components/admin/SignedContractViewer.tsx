@@ -97,9 +97,9 @@ export function SignedContractViewer({ contractData, clientName }: SignedContrac
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] p-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-5 pb-3 border-b bg-emerald-50/50 dark:bg-emerald-950/20">
+        <DialogHeader className="px-6 pt-5 pb-3 border-b bg-primary/5">
           <DialogTitle className="flex items-center gap-2 text-base">
-            <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+            <CheckCircle2 className="w-5 h-5 text-primary" />
             Signed Service Agreement — {clientName}
           </DialogTitle>
           <p className="text-xs text-muted-foreground">
