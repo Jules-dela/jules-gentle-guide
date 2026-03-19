@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useClientPortal } from '@/hooks/useClientPortal';
@@ -14,9 +14,42 @@ import { KeyHandoverStage } from '@/components/portal/KeyHandoverStage';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import type { CaseStatus, PropertyProposal, KeyHandover, Profile, Case } from '@/types/portal';
+import type { CaseStatus, PropertyProposal, KeyHandover, Profile, Case, CaseDocument, ContractData } from '@/types/portal';
 
-// Demo data for preview mode
+// ─── Showcase / Demo data ────────────────────────────────────────────────────
+
+const SHOWCASE_PROPOSALS: SelectedApartment[] = [
+  {
+    id: 'showcase-1',
+    images: [
+      'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80',
+    ],
+    rent: 1450,
+    rooms: 1.5,
+    location: 'Rue de Bourg 15, 1003 Lausanne',
+    neighborhood: 'Bourg',
+    description: 'Small studio near city center. Limited natural light, no balcony. Shared laundry in basement.',
+    amenities: ['City Center', 'Metro Nearby', 'Compact'],
+  },
+  {
+    id: 'showcase-2',
+    images: [
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&auto=format&fit=crop&q=80',
+    ],
+    rent: 1850,
+    rooms: 2.5,
+    location: 'Rue de la Louve 12, 1003 Lausanne',
+    neighborhood: 'Lausanne Centre',
+    description: 'Beautiful 2.5 room apartment in the heart of Lausanne with stunning lake views. Renovated kitchen, hardwood floors, and a south-facing balcony.',
+    amenities: ['Lake View', 'Balcony', 'Renovated', 'Dishwasher', 'Elevator'],
+  },
+];
+
 const DEMO_APARTMENT: SelectedApartment = {
   id: 'demo-apt',
   images: [
@@ -56,30 +89,53 @@ const DEMO_PROFILE: Profile = {
   created_at: new Date().toISOString(),
 };
 
-const DEMO_CASE: Case = {
-  id: 'demo-case',
-  client_id: 'demo-profile',
-  status: 'request_received',
-  initial_criteria: {
-    neighbourhood: 'lausanne-centre',
-    budget: '1500-2000',
-    rooms: '2.5',
-    duration: '12',
-    property_type: 'apartment',
-    roommate_preference: '0',
-    furnished: true,
-    near_transport: true,
-    pets_allowed: false,
-    smoking_allowed: false,
-    notes: 'Looking for a quiet apartment near public transport.',
-  },
-  contract_data: null,
-  staff_notes: null,
+const SHOWCASE_PROFILE: Profile = {
+  id: 'showcase-profile',
+  user_id: 'showcase-user',
+  name: 'Sarah Mitchell',
+  email: 'sarah.mitchell@epfl.ch',
+  phone: '+41 78 912 34 56',
+  client_type: 'student',
+  company_school: 'EPFL',
   created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-  closed_at: null,
-  close_reason: null,
 };
+
+const SHOWCASE_DOCUMENTS: CaseDocument[] = [
+  { id: 'doc-1', case_id: 'showcase-case', document_type: 'id', label: 'Passport / ID Card', status: 'validated', file_url: null, rejection_reason: null, created_at: new Date().toISOString(), validated_at: new Date().toISOString() },
+  { id: 'doc-2', case_id: 'showcase-case', document_type: 'salary', label: 'Proof of Income / Scholarship', status: 'validated', file_url: null, rejection_reason: null, created_at: new Date().toISOString(), validated_at: new Date().toISOString() },
+  { id: 'doc-3', case_id: 'showcase-case', document_type: 'insurance', label: 'Liability Insurance (RC)', status: 'validated', file_url: null, rejection_reason: null, created_at: new Date().toISOString(), validated_at: new Date().toISOString() },
+  { id: 'doc-4', case_id: 'showcase-case', document_type: 'debt_certificate', label: 'Debt Collection Certificate', status: 'validated', file_url: null, rejection_reason: null, created_at: new Date().toISOString(), validated_at: new Date().toISOString() },
+  { id: 'doc-5', case_id: 'showcase-case', document_type: 'enrollment', label: 'EPFL Enrollment Certificate', status: 'validated', file_url: null, rejection_reason: null, created_at: new Date().toISOString(), validated_at: new Date().toISOString() },
+];
+
+function makeDemoCase(status: CaseStatus, contractData: ContractData | null): Case {
+  return {
+    id: 'demo-case',
+    client_id: 'demo-profile',
+    status,
+    initial_criteria: {
+      neighbourhood: 'lausanne-centre',
+      budget: '1500-2000',
+      rooms: '2.5',
+      duration: '12',
+      property_type: 'apartment',
+      roommate_preference: '0',
+      furnished: true,
+      near_transport: true,
+      pets_allowed: false,
+      smoking_allowed: false,
+      notes: 'Looking for a quiet apartment near public transport.',
+    },
+    contract_data: contractData,
+    staff_notes: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    closed_at: null,
+    close_reason: null,
+  };
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function getStageFromStatus(status: CaseStatus | undefined): number {
   if (!status) return 1;
@@ -117,6 +173,8 @@ function proposalToApartment(proposal: PropertyProposal): SelectedApartment {
   };
 }
 
+// ─── Component ───────────────────────────────────────────────────────────────
+
 export default function PortalDashboard() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const { 
@@ -128,11 +186,17 @@ export default function PortalDashboard() {
   const [searchParams] = useSearchParams();
   
   const isDemoMode = searchParams.get('demo') === 'true';
+  const isShowcaseMode = searchParams.get('showcase') === 'true';
+  const isOfflineMode = isDemoMode || isShowcaseMode;
   const demoStage = searchParams.get('stage') ? parseInt(searchParams.get('stage')!, 10) : null;
   
   const { unreadStages, markStageAsRead } = useNotifications(activeCase?.id || null);
   
   const caseStage = useMemo(() => getStageFromStatus(activeCase?.status), [activeCase?.status]);
+  
+  // Showcase-specific state
+  const [showcaseContractData, setShowcaseContractData] = useState<ContractData | null>(null);
+  const [showcaseStatus, setShowcaseStatus] = useState<CaseStatus>('request_received');
   
   const [highestStage, setHighestStage] = useState(isDemoMode && demoStage ? demoStage : 1);
   const [currentStage, setCurrentStage] = useState(isDemoMode && demoStage ? demoStage : 1);
@@ -149,12 +213,13 @@ export default function PortalDashboard() {
   }, [activeCase?.id, currentStage, unreadStages, markStageAsRead]);
 
   // If contract is not signed, lock to stage 1 regardless of case status
-  const contractSigned = isDemoMode || !!(activeCase?.contract_data as { signed?: boolean })?.signed;
+  const contractSigned = isOfflineMode 
+    ? (isShowcaseMode ? !!showcaseContractData?.signed : true) 
+    : !!(activeCase?.contract_data as { signed?: boolean })?.signed;
 
   useEffect(() => {
-    if (!isDemoMode) {
+    if (!isOfflineMode) {
       if (!contractSigned) {
-        // Force stage 1 until contract is signed
         setCurrentStage(1);
         setHighestStage(1);
       } else {
@@ -162,28 +227,27 @@ export default function PortalDashboard() {
         setHighestStage(prev => Math.max(prev, caseStage));
       }
     }
-  }, [caseStage, isDemoMode, contractSigned]);
+  }, [caseStage, isOfflineMode, contractSigned]);
 
   // Find first liked proposal with published visit for stage 3+
   useEffect(() => {
-    if (isDemoMode) return;
+    if (isOfflineMode) return;
     const likedProposals = proposals.filter(p => p.client_status === 'liked');
-    // Prefer the one with a published visit report
     const published = likedProposals.find(p => p.visit_published);
     const target = published || likedProposals[0];
     if (target && !selectedApartment) {
       setSelectedApartment(proposalToApartment(target));
     }
-  }, [proposals, selectedApartment, isDemoMode]);
+  }, [proposals, selectedApartment, isOfflineMode]);
 
   useEffect(() => {
-    if (isDemoMode) return;
+    if (isOfflineMode) return;
     if (!authLoading && !user) {
       navigate('/auth');
     } else if (!authLoading && user && isAdmin) {
       navigate('/admin');
     }
-  }, [user, isAdmin, authLoading, navigate, isDemoMode]);
+  }, [user, isAdmin, authLoading, navigate, isOfflineMode]);
 
   const scrollToContent = () => {
     setTimeout(() => {
@@ -191,7 +255,49 @@ export default function PortalDashboard() {
     }, 100);
   };
 
-  // Like handler — records like but does NOT advance stage
+  // ─── Showcase handlers ──────────────────────────────────────────────────
+
+  const handleShowcaseSign = useCallback(async (_contractData: any) => {
+    const now = new Date().toISOString();
+    setShowcaseContractData({ signed: true, timestamp: now });
+    setShowcaseStatus('proposals_available');
+    // Don't auto-advance — let the "Next Step" button handle it
+    return { error: null };
+  }, []);
+
+  const handleShowcaseLike = useCallback((apartment: SelectedApartment) => {
+    // Set the liked apartment for the visit stage and advance
+    setSelectedApartment(apartment);
+    const nextStage = 3;
+    setCurrentStage(nextStage);
+    setHighestStage(prev => Math.max(prev, nextStage));
+    setShowcaseStatus('visit_in_progress');
+    scrollToContent();
+  }, []);
+
+  const handleShowcaseReject = useCallback(async (proposalId: string, reasons: string[], notes?: string) => {
+    // Just let the ResearchGallery handle the visual rejection
+    // No DB call needed
+  }, []);
+
+  const handleShowcaseVisitComplete = useCallback(() => {
+    const nextStage = 4;
+    setCurrentStage(nextStage);
+    setHighestStage(prev => Math.max(prev, nextStage));
+    setShowcaseStatus('documents_preparation');
+    scrollToContent();
+  }, []);
+
+  const handleShowcaseDocsComplete = useCallback(() => {
+    const nextStage = 5;
+    setCurrentStage(nextStage);
+    setHighestStage(prev => Math.max(prev, nextStage));
+    setShowcaseStatus('key_handover_scheduled');
+    scrollToContent();
+  }, []);
+
+  // ─── Real-data handlers ────────────────────────────────────────────────
+
   const handleResearchLike = async (apartment: SelectedApartment, questions?: string) => {
     const proposal = proposals.find(p => p.id === apartment.id);
     if (proposal) {
@@ -232,7 +338,7 @@ export default function PortalDashboard() {
     [proposals]
   );
 
-  if (!isDemoMode && (authLoading || portalLoading)) {
+  if (!isOfflineMode && (authLoading || portalLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -240,9 +346,9 @@ export default function PortalDashboard() {
     );
   }
 
-  if (!isDemoMode && !user) return null;
+  if (!isOfflineMode && !user) return null;
 
-  if (!isDemoMode && error) {
+  if (!isOfflineMode && error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
         <Header />
@@ -266,7 +372,7 @@ export default function PortalDashboard() {
     );
   }
 
-  if (!isDemoMode && (!profile || !activeCase)) {
+  if (!isOfflineMode && (!profile || !activeCase)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
         <Header />
@@ -289,11 +395,39 @@ export default function PortalDashboard() {
       </div>
     );
   }
-  
-  const displayKeyHandover = isDemoMode ? DEMO_KEY_HANDOVER : keyHandover;
-  const displayUserName = isDemoMode ? 'Demo User' : profile?.name;
-  const displayProfile = isDemoMode ? DEMO_PROFILE : profile;
-  const displayCase = isDemoMode ? DEMO_CASE : activeCase;
+
+  // ─── Resolve display data ──────────────────────────────────────────────
+
+  const displayProfile = isShowcaseMode ? SHOWCASE_PROFILE : isDemoMode ? DEMO_PROFILE : profile;
+  const displayCase = isShowcaseMode 
+    ? makeDemoCase(showcaseStatus, showcaseContractData) 
+    : isDemoMode 
+      ? makeDemoCase('request_received', { signed: true, timestamp: new Date().toISOString() }) 
+      : activeCase;
+  const displayKeyHandover = isOfflineMode ? DEMO_KEY_HANDOVER : keyHandover;
+  const displayUserName = isShowcaseMode ? 'Sarah Mitchell' : isDemoMode ? 'Demo User' : profile?.name;
+  const displayDocuments = isShowcaseMode ? SHOWCASE_DOCUMENTS : documents;
+
+  // Showcase-specific: determine which proposals to show and handlers to use
+  const showcaseProposals = isShowcaseMode ? SHOWCASE_PROPOSALS : undefined;
+  const resolvedOnLike = isShowcaseMode ? handleShowcaseLike : handleResearchLike;
+  const resolvedOnReject = isShowcaseMode ? handleShowcaseReject : handleRejectProposal;
+  const resolvedOnSign = isShowcaseMode ? handleShowcaseSign : signContract;
+  const resolvedOnVisitComplete = isShowcaseMode ? handleShowcaseVisitComplete : handleNextStep;
+  const resolvedOnDocsComplete = isShowcaseMode ? handleShowcaseDocsComplete : handleNextStep;
+  const resolvedSelectedApartment = isShowcaseMode ? (selectedApartment || SHOWCASE_PROPOSALS[1]) : (isDemoMode ? DEMO_APARTMENT : selectedApartment);
+
+  // Showcase: advance stage after contract signing
+  const handleShowcaseNextStep = () => {
+    if (isShowcaseMode) {
+      const nextStage = Math.min(currentStage + 1, 5);
+      setCurrentStage(nextStage);
+      setHighestStage(prev => Math.max(prev, nextStage));
+      scrollToContent();
+    } else {
+      handleNextStep();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
@@ -330,11 +464,11 @@ export default function PortalDashboard() {
             <CriteriaSummary 
               key="stage-1" 
               profile={displayProfile}
-              criteria={displayCase.initial_criteria}
-              caseStatus={displayCase.status}
-              contractData={displayCase.contract_data}
-              onNextStep={handleNextStep}
-              onSign={signContract}
+              criteria={displayCase!.initial_criteria}
+              caseStatus={displayCase!.status}
+              contractData={displayCase!.contract_data}
+              onNextStep={handleShowcaseNextStep}
+              onSign={resolvedOnSign}
               readOnly={isReadOnly}
             />
           )}
@@ -342,40 +476,40 @@ export default function PortalDashboard() {
           {currentStage === 2 && (
             <ResearchGallery 
               key="stage-2" 
-              proposals={pendingProposals}
-              onLike={handleResearchLike}
-              onReject={handleRejectProposal}
+              proposals={showcaseProposals || pendingProposals}
+              onLike={resolvedOnLike}
+              onReject={resolvedOnReject}
               readOnly={isReadOnly}
-              likedCount={likedCount}
+              likedCount={isShowcaseMode ? 0 : likedCount}
             />
           )}
           
-          {currentStage === 3 && selectedApartment && (
+          {currentStage === 3 && resolvedSelectedApartment && (
             <VisitReport 
               key="stage-3" 
-              apartment={selectedApartment}
-              onComplete={handleNextStep} 
+              apartment={resolvedSelectedApartment}
+              onComplete={resolvedOnVisitComplete} 
               onReject={handleBackToResearch}
               readOnly={isReadOnly}
             />
           )}
           
-          {currentStage === 4 && selectedApartment && (
+          {currentStage === 4 && resolvedSelectedApartment && (
             <DocumentsDossier 
               key="stage-4" 
-              apartment={selectedApartment}
-              documents={documents}
-              onUpload={uploadDocument}
-              onComplete={handleNextStep}
+              apartment={resolvedSelectedApartment}
+              documents={displayDocuments}
+              onUpload={isShowcaseMode ? undefined : uploadDocument}
+              onComplete={resolvedOnDocsComplete}
               onPreviewHandover={() => setCurrentStage(5)}
               readOnly={isReadOnly}
             />
           )}
           
-          {currentStage > 4 && selectedApartment && (
+          {currentStage > 4 && resolvedSelectedApartment && (
             <KeyHandoverStage 
               key="stage-5" 
-              apartment={selectedApartment}
+              apartment={resolvedSelectedApartment}
               keyHandover={displayKeyHandover}
               userName={displayUserName}
             />

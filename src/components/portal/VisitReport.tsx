@@ -52,8 +52,8 @@ export function VisitReport({ apartment, onComplete, onReject, readOnly = false 
   const [visitData, setVisitData] = useState<VisitData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Check if we're in demo mode
-  const isDemoMode = apartment.id === 'demo-apt';
+  // Check if we're in demo/showcase mode
+  const isDemoMode = apartment.id === 'demo-apt' || apartment.id.startsWith('showcase-');
 
   // Fetch visit data from the database
   useEffect(() => {
