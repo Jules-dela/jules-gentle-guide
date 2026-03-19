@@ -169,31 +169,9 @@ serve(async (req) => {
 
     await supabase.from("property_proposals").insert(proposals);
 
-    // 5. Add case documents — all validated for smooth demo
-    const documents = [
-      { case_id: demoCase.id, document_type: "id", label: "Passport / ID Card", status: "validated", validated_at: new Date().toISOString() },
-      { case_id: demoCase.id, document_type: "salary", label: "Proof of Income / Scholarship", status: "validated", validated_at: new Date().toISOString() },
-      { case_id: demoCase.id, document_type: "insurance", label: "Liability Insurance (RC)", status: "validated", validated_at: new Date().toISOString() },
-      { case_id: demoCase.id, document_type: "debt_certificate", label: "Debt Collection Certificate", status: "validated", validated_at: new Date().toISOString() },
-      { case_id: demoCase.id, document_type: "enrollment", label: "EPFL Enrollment Certificate", status: "validated", validated_at: new Date().toISOString() },
-    ];
-
-    await supabase.from("case_documents").insert(documents);
-
-    // 6. Add key handover entry
-    const handoverDate = new Date();
-    handoverDate.setDate(handoverDate.getDate() + 14); // 2 weeks from now
-    
-    await supabase.from("key_handover").insert({
-      case_id: demoCase.id,
-      scheduled_date: handoverDate.toISOString().split("T")[0],
-      scheduled_time: "10:00",
-      location: "Chemin des Triaudes 4, 1024 Ecublens",
-      contact_person: "Marc Dupont",
-      contact_phone: "+41 21 345 67 89",
-      confirmed_by_client: false,
-      notes: "Please bring your ID and a copy of the signed lease. Meet at the building entrance.",
-    });
+    // 5. Documents and handover are NOT pre-populated so the demo
+    //    advances step-by-step: sign contract → Stage 2 (proposals).
+    //    Admin can add documents / handover later to advance further.
 
     return new Response(
       JSON.stringify({
