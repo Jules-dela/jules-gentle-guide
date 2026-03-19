@@ -127,7 +127,7 @@ function makeDemoCase(status: CaseStatus, contractData: ContractData | null): Ca
       notes: 'Looking for a quiet apartment near public transport.',
     },
     contract_data: contractData,
-    staff_notes: null,
+    
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     closed_at: null,

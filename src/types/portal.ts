@@ -53,7 +53,7 @@ export interface Case {
   status: CaseStatus;
   initial_criteria: InitialCriteria | null;
   contract_data: ContractData | null;
-  staff_notes: string | null;
+  
   created_at: string;
   updated_at: string;
   closed_at: string | null;

@@ -58,6 +58,38 @@ export type Database = {
           },
         ]
       }
+      case_staff_notes: {
+        Row: {
+          case_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_staff_notes_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: true
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_status_history: {
         Row: {
           case_id: string
@@ -102,7 +134,6 @@ export type Database = {
           created_at: string
           id: string
           initial_criteria: Json | null
-          staff_notes: string | null
           status: Database["public"]["Enums"]["case_status"]
           updated_at: string
         }
@@ -114,7 +145,6 @@ export type Database = {
           created_at?: string
           id?: string
           initial_criteria?: Json | null
-          staff_notes?: string | null
           status?: Database["public"]["Enums"]["case_status"]
           updated_at?: string
         }
@@ -126,7 +156,6 @@ export type Database = {
           created_at?: string
           id?: string
           initial_criteria?: Json | null
-          staff_notes?: string | null
           status?: Database["public"]["Enums"]["case_status"]
           updated_at?: string
         }
