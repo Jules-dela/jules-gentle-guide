@@ -180,7 +180,7 @@ serve(async (req) => {
           email: DEMO_EMAIL,
           password: DEMO_PASSWORD,
         },
-        message: `Demo client "${DEMO_NAME}" seeded at Stage 1 (unsigned contract). 2 proposals with photos, 5 validated documents, and key handover ready. Log in and walk through the full journey!`,
+        message: `Demo client "${DEMO_NAME}" seeded at Stage 1 (unsigned contract). 2 proposals with photos ready. After signing, case will advance to Stage 2 only. Admin can advance further stages manually.`,
       }),
       { headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
