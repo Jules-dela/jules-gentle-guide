@@ -237,6 +237,10 @@ export const CriteriaForm = () => {
       screen_width: number;
       screen_height: number;
     };
+    client_full_name?: string;
+    client_date_of_birth?: string;
+    client_nationality?: string;
+    client_initials?: string;
   }) => {
     if (!submittedCaseId) {
       return { error: new Error('No case found') };
