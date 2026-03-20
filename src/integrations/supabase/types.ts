@@ -612,6 +612,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      client_update_document_file: {
+        Args: { p_document_id: string; p_file_url: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

@@ -287,14 +287,11 @@ export function useClientPortal(): UseClientPortalReturn {
 
       if (signedError) throw signedError;
 
-      // Update document record with signed URL
-      const { error: updateError } = await supabase
-        .from('case_documents')
-        .update({
-          file_url: signedData.signedUrl,
-          status: 'uploaded',
-        })
-        .eq('id', documentId);
+      // Update document record via secure RPC (only allows file_url + status='uploaded')
+      const { error: updateError } = await supabase.rpc('client_update_document_file', {
+        p_document_id: documentId,
+        p_file_url: signedData.signedUrl,
+      });
 
       if (updateError) throw updateError;
       await fetchData();
