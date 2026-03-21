@@ -93,7 +93,7 @@ export const WaitlistSection = () => {
               <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
                 <Input
                   type="tel"
-                  placeholder="+41 79 123 45 67"
+                  placeholder="+41 79 465 27 97"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="h-12 bg-background/60 backdrop-blur-sm border-border/50 focus:border-primary/50 text-center text-base"
