@@ -147,7 +147,7 @@ export function SignedContractViewer({ contractData, clientName }: SignedContrac
         </DialogHeader>
 
         <ScrollArea className="h-[70vh]">
-          <div className="px-6 py-5 space-y-0">
+          <div className="px-6 py-5 space-y-0" ref={contractRef}>
             {/* ══════════ CONTRACT DOCUMENT ══════════ */}
             <div className="bg-white dark:bg-muted/10 border rounded-xl p-5 shadow-sm">
               {/* Title */}
