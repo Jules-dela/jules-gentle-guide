@@ -81,7 +81,7 @@ export function SignedContractViewer({ contractData, clientName }: SignedContrac
     return 'Unknown';
   };
 
-  const handleDownload = () => {
+  const handleDownloadSignature = () => {
     if (!contractData.signature_image) return;
     const link = document.createElement('a');
     link.href = contractData.signature_image;
@@ -89,6 +89,42 @@ export function SignedContractViewer({ contractData, clientName }: SignedContrac
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!contractRef.current) return;
+    setDownloading(true);
+    try {
+      const canvas = await html2canvas(contractRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = pdfWidth / imgWidth;
+      const scaledHeight = imgHeight * ratio;
+
+      let position = 0;
+      let remaining = scaledHeight;
+
+      while (remaining > 0) {
+        if (position > 0) pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, -position, pdfWidth, scaledHeight);
+        position += pdfHeight;
+        remaining -= pdfHeight;
+      }
+
+      pdf.save(`contract-${clientName.replace(/\s+/g, '-').toLowerCase()}-${new Date(contractData.signed_at).toISOString().split('T')[0]}.pdf`);
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return (
