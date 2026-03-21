@@ -302,10 +302,16 @@ export function SignedContractViewer({ contractData, clientName }: SignedContrac
                 </div>
               </div>
 
-              <Button onClick={handleDownload} variant="outline" size="sm" className="w-full gap-2 mt-2">
-                <Download className="w-3.5 h-3.5" />
-                Download Signature Image
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={handleDownloadPDF} variant="default" size="sm" className="flex-1 gap-2 mt-2" disabled={downloading}>
+                  <Download className="w-3.5 h-3.5" />
+                  {downloading ? 'Generating PDF…' : 'Download Contract PDF'}
+                </Button>
+                <Button onClick={handleDownloadSignature} variant="outline" size="sm" className="flex-1 gap-2 mt-2">
+                  <Download className="w-3.5 h-3.5" />
+                  Signature Only
+                </Button>
+              </div>
             </div>
           </div>
         </ScrollArea>
