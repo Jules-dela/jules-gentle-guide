@@ -65,7 +65,8 @@ function Divider() {
 
 export function SignedContractViewer({ contractData, clientName }: SignedContractViewerProps) {
   const [open, setOpen] = useState(false);
-
+  const [downloading, setDownloading] = useState(false);
+  const contractRef = useRef<HTMLDivElement>(null);
   const signedDate = new Date(contractData.signed_at).toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'long',
