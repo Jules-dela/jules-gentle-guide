@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminWaitlist from "./pages/AdminWaitlist";
+import AdminSearch from "./pages/AdminSearch";
 import PortalDashboard from "./pages/PortalDashboard";
 import PortalProposals from "./pages/PortalProposals";
 import PortalDocuments from "./pages/PortalDocuments";
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/waitlist" element={<AdminWaitlist />} />
+            <Route path="/admin/search" element={<AdminSearch />} />
             <Route path="/portal" element={<PortalDashboard />} />
             <Route path="/portal/proposals" element={<PortalProposals />} />
             <Route path="/portal/documents" element={<PortalDocuments />} />
