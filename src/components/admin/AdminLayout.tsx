@@ -8,7 +8,8 @@ import {
   Home,
   Bell,
   Menu,
-  X
+  X,
+  Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
