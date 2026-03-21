@@ -12,8 +12,15 @@ import { cn } from '@/lib/utils';
 interface Proposal {
   id: string;
   neighbourhood: string | null;
+  address: string | null;
   rent: number | null;
+  charges: number | null;
   rooms: number | null;
+  size_sqm: number | null;
+  property_type: string | null;
+  description: string | null;
+  agency_info: string | null;
+  tags: string[] | null;
   client_status: string | null;
   rejection_reasons: string[] | null;
   rejection_notes: string | null;
@@ -34,6 +41,8 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
   const [galleryProposal, setGalleryProposal] = useState<Proposal | null>(null);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [questionsProposal, setQuestionsProposal] = useState<Proposal | null>(null);
+  const [detailProposal, setDetailProposal] = useState<Proposal | null>(null);
+  const [detailPhotoIndex, setDetailPhotoIndex] = useState(0);
 
   useEffect(() => {
     fetchProposals();
