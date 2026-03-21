@@ -151,10 +151,16 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
             exit={{ opacity: 0, x: -50 }}
             transition={{ delay: index * 0.05 }}
           >
-            <Card className={`overflow-hidden ${
-              proposal.client_status === 'liked' 
-                ? 'border-green-500/50 bg-green-50/50' 
-                : proposal.client_status === 'rejected'
+            <Card 
+              className={`overflow-hidden cursor-pointer hover:shadow-md transition-all ${
+                proposal.client_status === 'liked' 
+                  ? 'border-green-500/50 bg-green-50/50' 
+                  : proposal.client_status === 'rejected'
+                  ? 'border-red-500/30 bg-red-50/30'
+                  : 'border-muted'
+              }`}
+              onClick={() => { setDetailProposal(proposal); setDetailPhotoIndex(0); }}
+            >
                 ? 'border-red-500/30 bg-red-50/30'
                 : 'border-muted'
             }`}>
