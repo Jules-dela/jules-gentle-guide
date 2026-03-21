@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, RefreshCw, Loader2, Home, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Check, X, RefreshCw, Loader2, Home, MessageSquare, ChevronLeft, ChevronRight, MapPin, Wallet, Maximize2, Bed, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
