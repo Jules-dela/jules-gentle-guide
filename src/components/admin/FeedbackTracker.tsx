@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, RefreshCw, Loader2, Home, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Check, X, RefreshCw, Loader2, Home, MessageSquare, ChevronLeft, ChevronRight, MapPin, Wallet, Maximize2, Bed, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,8 +12,15 @@ import { cn } from '@/lib/utils';
 interface Proposal {
   id: string;
   neighbourhood: string | null;
+  address: string | null;
   rent: number | null;
+  charges: number | null;
   rooms: number | null;
+  size_sqm: number | null;
+  property_type: string | null;
+  description: string | null;
+  agency_info: string | null;
+  tags: string[] | null;
   client_status: string | null;
   rejection_reasons: string[] | null;
   rejection_notes: string | null;
@@ -34,6 +41,8 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
   const [galleryProposal, setGalleryProposal] = useState<Proposal | null>(null);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [questionsProposal, setQuestionsProposal] = useState<Proposal | null>(null);
+  const [detailProposal, setDetailProposal] = useState<Proposal | null>(null);
+  const [detailPhotoIndex, setDetailPhotoIndex] = useState(0);
 
   useEffect(() => {
     fetchProposals();
@@ -142,13 +151,16 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
             exit={{ opacity: 0, x: -50 }}
             transition={{ delay: index * 0.05 }}
           >
-            <Card className={`overflow-hidden ${
-              proposal.client_status === 'liked' 
-                ? 'border-green-500/50 bg-green-50/50' 
-                : proposal.client_status === 'rejected'
-                ? 'border-red-500/30 bg-red-50/30'
-                : 'border-muted'
-            }`}>
+            <Card 
+              className={`overflow-hidden cursor-pointer hover:shadow-md transition-all ${
+                proposal.client_status === 'liked' 
+                  ? 'border-green-500/50 bg-green-50/50' 
+                  : proposal.client_status === 'rejected'
+                  ? 'border-red-500/30 bg-red-50/30'
+                  : 'border-muted'
+              }`}
+              onClick={() => { setDetailProposal(proposal); setDetailPhotoIndex(0); }}
+            >
               <CardContent className="p-3">
                 <div className="flex items-start gap-3">
                   {/* Thumbnail */}
@@ -318,6 +330,153 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
                   {galleryIndex + 1}/{galleryProposal.photos.length}
                 </span>
               </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Proposal Detail Dialog */}
+      <Dialog open={!!detailProposal} onOpenChange={(open) => !open && setDetailProposal(null)}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base">
+              {detailProposal?.neighbourhood || 'Property Details'}
+            </DialogTitle>
+          </DialogHeader>
+
+          {detailProposal && (
+            <div className="space-y-4">
+              {/* Photo carousel */}
+              {detailProposal.photos && detailProposal.photos.length > 0 && (
+                <div className="relative rounded-lg overflow-hidden">
+                  <img
+                    src={detailProposal.photos[detailPhotoIndex]}
+                    alt={`Photo ${detailPhotoIndex + 1}`}
+                    className="w-full aspect-video object-cover"
+                  />
+                  {detailProposal.photos.length > 1 && (
+                    <>
+                      <button
+                        onClick={() => setDetailPhotoIndex(prev => prev > 0 ? prev - 1 : detailProposal.photos!.length - 1)}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background shadow"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setDetailPhotoIndex(prev => prev < detailProposal.photos!.length - 1 ? prev + 1 : 0)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background shadow"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-foreground/60 backdrop-blur-sm">
+                        <span className="text-background text-xs font-medium">
+                          {detailPhotoIndex + 1}/{detailProposal.photos.length}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Status badge */}
+              <div className="flex items-center gap-2">
+                {detailProposal.client_status === 'liked' && (
+                  <Badge className="bg-green-500 text-white">Liked</Badge>
+                )}
+                {detailProposal.client_status === 'rejected' && (
+                  <Badge variant="destructive">Rejected</Badge>
+                )}
+                {detailProposal.client_status === 'pending' && (
+                  <Badge variant="secondary">Pending</Badge>
+                )}
+                {detailProposal.property_type && (
+                  <Badge variant="outline" className="gap-1">
+                    <Building2 className="w-3 h-3" />
+                    {detailProposal.property_type}
+                  </Badge>
+                )}
+              </div>
+
+              {/* Key details */}
+              <div className="grid grid-cols-2 gap-3">
+                {detailProposal.address && (
+                  <div className="col-span-2 flex items-start gap-2 text-sm">
+                    <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+                    <span>{detailProposal.address}</span>
+                  </div>
+                )}
+                {detailProposal.rent != null && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Wallet className="w-4 h-4 text-muted-foreground" />
+                    <span className="font-semibold">CHF {detailProposal.rent.toLocaleString()}</span>
+                    {detailProposal.charges != null && (
+                      <span className="text-muted-foreground">+ {detailProposal.charges}</span>
+                    )}
+                  </div>
+                )}
+                {detailProposal.size_sqm != null && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Maximize2 className="w-4 h-4 text-muted-foreground" />
+                    <span>{detailProposal.size_sqm} m²</span>
+                  </div>
+                )}
+                {detailProposal.rooms != null && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Bed className="w-4 h-4 text-muted-foreground" />
+                    <span>{detailProposal.rooms} room(s)</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Tags */}
+              {detailProposal.tags && detailProposal.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {detailProposal.tags.map((tag, i) => (
+                    <Badge key={i} variant="secondary" className="text-xs">{tag}</Badge>
+                  ))}
+                </div>
+              )}
+
+              {/* Description */}
+              {detailProposal.description && (
+                <div>
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Description</h4>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{detailProposal.description}</p>
+                </div>
+              )}
+
+              {/* Agency info */}
+              {detailProposal.agency_info && (
+                <div>
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Agency Info</h4>
+                  <p className="text-sm text-foreground">{detailProposal.agency_info}</p>
+                </div>
+              )}
+
+              {/* Rejection reasons */}
+              {detailProposal.client_status === 'rejected' && detailProposal.rejection_reasons && (
+                <div>
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Rejection Reasons</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {detailProposal.rejection_reasons.map((r, i) => (
+                      <Badge key={i} variant="outline" className="text-xs border-destructive/30 text-destructive">{r}</Badge>
+                    ))}
+                  </div>
+                  {detailProposal.rejection_notes && (
+                    <p className="text-sm text-muted-foreground mt-2 italic">"{detailProposal.rejection_notes}"</p>
+                  )}
+                </div>
+              )}
+
+              {/* Visit questions */}
+              {detailProposal.client_visit_questions && (
+                <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+                  <h4 className="text-xs font-semibold text-amber-800 uppercase mb-1 flex items-center gap-1">
+                    <MessageSquare className="w-3 h-3" /> Client Questions
+                  </h4>
+                  <p className="text-sm text-amber-900">{detailProposal.client_visit_questions}</p>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
