@@ -161,9 +161,6 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
               }`}
               onClick={() => { setDetailProposal(proposal); setDetailPhotoIndex(0); }}
             >
-                ? 'border-red-500/30 bg-red-50/30'
-                : 'border-muted'
-            }`}>
               <CardContent className="p-3">
                 <div className="flex items-start gap-3">
                   {/* Thumbnail */}
