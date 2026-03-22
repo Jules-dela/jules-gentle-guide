@@ -37,18 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Force re-login if this is a new browser session (tab was closed)
-    const sessionFlag = sessionStorage.getItem('unikey_session_active');
-    if (!sessionFlag) {
-      // New session — sign out any persisted auth, then mark session active
-      supabase.auth.signOut().then(() => {
-        sessionStorage.setItem('unikey_session_active', 'true');
-        setLoading(false);
-      });
-      return;
-    }
-
-    // Set up auth state listener FIRST
+    // Set up auth state listener FIRST (always, regardless of session flag)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -62,28 +51,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Defer admin check with setTimeout to avoid deadlock
         if (session?.user) {
           setTimeout(() => {
-            checkAdminStatus(session.user.id).then(setIsAdmin);
+            checkAdminStatus(session.user.id).then((admin) => {
+              setIsAdmin(admin);
+              setLoading(false);
+            });
           }, 0);
         } else {
           setIsAdmin(false);
+          setLoading(false);
         }
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        checkAdminStatus(session.user.id).then((admin) => {
-          setIsAdmin(admin);
+    // Force re-login if this is a new browser session (tab was closed)
+    const sessionFlag = sessionStorage.getItem('unikey_session_active');
+    if (!sessionFlag) {
+      // New session — sign out any persisted auth, then mark session active
+      supabase.auth.signOut().then(() => {
+        sessionStorage.setItem('unikey_session_active', 'true');
+      });
+    } else {
+      // Check for existing session
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          checkAdminStatus(session.user.id).then((admin) => {
+            setIsAdmin(admin);
+            setLoading(false);
+          });
+        } else {
           setLoading(false);
-        });
-      } else {
-        setLoading(false);
-      }
-    });
+        }
+      });
+    }
 
     return () => subscription.unsubscribe();
   }, []);
