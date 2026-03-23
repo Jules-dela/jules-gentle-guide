@@ -34,7 +34,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/waitlist" element={<AdminWaitlist />} />
-            <Route path="/admin/search" element={<AdminSearch />} />
+            
             <Route path="/portal" element={<PortalDashboard />} />
             <Route path="/portal/proposals" element={<PortalProposals />} />
             <Route path="/portal/documents" element={<PortalDocuments />} />
