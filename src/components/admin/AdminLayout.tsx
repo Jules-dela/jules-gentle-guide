@@ -9,7 +9,6 @@ import {
   Bell,
   Menu,
   X,
-  Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -22,7 +21,7 @@ interface AdminLayoutProps {
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
   { to: '/admin/waitlist', icon: Bell, label: 'Waitlist', end: false },
-  { to: '/admin/search', icon: Search, label: 'Search', end: false },
+  
 ];
 
 function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
