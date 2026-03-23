@@ -10,7 +10,7 @@ import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminWaitlist from "./pages/AdminWaitlist";
-import AdminSearch from "./pages/AdminSearch";
+
 import PortalDashboard from "./pages/PortalDashboard";
 import PortalProposals from "./pages/PortalProposals";
 import PortalDocuments from "./pages/PortalDocuments";
