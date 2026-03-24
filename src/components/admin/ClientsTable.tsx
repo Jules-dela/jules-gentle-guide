@@ -157,11 +157,14 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
   const [sharingFilter, setSharingFilter] = useState<string>('all');
 
   // Extract unique values for filter dropdowns
+  const [roomsFilter, setRoomsFilter] = useState<string>('all');
+
   const filterOptions = useMemo(() => {
     const budgets = [...new Set(clients.map(c => c.budget).filter(Boolean))] as string[];
     const areas = [...new Set(clients.map(c => c.neighbourhood).filter(Boolean))] as string[];
     const types = [...new Set(clients.map(c => c.property_type).filter(Boolean))] as string[];
-    return { budgets: budgets.sort(), areas: areas.sort(), types: types.sort() };
+    const rooms = [...new Set(clients.map(c => c.rooms).filter(Boolean))] as string[];
+    return { budgets: budgets.sort(), areas: areas.sort(), types: types.sort(), rooms: rooms.sort() };
   }, [clients]);
 
   const hasActiveFilters = budgetFilter !== 'all' || areaFilter !== 'all' || typeFilter !== 'all' || sharingFilter !== 'all';
