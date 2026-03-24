@@ -301,6 +301,17 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
             ))}
           </SelectContent>
         </Select>
+        <Select value={roomsFilter} onValueChange={setRoomsFilter}>
+          <SelectTrigger className="w-[130px] h-8 text-xs">
+            <SelectValue placeholder="Rooms" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All rooms</SelectItem>
+            {filterOptions.rooms.map(r => (
+              <SelectItem key={r} value={r}>{r}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select value={sharingFilter} onValueChange={setSharingFilter}>
           <SelectTrigger className="w-[140px] h-8 text-xs">
             <SelectValue placeholder="Sharing" />
