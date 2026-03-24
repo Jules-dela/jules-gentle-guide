@@ -157,20 +157,24 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
   const [sharingFilter, setSharingFilter] = useState<string>('all');
 
   // Extract unique values for filter dropdowns
+  const [roomsFilter, setRoomsFilter] = useState<string>('all');
+
   const filterOptions = useMemo(() => {
     const budgets = [...new Set(clients.map(c => c.budget).filter(Boolean))] as string[];
     const areas = [...new Set(clients.map(c => c.neighbourhood).filter(Boolean))] as string[];
     const types = [...new Set(clients.map(c => c.property_type).filter(Boolean))] as string[];
-    return { budgets: budgets.sort(), areas: areas.sort(), types: types.sort() };
+    const rooms = [...new Set(clients.map(c => c.rooms).filter(Boolean))] as string[];
+    return { budgets: budgets.sort(), areas: areas.sort(), types: types.sort(), rooms: rooms.sort() };
   }, [clients]);
 
-  const hasActiveFilters = budgetFilter !== 'all' || areaFilter !== 'all' || typeFilter !== 'all' || sharingFilter !== 'all';
+  const hasActiveFilters = budgetFilter !== 'all' || areaFilter !== 'all' || typeFilter !== 'all' || sharingFilter !== 'all' || roomsFilter !== 'all';
 
   const clearFilters = () => {
     setBudgetFilter('all');
     setAreaFilter('all');
     setTypeFilter('all');
     setSharingFilter('all');
+    setRoomsFilter('all');
   };
 
   const getInitials = (name: string) => {
@@ -219,6 +223,7 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
       if (budgetFilter !== 'all' && c.budget !== budgetFilter) return false;
       if (areaFilter !== 'all' && c.neighbourhood !== areaFilter) return false;
       if (typeFilter !== 'all' && c.property_type !== typeFilter) return false;
+      if (roomsFilter !== 'all' && c.rooms !== roomsFilter) return false;
       if (sharingFilter !== 'all') {
         const isSharing = c.roommate_preference ? c.roommate_preference.toLowerCase().startsWith('yes') : false;
         if (sharingFilter === 'sharing' && !isSharing) return false;
@@ -226,7 +231,7 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
       }
       return true;
     });
-  }, [baseClients, budgetFilter, areaFilter, typeFilter, sharingFilter, statFilter]);
+  }, [baseClients, budgetFilter, areaFilter, typeFilter, roomsFilter, sharingFilter, statFilter]);
 
   if (isLoading) {
     return (
@@ -293,6 +298,17 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
             <SelectItem value="all">All types</SelectItem>
             {filterOptions.types.map(t => (
               <SelectItem key={t} value={t}>{t}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={roomsFilter} onValueChange={setRoomsFilter}>
+          <SelectTrigger className="w-[130px] h-8 text-xs">
+            <SelectValue placeholder="Rooms" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All rooms</SelectItem>
+            {filterOptions.rooms.map(r => (
+              <SelectItem key={r} value={r}>{r}</SelectItem>
             ))}
           </SelectContent>
         </Select>
