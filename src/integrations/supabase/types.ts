@@ -364,6 +364,51 @@ export type Database = {
           },
         ]
       }
+      leads: {
+        Row: {
+          additional_notes: string | null
+          budget_max: number | null
+          budget_min: number | null
+          city: string | null
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          move_in_date: string | null
+          phone: string | null
+          rooms: string | null
+        }
+        Insert: {
+          additional_notes?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          city?: string | null
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          move_in_date?: string | null
+          phone?: string | null
+          rooms?: string | null
+        }
+        Update: {
+          additional_notes?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          city?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          move_in_date?: string | null
+          phone?: string | null
+          rooms?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           client_type: Database["public"]["Enums"]["client_type"] | null
