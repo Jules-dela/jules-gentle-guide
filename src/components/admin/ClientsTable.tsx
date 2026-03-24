@@ -223,6 +223,7 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
       if (budgetFilter !== 'all' && c.budget !== budgetFilter) return false;
       if (areaFilter !== 'all' && c.neighbourhood !== areaFilter) return false;
       if (typeFilter !== 'all' && c.property_type !== typeFilter) return false;
+      if (roomsFilter !== 'all' && c.rooms !== roomsFilter) return false;
       if (sharingFilter !== 'all') {
         const isSharing = c.roommate_preference ? c.roommate_preference.toLowerCase().startsWith('yes') : false;
         if (sharingFilter === 'sharing' && !isSharing) return false;
@@ -230,7 +231,7 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
       }
       return true;
     });
-  }, [baseClients, budgetFilter, areaFilter, typeFilter, sharingFilter, statFilter]);
+  }, [baseClients, budgetFilter, areaFilter, typeFilter, roomsFilter, sharingFilter, statFilter]);
 
   if (isLoading) {
     return (
