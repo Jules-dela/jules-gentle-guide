@@ -137,6 +137,45 @@ export const CriteriaForm = () => {
     setIsSubmitting(true);
     
     try {
+      // Parse name into first/last
+      const nameParts = data.name.trim().split(/\s+/);
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+
+      // Parse budget range into min/max
+      let budgetMin: number | null = null;
+      let budgetMax: number | null = null;
+      if (data.budget) {
+        const budgetMatch = data.budget.match(/^(\d+)-(\d+)$/);
+        if (budgetMatch) {
+          budgetMin = parseInt(budgetMatch[1], 10);
+          budgetMax = parseInt(budgetMatch[2], 10);
+        } else if (data.budget.endsWith("+")) {
+          budgetMin = parseInt(data.budget.replace("+", ""), 10);
+        }
+      }
+
+      // Save to leads table
+      const { error: leadsError } = await supabase
+        .from("leads" as any)
+        .insert({
+          first_name: firstName,
+          last_name: lastName,
+          email: data.email,
+          phone: data.phone || null,
+          budget_min: budgetMin,
+          budget_max: budgetMax,
+          city: data.neighbourhood || null,
+          rooms: data.rooms || null,
+          move_in_date: data.movingDate ? format(data.movingDate, "yyyy-MM-dd") : null,
+          additional_notes: data.notes || null,
+        });
+
+      if (leadsError) {
+        console.error("Leads insert error:", leadsError);
+      }
+
+      // Save to housing_applications (existing)
       const { error: dbError } = await supabase
         .from("housing_applications")
         .insert({
