@@ -167,7 +167,7 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
     return { budgets: budgets.sort(), areas: areas.sort(), types: types.sort(), rooms: rooms.sort() };
   }, [clients]);
 
-  const hasActiveFilters = budgetFilter !== 'all' || areaFilter !== 'all' || typeFilter !== 'all' || sharingFilter !== 'all';
+  const hasActiveFilters = budgetFilter !== 'all' || areaFilter !== 'all' || typeFilter !== 'all' || sharingFilter !== 'all' || roomsFilter !== 'all';
 
   const clearFilters = () => {
     setBudgetFilter('all');
