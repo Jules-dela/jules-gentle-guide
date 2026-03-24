@@ -174,6 +174,7 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
     setAreaFilter('all');
     setTypeFilter('all');
     setSharingFilter('all');
+    setRoomsFilter('all');
   };
 
   const getInitials = (name: string) => {
