@@ -39,6 +39,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [clearing, setClearing] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [galleryProposal, setGalleryProposal] = useState<Proposal | null>(null);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [questionsProposal, setQuestionsProposal] = useState<Proposal | null>(null);
@@ -95,6 +96,43 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
       toast({ title: "Error", description: "Failed to clear proposals.", variant: "destructive" });
     } finally {
       setClearing(false);
+    }
+  };
+
+  const deleteProposal = async (proposal: Proposal) => {
+    setDeletingId(proposal.id);
+    try {
+      // Delete photos from storage
+      if (proposal.photos && proposal.photos.length > 0) {
+        const filePaths = proposal.photos
+          .map(url => {
+            try {
+              const u = new URL(url);
+              const match = u.pathname.match(/\/object\/(?:public|sign)\/property-photos\/(.+)/);
+              return match ? decodeURIComponent(match[1]) : null;
+            } catch { return null; }
+          })
+          .filter(Boolean) as string[];
+        if (filePaths.length > 0) {
+          await supabase.storage.from('property-photos').remove(filePaths);
+        }
+      }
+
+      const { error } = await supabase
+        .from('property_proposals')
+        .delete()
+        .eq('id', proposal.id);
+
+      if (error) throw error;
+
+      toast({ title: "Listing removed", description: "The property listing has been deleted." });
+      setProposals(prev => prev.filter(p => p.id !== proposal.id));
+      if (detailProposal?.id === proposal.id) setDetailProposal(null);
+    } catch (err) {
+      console.error('Error deleting proposal:', err);
+      toast({ title: "Error", description: "Failed to delete listing.", variant: "destructive" });
+    } finally {
+      setDeletingId(null);
     }
   };
 
