@@ -191,7 +191,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
             transition={{ delay: index * 0.05 }}
           >
             <Card 
-              className={`overflow-hidden cursor-pointer hover:shadow-md transition-all ${
+              className={`overflow-hidden cursor-pointer hover:shadow-md transition-all relative ${
                 proposal.client_status === 'liked' 
                   ? 'border-green-500/50 bg-green-50/50' 
                   : proposal.client_status === 'rejected'
