@@ -4,26 +4,108 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, Instagram } from "lucide-react";
+import { Clock, Instagram, ChevronDown } from "lucide-react";
+
+const COUNTRY_CODES = [
+  { code: "+41", country: "🇨🇭", label: "CH" },
+  { code: "+33", country: "🇫🇷", label: "FR" },
+  { code: "+49", country: "🇩🇪", label: "DE" },
+  { code: "+39", country: "🇮🇹", label: "IT" },
+  { code: "+43", country: "🇦🇹", label: "AT" },
+  { code: "+44", country: "🇬🇧", label: "UK" },
+  { code: "+34", country: "🇪🇸", label: "ES" },
+  { code: "+351", country: "🇵🇹", label: "PT" },
+  { code: "+31", country: "🇳🇱", label: "NL" },
+  { code: "+32", country: "🇧🇪", label: "BE" },
+  { code: "+46", country: "🇸🇪", label: "SE" },
+  { code: "+45", country: "🇩🇰", label: "DK" },
+  { code: "+47", country: "🇳🇴", label: "NO" },
+  { code: "+1", country: "🇺🇸", label: "US" },
+  { code: "+90", country: "🇹🇷", label: "TR" },
+  { code: "+91", country: "🇮🇳", label: "IN" },
+  { code: "+86", country: "🇨🇳", label: "CN" },
+  { code: "+81", country: "🇯🇵", label: "JP" },
+  { code: "+82", country: "🇰🇷", label: "KR" },
+  { code: "+55", country: "🇧🇷", label: "BR" },
+  { code: "+212", country: "🇲🇦", label: "MA" },
+  { code: "+216", country: "🇹🇳", label: "TN" },
+  { code: "+961", country: "🇱🇧", label: "LB" },
+];
+
+// Min/max local digits per country code
+const LOCAL_DIGIT_RULES: Record<string, { min: number; max: number }> = {
+  "+41": { min: 9, max: 9 },   // Swiss: 0791234567 → 9 digits
+  "+33": { min: 9, max: 9 },   // France
+  "+49": { min: 10, max: 11 },  // Germany
+  "+39": { min: 9, max: 10 },   // Italy
+  "+44": { min: 10, max: 10 },  // UK
+  "+1":  { min: 10, max: 10 },  // US/Canada
+};
 
 export const WaitlistSection = () => {
   const { toast } = useToast();
-  const [phone, setPhone] = useState("");
+  const [localNumber, setLocalNumber] = useState("");
+  const [countryCode, setCountryCode] = useState("+41");
+  const [showDropdown, setShowDropdown] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
+  const selectedCountry = COUNTRY_CODES.find(c => c.code === countryCode) || COUNTRY_CODES[0];
+
+  const formatLocalNumber = (input: string) => {
+    // Strip everything except digits
+    return input.replace(/[^\d]/g, "");
+  };
+
+  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    // Allow digits, spaces, dashes for display
+    const cleaned = raw.replace(/[^\d\s\-]/g, "");
+    setLocalNumber(cleaned);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Strip spaces, dashes, dots, and parens — keep leading +
-    const normalized = "+" + phone.replace(/[^\d]/g, "");
-    
-    if (!/^\+\d{7,15}$/.test(normalized)) {
+
+    const digits = formatLocalNumber(localNumber);
+
+    // Strip leading zero (common in Swiss/European numbers)
+    const trimmed = digits.startsWith("0") ? digits.slice(1) : digits;
+
+    if (trimmed.length < 6 || trimmed.length > 13) {
       toast({
         title: "Invalid phone number",
-        description: "Please enter a valid international number, e.g. +41 79 123 45 67.",
+        description: "Please enter a valid local number (without the country code).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate against known rules
+    const rule = LOCAL_DIGIT_RULES[countryCode];
+    if (rule) {
+      // Check against original digits (with leading zero) for Swiss-style numbers
+      const checkLength = digits.startsWith("0") ? digits.length - 1 : digits.length;
+      if (checkLength < rule.min || checkLength > rule.max) {
+        toast({
+          title: "Number looks incorrect",
+          description: `A ${selectedCountry.label} number should have ${rule.min === rule.max ? rule.min : `${rule.min}-${rule.max}`} digits after the country code.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    const fullNumber = countryCode + trimmed;
+
+    // Final E.164 check
+    if (!/^\+\d{7,15}$/.test(fullNumber)) {
+      toast({
+        title: "Invalid phone number",
+        description: "Please check the number and try again.",
         variant: "destructive",
       });
       return;
@@ -31,7 +113,7 @@ export const WaitlistSection = () => {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from("waitlist").insert({ phone: normalized });
+      const { error } = await supabase.from("waitlist").insert({ phone: fullNumber });
       if (error) throw error;
 
       setIsSuccess(true);
@@ -91,13 +173,53 @@ export const WaitlistSection = () => {
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-                <Input
-                  type="tel"
-                  placeholder="+41 79 465 27 97"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="h-12 bg-background/60 backdrop-blur-sm border-border/50 focus:border-primary/50 text-center text-base"
-                />
+                <div className="flex gap-2">
+                  {/* Country code selector */}
+                  <div className="relative" ref={dropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setShowDropdown(!showDropdown)}
+                      className="h-12 px-3 bg-background/60 backdrop-blur-sm border border-border/50 rounded-lg flex items-center gap-1.5 hover:border-primary/50 transition-colors min-w-[90px]"
+                    >
+                      <span className="text-base">{selectedCountry.country}</span>
+                      <span className="text-sm text-foreground font-medium">{countryCode}</span>
+                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                    </button>
+                    {showDropdown && (
+                      <div className="absolute top-full left-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto w-48">
+                        {COUNTRY_CODES.map((c) => (
+                          <button
+                            key={c.code}
+                            type="button"
+                            onClick={() => {
+                              setCountryCode(c.code);
+                              setShowDropdown(false);
+                            }}
+                            className={`w-full px-3 py-2.5 text-left flex items-center gap-2.5 hover:bg-muted/80 transition-colors text-sm ${
+                              countryCode === c.code ? "bg-muted" : ""
+                            }`}
+                          >
+                            <span className="text-base">{c.country}</span>
+                            <span className="text-foreground font-medium">{c.code}</span>
+                            <span className="text-muted-foreground ml-auto">{c.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Local number input */}
+                  <Input
+                    type="tel"
+                    placeholder={countryCode === "+41" ? "079 465 27 97" : "Local number"}
+                    value={localNumber}
+                    onChange={handleNumberChange}
+                    className="h-12 bg-background/60 backdrop-blur-sm border-border/50 focus:border-primary/50 text-base flex-1"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Enter your local number — we'll add the country code automatically.
+                </p>
                 <Button
                   type="submit"
                   disabled={isSubmitting}
