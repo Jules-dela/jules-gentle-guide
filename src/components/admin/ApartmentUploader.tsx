@@ -354,6 +354,42 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                         </div>
                       </div>
 
+                      {/* Video Uploader */}
+                      <div>
+                        <Label className="text-sm flex items-center gap-2 mb-2">
+                          <Video className="h-4 w-4" />
+                          Video (optional)
+                        </Label>
+                        {apt.videoPreviewUrl ? (
+                          <div className="relative rounded-lg overflow-hidden bg-muted">
+                            <video
+                              src={apt.videoPreviewUrl}
+                              controls
+                              className="w-full max-h-48 object-contain"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeVideo(apt.id)}
+                              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="flex items-center justify-center gap-2 h-20 rounded-lg border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 cursor-pointer transition-colors bg-muted/30">
+                            <Video className="h-5 w-5 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">Upload a video</span>
+                            <input
+                              type="file"
+                              accept="video/*"
+                              className="hidden"
+                              onChange={(e) => handleVideoChange(apt.id, e.target.files)}
+                            />
+                          </label>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">Max 100MB · MP4, MOV, etc.</p>
+                      </div>
+
                       {/* Price and Rooms */}
                       <div className="grid grid-cols-2 gap-3">
                         <div>
