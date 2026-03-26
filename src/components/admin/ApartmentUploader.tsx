@@ -146,10 +146,10 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
         });
         return;
       }
-      if (apt.images.length === 0) {
+      if (apt.images.length === 0 && !apt.video) {
         toast({
-          title: "Missing images",
-          description: "Please add at least one image for each apartment.",
+          title: "Missing media",
+          description: "Please add at least one image or a video for each apartment.",
           variant: "destructive",
         });
         return;
