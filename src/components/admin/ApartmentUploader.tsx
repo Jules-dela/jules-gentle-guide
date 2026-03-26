@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail, Eye } from 'lucide-react';
+import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail, Eye, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
