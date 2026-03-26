@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, Phone, MapPin, CreditCard, Calendar, Home, FileText, ChevronDown, ChevronUp, Loader2, GraduationCap, Users } from 'lucide-react';
+import { X, Mail, Phone, MapPin, CreditCard, Calendar, Home, FileText, ChevronDown, ChevronUp, Loader2, GraduationCap, Users, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -102,6 +102,25 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
   const [showFullCriteria, setShowFullCriteria] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [sendingAccess, setSendingAccess] = useState(false);
+
+  const handleResendAccess = useCallback(async () => {
+    if (!client?.email) return;
+    setSendingAccess(true);
+    try {
+      const redirectTo = 'https://uni-key.ch/reset-password';
+      const { data, error } = await supabase.functions.invoke('send-password-reset', {
+        body: { email: client.email, redirectTo },
+      });
+      if (error) throw error;
+      toast({ title: 'Access email sent', description: `Password reset sent to ${client.email}` });
+    } catch (err) {
+      console.error('Error sending access email:', err);
+      toast({ title: 'Error', description: 'Failed to send access email.', variant: 'destructive' });
+    } finally {
+      setSendingAccess(false);
+    }
+  }, [client?.email]);
 
   const handleStatusChange = useCallback(async (newStatus: string) => {
     if (!client?.case_id || newStatus === client.case_status) return;
@@ -242,8 +261,18 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
                       <Badge variant="secondary" className="text-xs mt-1">
                         No case
                       </Badge>
-                    )}
-                  </div>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleResendAccess}
+                    disabled={sendingAccess}
+                    className="gap-2 mt-2 w-full"
+                  >
+                    {sendingAccess ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+                    Resend Access
+                  </Button>
+                </div>
                 </div>
 
                 {/* Contact Info */}
