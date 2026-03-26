@@ -362,10 +362,18 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
                   <TableHeader>
                     <TableRow className="bg-muted/50 hover:bg-muted/50">
                       <TableHead className="font-semibold">Student</TableHead>
+                      <TableHead className="font-semibold">Phone</TableHead>
+                      <TableHead className="font-semibold">University / Company</TableHead>
                       <TableHead className="font-semibold">Stage</TableHead>
                       {filter === 'active' && <TableHead className="font-semibold">Docs</TableHead>}
+                      <TableHead className="font-semibold">Budget</TableHead>
+                      <TableHead className="font-semibold">Area</TableHead>
+                      <TableHead className="font-semibold">Rooms</TableHead>
+                      <TableHead className="font-semibold">Duration</TableHead>
+                      <TableHead className="font-semibold">Type</TableHead>
+                      <TableHead className="font-semibold">Sharing</TableHead>
                       <TableHead className="font-semibold">{filter === 'active' ? 'Last Activity' : 'Closed Date'}</TableHead>
-                      {filter === 'active' && <TableHead className="font-semibold">Criteria</TableHead>}
+                      <TableHead className="font-semibold">Signed Up</TableHead>
                       <TableHead className="font-semibold">Status</TableHead>
                     </TableRow>
                   </TableHeader>
