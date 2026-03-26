@@ -17,6 +17,8 @@ interface ApartmentDraft {
   id: string;
   images: File[];
   imagePreviewUrls: string[];
+  video: File | null;
+  videoPreviewUrl: string | null;
   rent: string;
   rooms: string;
   neighborhood: string;
