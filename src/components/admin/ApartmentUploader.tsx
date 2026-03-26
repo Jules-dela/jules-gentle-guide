@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail, Eye } from 'lucide-react';
+import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail, Eye, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +17,8 @@ interface ApartmentDraft {
   id: string;
   images: File[];
   imagePreviewUrls: string[];
+  video: File | null;
+  videoPreviewUrl: string | null;
   rent: string;
   rooms: string;
   neighborhood: string;
@@ -55,6 +57,8 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
       id: `draft-${Date.now()}`,
       images: [],
       imagePreviewUrls: [],
+      video: null,
+      videoPreviewUrl: null,
       rent: '',
       rooms: '',
       neighborhood: '',
@@ -108,6 +112,29 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
     updateApartment(apartmentId, 'images', filesArray);
   }, [updateApartment]);
 
+  const handleVideoChange = useCallback((apartmentId: string, files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    // Validate file size (100MB max)
+    if (file.size > 100 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Video must be under 100MB.", variant: "destructive" });
+      return;
+    }
+    setApartments(prev => prev.map(apt => {
+      if (apt.id !== apartmentId) return apt;
+      if (apt.videoPreviewUrl) URL.revokeObjectURL(apt.videoPreviewUrl);
+      return { ...apt, video: file, videoPreviewUrl: URL.createObjectURL(file) };
+    }));
+  }, []);
+
+  const removeVideo = useCallback((apartmentId: string) => {
+    setApartments(prev => prev.map(apt => {
+      if (apt.id !== apartmentId) return apt;
+      if (apt.videoPreviewUrl) URL.revokeObjectURL(apt.videoPreviewUrl);
+      return { ...apt, video: null, videoPreviewUrl: null };
+    }));
+  }, []);
+
   const handleSubmitAll = useCallback(async () => {
     // Validate all apartments
     for (const apt of apartments) {
@@ -152,7 +179,7 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
         }
 
         // Create property proposal
-        const { error: insertError } = await supabase
+        const { data: proposalData, error: insertError } = await supabase
           .from('property_proposals')
           .insert({
             case_id: caseId,
@@ -162,9 +189,34 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
             description: apt.description,
             photos: uploadedUrls,
             client_status: 'pending',
-          });
+          })
+          .select('id')
+          .single();
 
         if (insertError) throw insertError;
+
+        // Upload video if present
+        if (apt.video && proposalData) {
+          const videoFileName = `${caseId}/${proposalData.id}/${Date.now()}-${apt.video.name}`;
+          const { error: videoUploadError } = await supabase.storage
+            .from('visit-videos')
+            .upload(videoFileName, apt.video);
+
+          if (videoUploadError) {
+            console.error('Video upload error:', videoUploadError);
+            toast({ title: "Video upload failed", description: "The listing was saved but the video could not be uploaded.", variant: "destructive" });
+          } else {
+            const { data: { publicUrl } } = supabase.storage
+              .from('visit-videos')
+              .getPublicUrl(videoFileName);
+
+            await supabase.from('visit_videos').insert({
+              proposal_id: proposalData.id,
+              video_url: publicUrl,
+              notes: null,
+            });
+          }
+        }
       }
 
       // Create notification for stage 2
@@ -325,6 +377,42 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                             </label>
                           )}
                         </div>
+                      </div>
+
+                      {/* Video Uploader */}
+                      <div>
+                        <Label className="text-sm flex items-center gap-2 mb-2">
+                          <Video className="h-4 w-4" />
+                          Video (optional)
+                        </Label>
+                        {apt.videoPreviewUrl ? (
+                          <div className="relative rounded-lg overflow-hidden bg-muted">
+                            <video
+                              src={apt.videoPreviewUrl}
+                              controls
+                              className="w-full max-h-48 object-contain"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeVideo(apt.id)}
+                              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="flex items-center justify-center gap-2 h-20 rounded-lg border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 cursor-pointer transition-colors bg-muted/30">
+                            <Video className="h-5 w-5 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">Upload a video</span>
+                            <input
+                              type="file"
+                              accept="video/*"
+                              className="hidden"
+                              onChange={(e) => handleVideoChange(apt.id, e.target.files)}
+                            />
+                          </label>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">Max 100MB · MP4, MOV, etc.</p>
                       </div>
 
                       {/* Price and Rooms */}
