@@ -179,7 +179,7 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
         }
 
         // Create property proposal
-        const { error: insertError } = await supabase
+        const { data: proposalData, error: insertError } = await supabase
           .from('property_proposals')
           .insert({
             case_id: caseId,
@@ -189,9 +189,34 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
             description: apt.description,
             photos: uploadedUrls,
             client_status: 'pending',
-          });
+          })
+          .select('id')
+          .single();
 
         if (insertError) throw insertError;
+
+        // Upload video if present
+        if (apt.video && proposalData) {
+          const videoFileName = `${caseId}/${proposalData.id}/${Date.now()}-${apt.video.name}`;
+          const { error: videoUploadError } = await supabase.storage
+            .from('visit-videos')
+            .upload(videoFileName, apt.video);
+
+          if (videoUploadError) {
+            console.error('Video upload error:', videoUploadError);
+            toast({ title: "Video upload failed", description: "The listing was saved but the video could not be uploaded.", variant: "destructive" });
+          } else {
+            const { data: { publicUrl } } = supabase.storage
+              .from('visit-videos')
+              .getPublicUrl(videoFileName);
+
+            await supabase.from('visit_videos').insert({
+              proposal_id: proposalData.id,
+              video_url: publicUrl,
+              notes: null,
+            });
+          }
+        }
       }
 
       // Create notification for stage 2
