@@ -362,10 +362,18 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
                   <TableHeader>
                     <TableRow className="bg-muted/50 hover:bg-muted/50">
                       <TableHead className="font-semibold">Student</TableHead>
+                      <TableHead className="font-semibold">Phone</TableHead>
+                      <TableHead className="font-semibold">University / Company</TableHead>
                       <TableHead className="font-semibold">Stage</TableHead>
                       {filter === 'active' && <TableHead className="font-semibold">Docs</TableHead>}
+                      <TableHead className="font-semibold">Budget</TableHead>
+                      <TableHead className="font-semibold">Area</TableHead>
+                      <TableHead className="font-semibold">Rooms</TableHead>
+                      <TableHead className="font-semibold">Duration</TableHead>
+                      <TableHead className="font-semibold">Type</TableHead>
+                      <TableHead className="font-semibold">Sharing</TableHead>
                       <TableHead className="font-semibold">{filter === 'active' ? 'Last Activity' : 'Closed Date'}</TableHead>
-                      {filter === 'active' && <TableHead className="font-semibold">Criteria</TableHead>}
+                      <TableHead className="font-semibold">Signed Up</TableHead>
                       <TableHead className="font-semibold">Status</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -405,9 +413,15 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
                             </div>
                           </TableCell>
                           <TableCell>
+                            <p className="text-sm text-muted-foreground whitespace-nowrap">{client.phone || '—'}</p>
+                          </TableCell>
+                          <TableCell>
+                            <p className="text-sm text-muted-foreground whitespace-nowrap">{client.company_school || '—'}</p>
+                          </TableCell>
+                          <TableCell>
                             <span
                               className={cn(
-                                'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium',
+                                'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap',
                                 stageInfo.color
                               )}
                             >
@@ -424,19 +438,35 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
                             </TableCell>
                           )}
                           <TableCell>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-muted-foreground whitespace-nowrap">{client.budget || '—'}</p>
+                          </TableCell>
+                          <TableCell>
+                            <p className="text-sm text-muted-foreground whitespace-nowrap">{client.neighbourhood || '—'}</p>
+                          </TableCell>
+                          <TableCell>
+                            <p className="text-sm text-muted-foreground whitespace-nowrap">{client.rooms || '—'}</p>
+                          </TableCell>
+                          <TableCell>
+                            <p className="text-sm text-muted-foreground whitespace-nowrap">{client.duration || '—'}</p>
+                          </TableCell>
+                          <TableCell>
+                            <p className="text-sm text-muted-foreground whitespace-nowrap">{client.property_type || '—'}</p>
+                          </TableCell>
+                          <TableCell>
+                            <p className="text-sm text-muted-foreground whitespace-nowrap">
+                              {client.roommate_preference ? (client.roommate_preference.toLowerCase().startsWith('yes') ? 'Yes' : 'No') : '—'}
+                            </p>
+                          </TableCell>
+                          <TableCell>
+                            <p className="text-sm text-muted-foreground whitespace-nowrap">
                               {formatLastActivity(client.last_activity, client.last_activity_at)}
                             </p>
                           </TableCell>
-                          {filter === 'active' && (
-                            <TableCell>
-                              <div className="text-sm">
-                                <span className="text-muted-foreground">
-                                  {client.budget || 'No budget'} • {client.neighbourhood || 'Any area'}
-                                </span>
-                              </div>
-                            </TableCell>
-                          )}
+                          <TableCell>
+                            <p className="text-sm text-muted-foreground whitespace-nowrap">
+                              {formatDistanceToNow(new Date(client.created_at), { addSuffix: true })}
+                            </p>
+                          </TableCell>
                           <TableCell>
                             <Badge variant={statusTag.variant}>{statusTag.label}</Badge>
                           </TableCell>
