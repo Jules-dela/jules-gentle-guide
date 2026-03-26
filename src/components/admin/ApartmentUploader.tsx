@@ -57,6 +57,8 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
       id: `draft-${Date.now()}`,
       images: [],
       imagePreviewUrls: [],
+      video: null,
+      videoPreviewUrl: null,
       rent: '',
       rooms: '',
       neighborhood: '',
