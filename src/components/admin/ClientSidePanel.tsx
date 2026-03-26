@@ -261,8 +261,18 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
                       <Badge variant="secondary" className="text-xs mt-1">
                         No case
                       </Badge>
-                    )}
-                  </div>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleResendAccess}
+                    disabled={sendingAccess}
+                    className="gap-2 mt-2 w-full"
+                  >
+                    {sendingAccess ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+                    Resend Access
+                  </Button>
+                </div>
                 </div>
 
                 {/* Contact Info */}
