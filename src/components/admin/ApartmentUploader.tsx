@@ -112,6 +112,29 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
     updateApartment(apartmentId, 'images', filesArray);
   }, [updateApartment]);
 
+  const handleVideoChange = useCallback((apartmentId: string, files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    // Validate file size (100MB max)
+    if (file.size > 100 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Video must be under 100MB.", variant: "destructive" });
+      return;
+    }
+    setApartments(prev => prev.map(apt => {
+      if (apt.id !== apartmentId) return apt;
+      if (apt.videoPreviewUrl) URL.revokeObjectURL(apt.videoPreviewUrl);
+      return { ...apt, video: file, videoPreviewUrl: URL.createObjectURL(file) };
+    }));
+  }, []);
+
+  const removeVideo = useCallback((apartmentId: string) => {
+    setApartments(prev => prev.map(apt => {
+      if (apt.id !== apartmentId) return apt;
+      if (apt.videoPreviewUrl) URL.revokeObjectURL(apt.videoPreviewUrl);
+      return { ...apt, video: null, videoPreviewUrl: null };
+    }));
+  }, []);
+
   const handleSubmitAll = useCallback(async () => {
     // Validate all apartments
     for (const apt of apartments) {
