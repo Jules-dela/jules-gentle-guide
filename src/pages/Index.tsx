@@ -4,8 +4,9 @@ import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { PartnerBanner } from "@/components/PartnerBanner";
 import { StickyStackingCards } from "@/components/StickyStackingCards";
+import { WaitlistSection } from "@/components/WaitlistSection";
 import { FAQ } from "@/components/FAQ";
-import { CriteriaForm } from "@/components/CriteriaForm";
+
 import { Footer } from "@/components/Footer";
 import { BackToTop } from "@/components/BackToTop";
 
@@ -39,7 +40,7 @@ const Index = () => {
         
         <StickyStackingCards />
         <FAQ />
-        <CriteriaForm />
+        <WaitlistSection />
       </main>
       <Footer />
       <BackToTop />
