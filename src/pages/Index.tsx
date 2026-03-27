@@ -5,9 +5,7 @@ import { Hero } from "@/components/Hero";
 import { PartnerBanner } from "@/components/PartnerBanner";
 import { StickyStackingCards } from "@/components/StickyStackingCards";
 import { FAQ } from "@/components/FAQ";
-/* UNIKEY FORM - kept for future use, do not delete */
-// import { CriteriaForm } from "@/components/CriteriaForm";
-import { WaitlistSection } from "@/components/WaitlistSection";
+import { CriteriaForm } from "@/components/CriteriaForm";
 import { Footer } from "@/components/Footer";
 import { BackToTop } from "@/components/BackToTop";
 
@@ -41,9 +39,7 @@ const Index = () => {
         
         <StickyStackingCards />
         <FAQ />
-        {/* UNIKEY FORM - kept for future use, do not delete */}
-        {/* <CriteriaForm /> */}
-        <WaitlistSection />
+        <CriteriaForm />
       </main>
       <Footer />
       <BackToTop />
