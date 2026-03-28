@@ -202,7 +202,7 @@ export function ProposalCard({ proposal, onFeedback }: ProposalCardProps) {
 
           {/* Description */}
           {proposal.description && (
-            <p className="text-sm text-muted-foreground line-clamp-2">
+            <p className="text-sm text-muted-foreground whitespace-pre-line">
               {proposal.description}
             </p>
           )}
