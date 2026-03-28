@@ -368,6 +368,35 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
               </div>
             </div>
 
+            {/* Edit Description */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase">Listing Description</h4>
+                {!editingDescription ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 gap-1 text-xs"
+                    onClick={() => { setEditDescription(selectedProposal.description || ''); setEditingDescription(true); }}
+                  >
+                    <Pencil className="h-3 w-3" /> Edit
+                  </Button>
+                ) : (
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setEditingDescription(false)}>Cancel</Button>
+                    <Button size="sm" className="h-6 gap-1 text-xs" onClick={saveProposalDescription} disabled={savingDescription}>
+                      {savingDescription ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Save
+                    </Button>
+                  </div>
+                )}
+              </div>
+              {editingDescription ? (
+                <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={3} className="text-sm" placeholder="Edit description..." />
+              ) : (
+                <p className="text-sm text-foreground whitespace-pre-wrap">{selectedProposal.description || <span className="italic text-muted-foreground">No description</span>}</p>
+              )}
+            </div>
+
             <Separator />
 
             {/* Visit Decision Status */}
