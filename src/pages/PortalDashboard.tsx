@@ -492,6 +492,7 @@ export default function PortalDashboard() {
               proposals={showcaseProposals || pendingProposals}
               onLike={resolvedOnLike}
               onReject={resolvedOnReject}
+              onAllReviewed={isShowcaseMode ? undefined : handleAllReviewed}
               readOnly={isReadOnly}
               likedCount={isShowcaseMode ? 0 : likedCount}
             />
