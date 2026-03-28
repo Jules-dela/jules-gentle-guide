@@ -277,18 +277,18 @@ export function ResearchGallery({ proposals, onLike, onReject, onAllReviewed, re
 
         {/* Refinement Dialog — shown when 0 liked */}
         <Dialog open={showRefinementDialog} onOpenChange={setShowRefinementDialog}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-sm data-[state=open]:animate-[fade-in_0.4s_ease-out,scale-in_0.3s_ease-out] data-[state=closed]:animate-[fade-out_0.3s_ease-out,scale-out_0.2s_ease-out]">
             <DialogHeader className="text-center">
-              <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                <Sparkles className="w-7 h-7 text-primary" />
+              <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                <Sparkles className="w-6 h-6 text-primary" />
               </div>
-              <DialogTitle className="text-xl">We're On It!</DialogTitle>
-              <DialogDescription className="text-base mt-2">
+              <DialogTitle className="text-lg">We're On It!</DialogTitle>
+              <DialogDescription className="text-sm mt-1.5">
                 Thank you for reviewing all the properties. Based on your feedback, we'll fine-tune our search to find options that better match what you're looking for. New proposals will be available soon.
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter className="mt-4">
-              <Button onClick={handleRefinementClose} className="w-full rounded-full">
+            <DialogFooter className="mt-3">
+              <Button onClick={handleRefinementClose} className="w-full rounded-full h-10 text-sm">
                 Sounds Good
               </Button>
             </DialogFooter>
