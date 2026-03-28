@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail, Eye, Video } from 'lucide-react';
+import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail, Eye, Video, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -102,6 +102,19 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
       newImages.splice(imageIndex, 1);
       newPreviews.splice(imageIndex, 1);
       
+      return { ...apt, images: newImages, imagePreviewUrls: newPreviews };
+    }));
+  }, [apartments]);
+
+  const moveImage = useCallback((apartmentId: string, fromIndex: number, direction: 'left' | 'right') => {
+    setApartments(apartments.map(apt => {
+      if (apt.id !== apartmentId) return apt;
+      const toIndex = direction === 'left' ? fromIndex - 1 : fromIndex + 1;
+      if (toIndex < 0 || toIndex >= apt.images.length) return apt;
+      const newImages = [...apt.images];
+      const newPreviews = [...apt.imagePreviewUrls];
+      [newImages[fromIndex], newImages[toIndex]] = [newImages[toIndex], newImages[fromIndex]];
+      [newPreviews[fromIndex], newPreviews[toIndex]] = [newPreviews[toIndex], newPreviews[fromIndex]];
       return { ...apt, images: newImages, imagePreviewUrls: newPreviews };
     }));
   }, [apartments]);
@@ -353,6 +366,7 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                                 alt={`Preview ${imgIndex + 1}`}
                                 className="w-full h-full object-cover"
                               />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
                               <button
                                 type="button"
                                 onClick={() => removeImage(apt.id, imgIndex)}
@@ -360,6 +374,31 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                               >
                                 <X className="h-3 w-3" />
                               </button>
+                              {apt.imagePreviewUrls.length > 1 && (
+                                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  {imgIndex > 0 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => moveImage(apt.id, imgIndex, 'left')}
+                                      className="w-6 h-6 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90"
+                                    >
+                                      <ArrowLeft className="h-3 w-3" />
+                                    </button>
+                                  )}
+                                  {imgIndex < apt.imagePreviewUrls.length - 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => moveImage(apt.id, imgIndex, 'right')}
+                                      className="w-6 h-6 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90"
+                                    >
+                                      <ArrowRight className="h-3 w-3" />
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                              {imgIndex === 0 && (
+                                <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary text-primary-foreground">Cover</span>
+                              )}
                             </div>
                           ))}
                           

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, RefreshCw, Loader2, Home, MessageSquare, ChevronLeft, ChevronRight, MapPin, Wallet, Maximize2, Bed, Building2, Trash2 } from 'lucide-react';
+import { Check, X, RefreshCw, Loader2, Home, MessageSquare, ChevronLeft, ChevronRight, MapPin, Wallet, Maximize2, Bed, Building2, Trash2, Pencil, Save, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -45,6 +46,10 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
   const [questionsProposal, setQuestionsProposal] = useState<Proposal | null>(null);
   const [detailProposal, setDetailProposal] = useState<Proposal | null>(null);
   const [detailPhotoIndex, setDetailPhotoIndex] = useState(0);
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [editDescription, setEditDescription] = useState('');
+  const [savingDescription, setSavingDescription] = useState(false);
+  const [savingPhotos, setSavingPhotos] = useState(false);
 
   useEffect(() => {
     fetchProposals();
@@ -133,6 +138,54 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
       toast({ title: "Error", description: "Failed to delete listing.", variant: "destructive" });
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const saveDescription = async () => {
+    if (!detailProposal) return;
+    setSavingDescription(true);
+    try {
+      const { error } = await supabase
+        .from('property_proposals')
+        .update({ description: editDescription })
+        .eq('id', detailProposal.id);
+      if (error) throw error;
+      setDetailProposal({ ...detailProposal, description: editDescription });
+      setProposals(prev => prev.map(p => p.id === detailProposal.id ? { ...p, description: editDescription } : p));
+      setEditingDescription(false);
+      toast({ title: 'Description updated' });
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Error', description: 'Failed to update description.', variant: 'destructive' });
+    } finally {
+      setSavingDescription(false);
+    }
+  };
+
+  const movePhoto = async (proposalId: string, fromIndex: number, direction: 'left' | 'right') => {
+    const proposal = detailProposal?.id === proposalId ? detailProposal : proposals.find(p => p.id === proposalId);
+    if (!proposal?.photos) return;
+    const toIndex = direction === 'left' ? fromIndex - 1 : fromIndex + 1;
+    if (toIndex < 0 || toIndex >= proposal.photos.length) return;
+    const newPhotos = [...proposal.photos];
+    [newPhotos[fromIndex], newPhotos[toIndex]] = [newPhotos[toIndex], newPhotos[fromIndex]];
+    
+    setSavingPhotos(true);
+    try {
+      const { error } = await supabase.from('property_proposals').update({ photos: newPhotos }).eq('id', proposalId);
+      if (error) throw error;
+      if (detailProposal?.id === proposalId) {
+        setDetailProposal({ ...detailProposal, photos: newPhotos });
+        // Adjust photo index if needed
+        if (detailPhotoIndex === fromIndex) setDetailPhotoIndex(toIndex);
+        else if (detailPhotoIndex === toIndex) setDetailPhotoIndex(fromIndex);
+      }
+      setProposals(prev => prev.map(p => p.id === proposalId ? { ...p, photos: newPhotos } : p));
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Error', description: 'Failed to reorder photos.', variant: 'destructive' });
+    } finally {
+      setSavingPhotos(false);
     }
   };
 
@@ -509,10 +562,64 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
               )}
 
               {/* Description */}
-              {detailProposal.description && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase">Description</h4>
+                  {!editingDescription ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 gap-1 text-xs"
+                      onClick={() => { setEditDescription(detailProposal.description || ''); setEditingDescription(true); }}
+                    >
+                      <Pencil className="h-3 w-3" /> Edit
+                    </Button>
+                  ) : (
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setEditingDescription(false)}>Cancel</Button>
+                      <Button size="sm" className="h-6 gap-1 text-xs" onClick={saveDescription} disabled={savingDescription}>
+                        {savingDescription ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Save
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                {editingDescription ? (
+                  <Textarea
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    rows={4}
+                    className="text-sm"
+                    placeholder="Add a description..."
+                  />
+                ) : (
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{detailProposal.description || <span className="italic text-muted-foreground">No description</span>}</p>
+                )}
+              </div>
+
+              {/* Photo Reorder */}
+              {detailProposal.photos && detailProposal.photos.length > 1 && (
                 <div>
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Description</h4>
-                  <p className="text-sm text-foreground whitespace-pre-wrap">{detailProposal.description}</p>
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Reorder Photos</h4>
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {detailProposal.photos.map((url, i) => (
+                      <div key={i} className="relative shrink-0 w-16 h-16 rounded-lg overflow-hidden group border">
+                        <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                        {i === 0 && <span className="absolute top-0.5 left-0.5 px-1 py-0.5 rounded text-[8px] font-bold bg-primary text-primary-foreground">Cover</span>}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-0.5 opacity-0 group-hover:opacity-100">
+                          {i > 0 && (
+                            <button onClick={() => movePhoto(detailProposal.id, i, 'left')} disabled={savingPhotos} className="w-5 h-5 rounded-full bg-white/90 flex items-center justify-center">
+                              <ArrowLeft className="h-3 w-3" />
+                            </button>
+                          )}
+                          {i < detailProposal.photos!.length - 1 && (
+                            <button onClick={() => movePhoto(detailProposal.id, i, 'right')} disabled={savingPhotos} className="w-5 h-5 rounded-full bg-white/90 flex items-center justify-center">
+                              <ArrowRight className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 

@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Upload, X, Image, Loader2, Check, ThumbsUp, ThumbsDown, 
-  RefreshCw, Plus, Trash2, Eye, Clock, Mail, MessageSquare 
+  RefreshCw, Plus, Trash2, Eye, Clock, Mail, MessageSquare,
+  ArrowLeft, ArrowRight, Pencil, Save
 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +27,7 @@ interface Proposal {
   rejection_reasons: string[] | null;
   rejection_notes: string | null;
   photos: string[] | null;
+  description: string | null;
   visit_photos: string[] | null;
   visit_pros: string[] | null;
   visit_cons: string[] | null;
@@ -53,6 +56,9 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [pros, setPros] = useState<string[]>(['']);
   const [cons, setCons] = useState<string[]>(['']);
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [editDescription, setEditDescription] = useState('');
+  const [savingDescription, setSavingDescription] = useState(false);
 
   const selectedProposal = likedProposals.find(p => p.id === selectedProposalId) || null;
 
@@ -120,6 +126,40 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
     setVisitImages(prev => prev.filter((_, i) => i !== index));
     setImagePreviewUrls(prev => prev.filter((_, i) => i !== index));
   }, [imagePreviewUrls]);
+
+  const moveVisitImage = useCallback((fromIndex: number, direction: 'left' | 'right') => {
+    const toIndex = direction === 'left' ? fromIndex - 1 : fromIndex + 1;
+    if (toIndex < 0 || toIndex >= imagePreviewUrls.length) return;
+    setImagePreviewUrls(prev => {
+      const arr = [...prev];
+      [arr[fromIndex], arr[toIndex]] = [arr[toIndex], arr[fromIndex]];
+      return arr;
+    });
+    setVisitImages(prev => {
+      const arr = [...prev];
+      if (fromIndex < arr.length && toIndex < arr.length) {
+        [arr[fromIndex], arr[toIndex]] = [arr[toIndex], arr[fromIndex]];
+      }
+      return arr;
+    });
+  }, [imagePreviewUrls]);
+
+  const saveProposalDescription = async () => {
+    if (!selectedProposal) return;
+    setSavingDescription(true);
+    try {
+      const { error } = await supabase.from('property_proposals').update({ description: editDescription }).eq('id', selectedProposal.id);
+      if (error) throw error;
+      toast({ title: 'Description updated' });
+      setEditingDescription(false);
+      fetchLikedProposals();
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Error', description: 'Failed to update.', variant: 'destructive' });
+    } finally {
+      setSavingDescription(false);
+    }
+  };
 
   const addProItem = useCallback(() => setPros(prev => [...prev, '']), []);
   const removeProItem = useCallback((index: number) => setPros(prev => prev.filter((_, i) => i !== index)), []);
