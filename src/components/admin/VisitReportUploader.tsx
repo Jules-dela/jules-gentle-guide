@@ -463,12 +463,13 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {imagePreviewUrls.map((url, index) => (
                   <motion.div
-                    key={url}
+                    key={`${url}-${index}`}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="relative aspect-square rounded-lg overflow-hidden group"
                   >
                     <img src={url} alt={`Visit photo ${index + 1}`} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
@@ -476,6 +477,21 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
                     >
                       <X className="h-3 w-3" />
                     </button>
+                    {imagePreviewUrls.length > 1 && (
+                      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {index > 0 && (
+                          <button type="button" onClick={() => moveVisitImage(index, 'left')} className="w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90">
+                            <ArrowLeft className="h-3 w-3" />
+                          </button>
+                        )}
+                        {index < imagePreviewUrls.length - 1 && (
+                          <button type="button" onClick={() => moveVisitImage(index, 'right')} className="w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90">
+                            <ArrowRight className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {index === 0 && <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary text-primary-foreground">Cover</span>}
                   </motion.div>
                 ))}
                 {imagePreviewUrls.length < 10 && (
