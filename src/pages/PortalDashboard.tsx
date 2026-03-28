@@ -235,10 +235,11 @@ export default function PortalDashboard() {
     const likedProposals = proposals.filter(p => p.client_status === 'liked');
     const published = likedProposals.find(p => p.visit_published);
     const target = published || likedProposals[0];
-    if (target && !selectedApartment) {
+    if (target) {
+      // Always update to the best available apartment (published visit takes priority)
       setSelectedApartment(proposalToApartment(target));
     }
-  }, [proposals, selectedApartment, isOfflineMode]);
+  }, [proposals, isOfflineMode]);
 
   useEffect(() => {
     if (isOfflineMode) return;
@@ -493,6 +494,24 @@ export default function PortalDashboard() {
               readOnly={isReadOnly}
             />
           )}
+
+          {currentStage === 3 && !resolvedSelectedApartment && (
+            <motion.div
+              key="stage-3-empty"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-16"
+            >
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-8 h-8 text-primary" />
+              </div>
+              <h2 className="text-xl font-semibold mb-2">No Property Selected Yet</h2>
+              <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+                Like a property in the Research stage first, then we'll schedule a visit for you.
+              </p>
+              <Button onClick={() => setCurrentStage(2)}>Go to Research</Button>
+            </motion.div>
+          )}
           
           {currentStage === 4 && resolvedSelectedApartment && (
             <DocumentsDossier 
@@ -504,6 +523,24 @@ export default function PortalDashboard() {
               onPreviewHandover={() => setCurrentStage(5)}
               readOnly={isReadOnly}
             />
+          )}
+
+          {currentStage === 4 && !resolvedSelectedApartment && (
+            <motion.div
+              key="stage-4-empty"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-16"
+            >
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-8 h-8 text-primary" />
+              </div>
+              <h2 className="text-xl font-semibold mb-2">Documents Stage</h2>
+              <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+                Please complete earlier stages first to prepare your dossier.
+              </p>
+              <Button onClick={() => setCurrentStage(2)}>Go to Research</Button>
+            </motion.div>
           )}
           
           {currentStage > 4 && resolvedSelectedApartment && (
