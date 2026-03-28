@@ -235,10 +235,11 @@ export default function PortalDashboard() {
     const likedProposals = proposals.filter(p => p.client_status === 'liked');
     const published = likedProposals.find(p => p.visit_published);
     const target = published || likedProposals[0];
-    if (target && !selectedApartment) {
+    if (target) {
+      // Always update to the best available apartment (published visit takes priority)
       setSelectedApartment(proposalToApartment(target));
     }
-  }, [proposals, selectedApartment, isOfflineMode]);
+  }, [proposals, isOfflineMode]);
 
   useEffect(() => {
     if (isOfflineMode) return;
