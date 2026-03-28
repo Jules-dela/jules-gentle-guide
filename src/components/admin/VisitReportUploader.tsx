@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Upload, X, Image, Loader2, Check, ThumbsUp, ThumbsDown, 
-  RefreshCw, Plus, Trash2, Eye, Clock, Mail, MessageSquare 
+  RefreshCw, Plus, Trash2, Eye, Clock, Mail, MessageSquare,
+  ArrowLeft, ArrowRight, Pencil, Save
 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +27,7 @@ interface Proposal {
   rejection_reasons: string[] | null;
   rejection_notes: string | null;
   photos: string[] | null;
+  description: string | null;
   visit_photos: string[] | null;
   visit_pros: string[] | null;
   visit_cons: string[] | null;
@@ -53,6 +56,9 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [pros, setPros] = useState<string[]>(['']);
   const [cons, setCons] = useState<string[]>(['']);
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [editDescription, setEditDescription] = useState('');
+  const [savingDescription, setSavingDescription] = useState(false);
 
   const selectedProposal = likedProposals.find(p => p.id === selectedProposalId) || null;
 
@@ -120,6 +126,40 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
     setVisitImages(prev => prev.filter((_, i) => i !== index));
     setImagePreviewUrls(prev => prev.filter((_, i) => i !== index));
   }, [imagePreviewUrls]);
+
+  const moveVisitImage = useCallback((fromIndex: number, direction: 'left' | 'right') => {
+    const toIndex = direction === 'left' ? fromIndex - 1 : fromIndex + 1;
+    if (toIndex < 0 || toIndex >= imagePreviewUrls.length) return;
+    setImagePreviewUrls(prev => {
+      const arr = [...prev];
+      [arr[fromIndex], arr[toIndex]] = [arr[toIndex], arr[fromIndex]];
+      return arr;
+    });
+    setVisitImages(prev => {
+      const arr = [...prev];
+      if (fromIndex < arr.length && toIndex < arr.length) {
+        [arr[fromIndex], arr[toIndex]] = [arr[toIndex], arr[fromIndex]];
+      }
+      return arr;
+    });
+  }, [imagePreviewUrls]);
+
+  const saveProposalDescription = async () => {
+    if (!selectedProposal) return;
+    setSavingDescription(true);
+    try {
+      const { error } = await supabase.from('property_proposals').update({ description: editDescription }).eq('id', selectedProposal.id);
+      if (error) throw error;
+      toast({ title: 'Description updated' });
+      setEditingDescription(false);
+      fetchLikedProposals();
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Error', description: 'Failed to update.', variant: 'destructive' });
+    } finally {
+      setSavingDescription(false);
+    }
+  };
 
   const addProItem = useCallback(() => setPros(prev => [...prev, '']), []);
   const removeProItem = useCallback((index: number) => setPros(prev => prev.filter((_, i) => i !== index)), []);
@@ -328,6 +368,35 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
               </div>
             </div>
 
+            {/* Edit Description */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase">Listing Description</h4>
+                {!editingDescription ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 gap-1 text-xs"
+                    onClick={() => { setEditDescription(selectedProposal.description || ''); setEditingDescription(true); }}
+                  >
+                    <Pencil className="h-3 w-3" /> Edit
+                  </Button>
+                ) : (
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setEditingDescription(false)}>Cancel</Button>
+                    <Button size="sm" className="h-6 gap-1 text-xs" onClick={saveProposalDescription} disabled={savingDescription}>
+                      {savingDescription ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Save
+                    </Button>
+                  </div>
+                )}
+              </div>
+              {editingDescription ? (
+                <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={3} className="text-sm" placeholder="Edit description..." />
+              ) : (
+                <p className="text-sm text-foreground whitespace-pre-wrap">{selectedProposal.description || <span className="italic text-muted-foreground">No description</span>}</p>
+              )}
+            </div>
+
             <Separator />
 
             {/* Visit Decision Status */}
@@ -394,12 +463,13 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {imagePreviewUrls.map((url, index) => (
                   <motion.div
-                    key={url}
+                    key={`${url}-${index}`}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="relative aspect-square rounded-lg overflow-hidden group"
                   >
                     <img src={url} alt={`Visit photo ${index + 1}`} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
@@ -407,6 +477,21 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
                     >
                       <X className="h-3 w-3" />
                     </button>
+                    {imagePreviewUrls.length > 1 && (
+                      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {index > 0 && (
+                          <button type="button" onClick={() => moveVisitImage(index, 'left')} className="w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90">
+                            <ArrowLeft className="h-3 w-3" />
+                          </button>
+                        )}
+                        {index < imagePreviewUrls.length - 1 && (
+                          <button type="button" onClick={() => moveVisitImage(index, 'right')} className="w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90">
+                            <ArrowRight className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {index === 0 && <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary text-primary-foreground">Cover</span>}
                   </motion.div>
                 ))}
                 {imagePreviewUrls.length < 10 && (
