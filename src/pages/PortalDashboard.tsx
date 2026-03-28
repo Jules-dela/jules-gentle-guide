@@ -327,11 +327,23 @@ export default function PortalDashboard() {
     scrollToContent();
   };
 
-  // Pending proposals for swiping
+  // All proposals mapped for the research gallery (pending ones for swiping)
   const pendingProposals = useMemo(() => 
     proposals.filter(p => p.client_status === 'pending').map(proposalToApartment),
     [proposals]
   );
+
+  // Handler when all proposals have been reviewed
+  const handleAllReviewed = useCallback((finalLikedCount: number) => {
+    if (finalLikedCount > 0) {
+      // Advance to stage 3 (Viewings)
+      const nextStage = 3;
+      setCurrentStage(nextStage);
+      setHighestStage(prev => Math.max(prev, nextStage));
+      scrollToContent();
+    }
+    // If 0 liked, the ResearchGallery shows the refinement dialog — no stage change
+  }, []);
 
   // Count of liked proposals
   const likedCount = useMemo(() => 
