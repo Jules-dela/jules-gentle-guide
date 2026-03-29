@@ -28,6 +28,7 @@ export interface SelectedApartment {
 
 interface ResearchGalleryProps {
   proposals?: SelectedApartment[];
+  allProposals?: SelectedApartment[];
   onLike: (apartment: SelectedApartment, questions?: string) => void;
   onReject?: (proposalId: string, reasons: string[], notes?: string) => Promise<void>;
   onAllReviewed?: (likedCount: number) => void;
