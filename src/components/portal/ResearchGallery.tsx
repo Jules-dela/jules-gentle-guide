@@ -28,6 +28,7 @@ export interface SelectedApartment {
 
 interface ResearchGalleryProps {
   proposals?: SelectedApartment[];
+  allProposals?: SelectedApartment[];
   onLike: (apartment: SelectedApartment, questions?: string) => void;
   onReject?: (proposalId: string, reasons: string[], notes?: string) => Promise<void>;
   onAllReviewed?: (likedCount: number) => void;
@@ -83,10 +84,14 @@ const dummyApartments: SelectedApartment[] = [
   },
 ];
 
-export function ResearchGallery({ proposals, onLike, onReject, onAllReviewed, readOnly = false, likedCount = 0 }: ResearchGalleryProps) {
+export function ResearchGallery({ proposals, allProposals, onLike, onReject, onAllReviewed, readOnly = false, likedCount = 0 }: ResearchGalleryProps) {
+  // If all proposals have been reviewed (none pending), show completed state
+  const hasRealProposals = allProposals && allProposals.length > 0;
+  const allAlreadyReviewed = hasRealProposals && (!proposals || proposals.length === 0);
+  
   const apartments = useMemo(() => 
-    proposals && proposals.length > 0 ? proposals : dummyApartments,
-    [proposals]
+    proposals && proposals.length > 0 ? proposals : (hasRealProposals ? [] : dummyApartments),
+    [proposals, hasRealProposals]
   );
   
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -188,6 +193,78 @@ export function ResearchGallery({ proposals, onLike, onReject, onAllReviewed, re
   const handleRefinementClose = useCallback(() => {
     setShowRefinementDialog(false);
   }, []);
+
+  // Already reviewed all proposals (returning to stage 2 after completing)
+  if (allAlreadyReviewed) {
+    return (
+      <div className="relative min-h-[600px] py-8 flex flex-col items-center justify-center">
+        {likedCount > 0 ? (
+          <>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', damping: 12, stiffness: 200 }}
+              className="w-24 h-24 rounded-full bg-primary flex items-center justify-center mb-6 shadow-2xl shadow-primary/40"
+            >
+              <Check className="w-12 h-12 text-primary-foreground" strokeWidth={3} />
+            </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mb-4 flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10"
+            >
+              <Heart className="w-4 h-4 text-primary fill-primary" />
+              <span className="text-sm font-medium text-primary">{likedCount} liked</span>
+            </motion.div>
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-2xl font-bold text-foreground mb-2 text-center"
+            >
+              All Properties Reviewed!
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-muted-foreground text-center max-w-sm"
+            >
+              We'll now arrange viewings for your favourite properties. Stay tuned!
+            </motion.p>
+          </>
+        ) : (
+          <>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', damping: 12, stiffness: 200 }}
+              className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6"
+            >
+              <Search className="w-10 h-10 text-primary" />
+            </motion.div>
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-2xl font-bold text-foreground mb-2 text-center"
+            >
+              Refining Your Search
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-muted-foreground text-center max-w-sm"
+            >
+              We're fine-tuning our search based on your feedback. New proposals coming soon!
+            </motion.p>
+          </>
+        )}
+      </div>
+    );
+  }
 
   // All reviewed end state
   if (allReviewed && !showSuccess) {
