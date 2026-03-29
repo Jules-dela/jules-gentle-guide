@@ -36,63 +36,12 @@ interface ResearchGalleryProps {
   likedCount?: number;
 }
 
-// Fallback dummy apartments for demo/development
-const dummyApartments: SelectedApartment[] = [
-  {
-    id: 'demo-1',
-    images: [
-      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&auto=format&fit=crop&q=80',
-    ],
-    rent: 1850,
-    rooms: 2.5,
-    location: 'Lausanne',
-    neighborhood: 'Sous-Gare',
-    description: 'Charming apartment in the heart of Lausanne with stunning lake views.',
-    amenities: ['Lake view', 'Modern kitchen', 'Hardwood floors', 'In-unit laundry', 'Balcony', 'Storage room'],
-  },
-  {
-    id: 'demo-2',
-    images: [
-      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80',
-    ],
-    rent: 1650,
-    rooms: 2,
-    location: 'Lausanne',
-    neighborhood: 'Flon',
-    description: 'Contemporary studio in the vibrant Flon district.',
-    amenities: ['Open floor plan', 'Built-in wardrobes', 'Metro nearby', 'Gym access', 'Bike storage', 'Concierge'],
-  },
-  {
-    id: 'demo-3',
-    images: [
-      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=80',
-    ],
-    rent: 2100,
-    rooms: 3.5,
-    location: 'Lausanne',
-    neighborhood: 'Ouchy',
-    description: 'Spacious family apartment steps from Lake Geneva.',
-    amenities: ['Panoramic views', 'Guest bedroom', 'Parking included', 'Large terrace', 'Modern appliances', 'Pet friendly'],
-  },
-];
-
 export function ResearchGallery({ proposals, allProposals, onLike, onReject, onAllReviewed, readOnly = false, likedCount = 0 }: ResearchGalleryProps) {
   // If all proposals have been reviewed (none pending), show completed state
   const hasRealProposals = allProposals && allProposals.length > 0;
   const allAlreadyReviewed = hasRealProposals && (!proposals || proposals.length === 0);
   
-  const apartments = useMemo(() => 
-    proposals && proposals.length > 0 ? proposals : (hasRealProposals ? [] : dummyApartments),
-    [proposals, hasRealProposals]
-  );
+  const apartments = proposals && proposals.length > 0 ? proposals : [];
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showFeedback, setShowFeedback] = useState(false);
