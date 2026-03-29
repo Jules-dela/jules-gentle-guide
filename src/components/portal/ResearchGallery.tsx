@@ -84,10 +84,14 @@ const dummyApartments: SelectedApartment[] = [
   },
 ];
 
-export function ResearchGallery({ proposals, onLike, onReject, onAllReviewed, readOnly = false, likedCount = 0 }: ResearchGalleryProps) {
+export function ResearchGallery({ proposals, allProposals, onLike, onReject, onAllReviewed, readOnly = false, likedCount = 0 }: ResearchGalleryProps) {
+  // If all proposals have been reviewed (none pending), show completed state
+  const hasRealProposals = allProposals && allProposals.length > 0;
+  const allAlreadyReviewed = hasRealProposals && (!proposals || proposals.length === 0);
+  
   const apartments = useMemo(() => 
-    proposals && proposals.length > 0 ? proposals : dummyApartments,
-    [proposals]
+    proposals && proposals.length > 0 ? proposals : (hasRealProposals ? [] : dummyApartments),
+    [proposals, hasRealProposals]
   );
   
   const [currentIndex, setCurrentIndex] = useState(0);
