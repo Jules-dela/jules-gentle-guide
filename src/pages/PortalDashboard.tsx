@@ -163,7 +163,7 @@ function proposalToApartment(proposal: PropertyProposal): SelectedApartment {
     id: proposal.id,
     images: proposal.photos.length > 0 
       ? proposal.photos 
-      : ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80'],
+      : [],
     rent: proposal.rent || 0,
     rooms: proposal.rooms || 0,
     location: proposal.address || 'Lausanne',
