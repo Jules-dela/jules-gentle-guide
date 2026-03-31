@@ -448,7 +448,8 @@ export default function PortalDashboard() {
       <div className="h-[72px]" />
       
       <TrackerProgressBar 
-        currentStage={currentStage} 
+        currentStage={currentStage}
+        highestStage={highestStage}
         onStageClick={setCurrentStage} 
         unreadStages={unreadStages}
       />

@@ -101,8 +101,8 @@ export function TrackerProgressBar({ currentStage, highestStage = currentStage, 
                     className={cn(
                       'mt-2 text-[10px] md:text-xs font-medium text-center',
                       isActive && 'text-primary',
-                      isCompleted && 'text-primary',
-                      !isActive && !isCompleted && 'text-muted-foreground'
+                      (isCompleted || isParallelUnlocked(stage.id)) && 'text-primary',
+                      !isActive && !isCompleted && !isParallelUnlocked(stage.id) && 'text-muted-foreground'
                     )}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
