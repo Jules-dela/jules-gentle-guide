@@ -21,7 +21,7 @@ interface AdminLayoutProps {
 
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
-  { to: '/admin/apartments', icon: Home, label: 'Apartments', end: false },
+  { to: '/admin/apartments', icon: Building2, label: 'Apartments', end: false },
   { to: '/admin/waitlist', icon: Bell, label: 'Waitlist', end: false },
 ];
 
