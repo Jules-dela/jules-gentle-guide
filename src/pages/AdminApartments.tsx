@@ -111,18 +111,40 @@ export default function AdminApartments() {
       assigned_client_ids: selectedClientIds,
     };
 
-    const { error } = editingApartment
-      ? await supabase.from('apartments').update(payload).eq('id', editingApartment.id)
-      : await supabase.from('apartments').insert(payload);
-
-    setSaving(false);
-    if (error) {
-      toast({ title: 'Error saving apartment', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: editingApartment ? 'Apartment updated' : 'Apartment added' });
+    if (editingApartment) {
+      // Optimistic update for edit
+      const optimisticApt = { ...editingApartment, ...payload };
+      setApartments(prev => prev.map(a => a.id === editingApartment.id ? optimisticApt : a));
       setDialogOpen(false);
       setEditingApartment(null);
-      fetchData();
+
+      const { error } = await supabase.from('apartments').update(payload).eq('id', editingApartment.id);
+      setSaving(false);
+      if (error) {
+        // Revert on failure
+        setApartments(prev => prev.map(a => a.id === editingApartment.id ? editingApartment : a));
+        toast({ title: 'Error updating apartment', description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: 'Apartment updated' });
+      }
+    } else {
+      // Optimistic insert with temp id
+      const tempId = `temp-${Date.now()}`;
+      const optimisticApt: Apartment = { id: tempId, created_at: new Date().toISOString(), ...payload };
+      setApartments(prev => [optimisticApt, ...prev]);
+      setDialogOpen(false);
+
+      const { data, error } = await supabase.from('apartments').insert(payload).select().single();
+      setSaving(false);
+      if (error) {
+        // Revert on failure
+        setApartments(prev => prev.filter(a => a.id !== tempId));
+        toast({ title: 'Error saving apartment', description: error.message, variant: 'destructive' });
+      } else {
+        // Replace temp with real
+        setApartments(prev => prev.map(a => a.id === tempId ? data as Apartment : a));
+        toast({ title: 'Apartment added' });
+      }
     }
   };
 

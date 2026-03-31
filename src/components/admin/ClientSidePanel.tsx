@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Phone, MapPin, CreditCard, Calendar, Home, FileText, ChevronDown, ChevronUp, Loader2, GraduationCap, Users, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { HandoverManager } from './HandoverManager';
 import { ContractClosurePanel } from './ContractClosurePanel';
 import { SignatureViewer, SignedBadge } from './SignatureViewer';
 import { SignedContractViewer } from './SignedContractViewer';
+import { LazySection } from './LazySection';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { ClientWithCase } from '@/types/admin';
@@ -96,6 +97,9 @@ interface FullCriteria {
   university?: string;
 }
 
+// Session-level criteria cache to avoid re-fetching when reopening same client
+const criteriaCache = new Map<string, FullCriteria>();
+
 export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSidePanelProps) {
   const [criteria, setCriteria] = useState<FullCriteria | null>(null);
   const [loadingCriteria, setLoadingCriteria] = useState(false);
@@ -150,10 +154,17 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
       .slice(0, 2);
   };
 
-  // Fetch full criteria when client changes
+  // Fetch full criteria when client changes — with session cache
   useEffect(() => {
     if (!client?.case_id) {
       setCriteria(null);
+      return;
+    }
+
+    // Check cache first
+    const cached = criteriaCache.get(client.case_id);
+    if (cached) {
+      setCriteria(cached);
       return;
     }
 
@@ -163,13 +174,17 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
         const { data, error } = await supabase
           .from('cases')
           .select('initial_criteria')
-          .eq('id', client.case_id)
+          .eq('id', client.case_id!)
           .maybeSingle();
 
         if (error) throw error;
-        setCriteria(data?.initial_criteria as FullCriteria | null);
-      } catch (err) {
-        console.error('Error fetching criteria:', err);
+        const result = data?.initial_criteria as FullCriteria | null;
+        setCriteria(result);
+        if (result && client.case_id) {
+          criteriaCache.set(client.case_id, result);
+        }
+      } catch {
+        // Silently fail — criteria is non-critical
       } finally {
         setLoadingCriteria(false);
       }
@@ -451,76 +466,100 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
 
                 <Separator />
 
-                {/* Apartment Uploader */}
+                {/* Apartment Uploader - Lazy loaded */}
                 {client.case_id && (
-                  <ApartmentUploader 
-                    key={`uploader-${refreshKey}`}
-                    caseId={client.case_id} 
-                    onSave={handleRefresh}
-                    clientEmail={client.email}
-                    clientName={client.name}
-                  />
+                  <LazySection title="Proposals" defaultOpen>
+                    {() => (
+                      <ApartmentUploader 
+                        key={`uploader-${refreshKey}`}
+                        caseId={client.case_id!} 
+                        onSave={handleRefresh}
+                        clientEmail={client.email}
+                        clientName={client.name}
+                      />
+                    )}
+                  </LazySection>
                 )}
 
                 <Separator />
 
-                {/* Feedback Tracker */}
+                {/* Feedback Tracker - Lazy loaded */}
                 {client.case_id && (
-                  <FeedbackTracker 
-                    key={`tracker-${refreshKey}`}
-                    caseId={client.case_id} 
-                    onClearSearch={handleRefresh}
-                  />
+                  <LazySection title="Feedback">
+                    {() => (
+                      <FeedbackTracker 
+                        key={`tracker-${refreshKey}`}
+                        caseId={client.case_id!} 
+                        onClearSearch={handleRefresh}
+                      />
+                    )}
+                  </LazySection>
                 )}
 
                 <Separator />
 
-                {/* Visit Report Uploader */}
+                {/* Visit Report Uploader - Lazy loaded */}
                 {client.case_id && (
-                  <VisitReportUploader
-                    key={`visit-${refreshKey}`}
-                    caseId={client.case_id}
-                    onResetToResearch={handleRefresh}
-                    clientEmail={client.email}
-                    clientName={client.name}
-                  />
+                  <LazySection title="Visit Reports">
+                    {() => (
+                      <VisitReportUploader
+                        key={`visit-${refreshKey}`}
+                        caseId={client.case_id!}
+                        onResetToResearch={handleRefresh}
+                        clientEmail={client.email}
+                        clientName={client.name}
+                      />
+                    )}
+                  </LazySection>
                 )}
 
                 <Separator />
 
-                {/* Document Manager */}
+                {/* Document Manager - Lazy loaded */}
                 {client.case_id && (
-                  <DocumentManager
-                    key={`docs-${refreshKey}`}
-                    caseId={client.case_id}
-                    clientName={client.name}
-                    onUpdate={handleRefresh}
-                  />
+                  <LazySection title="Documents">
+                    {() => (
+                      <DocumentManager
+                        key={`docs-${refreshKey}`}
+                        caseId={client.case_id!}
+                        clientName={client.name}
+                        onUpdate={handleRefresh}
+                      />
+                    )}
+                  </LazySection>
                 )}
 
                 <Separator />
 
-                {/* Handover Manager - Stage 5 */}
+                {/* Handover Manager - Lazy loaded */}
                 {client.case_id && (
-                  <HandoverManager
-                    key={`handover-${refreshKey}`}
-                    caseId={client.case_id}
-                    clientName={client.name}
-                    onUpdate={handleRefresh}
-                  />
+                  <LazySection title="Key Handover">
+                    {() => (
+                      <HandoverManager
+                        key={`handover-${refreshKey}`}
+                        caseId={client.case_id!}
+                        clientName={client.name}
+                        onUpdate={handleRefresh}
+                      />
+                    )}
+                  </LazySection>
                 )}
 
                 <Separator />
 
-                {/* Contract Closure & Data Deletion */}
+                {/* Contract Closure - Lazy loaded */}
                 {client.case_id && (
-                  <ContractClosurePanel
-                    key={`closure-${refreshKey}`}
-                    caseId={client.case_id}
-                    clientName={client.name}
-                    onClose={onClose}
-                    onClosed={handleRefresh}
-                  />
+                  <LazySection title="Close Case">
+                    {() => (
+                      <ContractClosurePanel
+                        key={`closure-${refreshKey}`}
+                        caseId={client.case_id!}
+                        clientName={client.name}
+                        onClose={onClose}
+                        onClosed={handleRefresh}
+                      />
+                    )}
+                  </LazySection>
                 )}
               </div>
             </ScrollArea>
