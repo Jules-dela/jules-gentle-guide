@@ -35,6 +35,7 @@ export default function AdminApartments() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [clientSearch, setClientSearch] = useState('');
 
   // Form state
   const [link, setLink] = useState('');
@@ -47,12 +48,19 @@ export default function AdminApartments() {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [aptsRes, clientsRes] = await Promise.all([
+    const [aptsRes, casesRes] = await Promise.all([
       supabase.from('apartments').select('*').order('created_at', { ascending: false }),
-      supabase.from('profiles').select('id, name'),
+      supabase.from('cases').select('id, client_id, status, profiles!cases_client_id_fkey(id, name)').neq('status', 'closed'),
     ]);
     if (aptsRes.data) setApartments(aptsRes.data as Apartment[]);
-    if (clientsRes.data) setClients(clientsRes.data);
+    if (casesRes.data) {
+      const activeClients: ClientOption[] = casesRes.data
+        .filter((c: any) => c.profiles)
+        .map((c: any) => ({ id: c.profiles.id, name: c.profiles.name }));
+      // Deduplicate by profile id
+      const seen = new Set<string>();
+      setClients(activeClients.filter(c => { if (seen.has(c.id)) return false; seen.add(c.id); return true; }));
+    }
     setLoading(false);
   }, []);
 
@@ -78,7 +86,7 @@ export default function AdminApartments() {
       toast({ title: 'Error saving apartment', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Apartment added' });
-      setLink(''); setDescription(''); setSelectedClientIds([]);
+      setLink(''); setDescription(''); setSelectedClientIds([]); setClientSearch('');
       setDialogOpen(false);
       fetchData();
     }
@@ -147,9 +155,17 @@ export default function AdminApartments() {
                     <p className="text-xs text-muted-foreground mt-1">{description.length}/300</p>
                   </div>
                   <div>
-                    <Label>Assign to clients (required)</Label>
-                    <div className="mt-2 max-h-48 overflow-y-auto border rounded-md p-2 space-y-1">
-                      {clients.map(client => (
+                    <Label>Assign to active clients (required)</Label>
+                    <Input
+                      placeholder="Search clients..."
+                      value={clientSearch}
+                      onChange={e => setClientSearch(e.target.value)}
+                      className="mt-2"
+                    />
+                    <div className="mt-1 max-h-48 overflow-y-auto border rounded-md p-2 space-y-1">
+                      {clients
+                        .filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase()))
+                        .map(client => (
                         <label
                           key={client.id}
                           className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-sm"
@@ -163,8 +179,8 @@ export default function AdminApartments() {
                           {client.name}
                         </label>
                       ))}
-                      {clients.length === 0 && (
-                        <p className="text-sm text-muted-foreground py-2 text-center">No clients found</p>
+                      {clients.filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase())).length === 0 && (
+                        <p className="text-sm text-muted-foreground py-2 text-center">No active clients found</p>
                       )}
                     </div>
                   </div>
