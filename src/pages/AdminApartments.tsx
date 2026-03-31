@@ -35,6 +35,7 @@ export default function AdminApartments() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [clientSearch, setClientSearch] = useState('');
 
   // Form state
   const [link, setLink] = useState('');
@@ -47,12 +48,19 @@ export default function AdminApartments() {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [aptsRes, clientsRes] = await Promise.all([
+    const [aptsRes, casesRes] = await Promise.all([
       supabase.from('apartments').select('*').order('created_at', { ascending: false }),
-      supabase.from('profiles').select('id, name'),
+      supabase.from('cases').select('id, client_id, status, profiles!cases_client_id_fkey(id, name)').neq('status', 'closed'),
     ]);
     if (aptsRes.data) setApartments(aptsRes.data as Apartment[]);
-    if (clientsRes.data) setClients(clientsRes.data);
+    if (casesRes.data) {
+      const activeClients: ClientOption[] = casesRes.data
+        .filter((c: any) => c.profiles)
+        .map((c: any) => ({ id: c.profiles.id, name: c.profiles.name }));
+      // Deduplicate by profile id
+      const seen = new Set<string>();
+      setClients(activeClients.filter(c => { if (seen.has(c.id)) return false; seen.add(c.id); return true; }));
+    }
     setLoading(false);
   }, []);
 
