@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,17 +6,17 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import Auth from "./pages/Auth";
-import ResetPassword from "./pages/ResetPassword";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminWaitlist from "./pages/AdminWaitlist";
 
-import PortalDashboard from "./pages/PortalDashboard";
-import PortalProposals from "./pages/PortalProposals";
-import PortalDocuments from "./pages/PortalDocuments";
-import PortalHandover from "./pages/PortalHandover";
-import NotFound from "./pages/NotFound";
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const Auth = lazy(() => import("./pages/Auth"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminWaitlist = lazy(() => import("./pages/AdminWaitlist"));
+const PortalDashboard = lazy(() => import("./pages/PortalDashboard"));
+const PortalProposals = lazy(() => import("./pages/PortalProposals"));
+const PortalDocuments = lazy(() => import("./pages/PortalDocuments"));
+const PortalHandover = lazy(() => import("./pages/PortalHandover"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
