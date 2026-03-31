@@ -72,7 +72,8 @@ export function TrackerProgressBar({ currentStage, highestStage = currentStage, 
                       'w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300 relative',
                       isActive && 'bg-primary text-primary-foreground shadow-lg ring-4 ring-primary/20',
                       isCompleted && 'bg-primary text-primary-foreground',
-                      !isActive && !isCompleted && 'bg-white border-2 border-muted text-muted-foreground'
+                      !isActive && !isCompleted && isParallelUnlocked(stage.id) && 'bg-primary/70 text-primary-foreground ring-2 ring-primary/30',
+                      !isActive && !isCompleted && !isParallelUnlocked(stage.id) && 'bg-white border-2 border-muted text-muted-foreground'
                     )}
                     whileHover={(isCompleted || isActive) ? { scale: 1.1 } : {}}
                     whileTap={(isCompleted || isActive) ? { scale: 0.95 } : {}}
