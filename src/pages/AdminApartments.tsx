@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Trash2, ExternalLink, Loader2 } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, Loader2, Pencil } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface Apartment {
