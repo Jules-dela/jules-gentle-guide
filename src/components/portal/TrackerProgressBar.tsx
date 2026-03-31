@@ -59,9 +59,9 @@ export function TrackerProgressBar({ currentStage, highestStage = currentStage, 
                   key={stage.id}
                   className={cn(
                     "flex flex-col items-center relative",
-                    (isCompleted || isActive) && onStageClick && "cursor-pointer"
+                    isUnlocked && onStageClick && "cursor-pointer"
                   )}
-                  onClick={() => (isCompleted || isActive) && onStageClick?.(stage.id)}
+                  onClick={() => isUnlocked && onStageClick?.(stage.id)}
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: stage.id * 0.1, duration: 0.3 }}
