@@ -75,8 +75,8 @@ export function TrackerProgressBar({ currentStage, highestStage = currentStage, 
                       !isActive && !isCompleted && isParallelUnlocked(stage.id) && 'bg-primary/70 text-primary-foreground ring-2 ring-primary/30',
                       !isActive && !isCompleted && !isParallelUnlocked(stage.id) && 'bg-white border-2 border-muted text-muted-foreground'
                     )}
-                    whileHover={(isCompleted || isActive) ? { scale: 1.1 } : {}}
-                    whileTap={(isCompleted || isActive) ? { scale: 0.95 } : {}}
+                    whileHover={isUnlocked ? { scale: 1.1 } : {}}
+                    whileTap={isUnlocked ? { scale: 0.95 } : {}}
                   >
                     <Icon className="w-4 h-4 md:w-5 md:h-5" />
                     
