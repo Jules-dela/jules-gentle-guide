@@ -154,10 +154,17 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
       .slice(0, 2);
   };
 
-  // Fetch full criteria when client changes
+  // Fetch full criteria when client changes — with session cache
   useEffect(() => {
     if (!client?.case_id) {
       setCriteria(null);
+      return;
+    }
+
+    // Check cache first
+    const cached = criteriaCache.get(client.case_id);
+    if (cached) {
+      setCriteria(cached);
       return;
     }
 
@@ -167,13 +174,17 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
         const { data, error } = await supabase
           .from('cases')
           .select('initial_criteria')
-          .eq('id', client.case_id)
+          .eq('id', client.case_id!)
           .maybeSingle();
 
         if (error) throw error;
-        setCriteria(data?.initial_criteria as FullCriteria | null);
-      } catch (err) {
-        console.error('Error fetching criteria:', err);
+        const result = data?.initial_criteria as FullCriteria | null;
+        setCriteria(result);
+        if (result && client.case_id) {
+          criteriaCache.set(client.case_id, result);
+        }
+      } catch {
+        // Silently fail — criteria is non-critical
       } finally {
         setLoadingCriteria(false);
       }
