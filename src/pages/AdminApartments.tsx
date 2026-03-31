@@ -208,7 +208,7 @@ export default function AdminApartments() {
                   </div>
                   <Button onClick={handleSave} disabled={saving} className="w-full">
                     {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Save Apartment
+                    {editingApartment ? 'Update Apartment' : 'Save Apartment'}
                   </Button>
                 </div>
               </DialogContent>
