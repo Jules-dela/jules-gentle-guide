@@ -28,6 +28,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+          <Suspense fallback={null}>
             <Route path="/" element={<Index />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/auth" element={<Auth />} />
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/portal/handover" element={<PortalHandover />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
+          </Suspense>
           </Routes>
         </AuthProvider>
       </BrowserRouter>
