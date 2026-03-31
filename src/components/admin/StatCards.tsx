@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { CheckCircle2, Clock, AlertTriangle, FileCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
