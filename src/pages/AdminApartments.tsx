@@ -142,16 +142,16 @@ export default function AdminApartments() {
               <h1 className="text-xl sm:text-2xl font-bold text-foreground">Apartments</h1>
               <p className="text-sm text-muted-foreground hidden sm:block">Sourced listings for clients</p>
             </div>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingApartment(null); }}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-2">
+                <Button size="sm" className="gap-2" onClick={openAddDialog}>
                   <Plus className="h-4 w-4" />
                   <span className="hidden sm:inline">Add Apartment</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
-                  <DialogTitle>Add Apartment</DialogTitle>
+                  <DialogTitle>{editingApartment ? 'Edit Apartment' : 'Add Apartment'}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-2">
                   <div>
