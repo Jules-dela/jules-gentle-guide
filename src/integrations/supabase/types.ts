@@ -685,6 +685,16 @@ export type Database = {
         Args: { p_document_id: string; p_file_url: string }
         Returns: undefined
       }
+      client_update_proposal_feedback: {
+        Args: {
+          p_client_status: Database["public"]["Enums"]["proposal_status"]
+          p_client_visit_questions?: string
+          p_proposal_id: string
+          p_rejection_notes?: string
+          p_rejection_reasons?: string[]
+        }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
