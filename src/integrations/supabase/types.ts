@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      apartments: {
+        Row: {
+          assigned_client_ids: string[]
+          created_at: string
+          description: string | null
+          id: string
+          link: string
+        }
+        Insert: {
+          assigned_client_ids?: string[]
+          created_at?: string
+          description?: string | null
+          id?: string
+          link: string
+        }
+        Update: {
+          assigned_client_ids?: string[]
+          created_at?: string
+          description?: string | null
+          id?: string
+          link?: string
+        }
+        Relationships: []
+      }
       case_documents: {
         Row: {
           case_id: string
