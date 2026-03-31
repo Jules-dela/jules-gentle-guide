@@ -50,6 +50,7 @@ serve(async (req) => {
             await supabase.from("stage_notifications").delete().eq("case_id", c.id);
             await supabase.from("case_status_history").delete().eq("case_id", c.id);
             await supabase.from("client_stage_views").delete().eq("case_id", c.id);
+            await supabase.from("case_staff_notes").delete().eq("case_id", c.id);
           }
           await supabase.from("cases").delete().eq("client_id", oldProfile.id);
         }
@@ -86,12 +87,14 @@ serve(async (req) => {
 
     if (profileErr) throw profileErr;
 
-    // 3. Create case — UNSIGNED contract (Stage 1) so investor sees the full journey
+    const now = new Date().toISOString();
+
+    // 3. Create case — fully signed contract, advanced to key_handover_scheduled
     const { data: demoCase, error: caseErr } = await supabase
       .from("cases")
       .insert({
         client_id: profile.id,
-        status: "request_received",
+        status: "key_handover_scheduled",
         initial_criteria: {
           neighbourhood: "renens",
           budget: "1100-1300",
@@ -107,14 +110,35 @@ serve(async (req) => {
           university: "EPFL",
           notes: "Close to EPFL campus preferred. Ground floor or with elevator.",
         },
-        contract_data: null, // Not signed yet — investor will see the signing flow
+        contract_data: {
+          signed: true,
+          timestamp: now,
+          client_full_name: DEMO_NAME,
+          client_date_of_birth: "1999-03-15",
+          client_nationality: "Swiss",
+          client_initials: "EL",
+        },
       })
       .select("id")
       .single();
 
     if (caseErr) throw caseErr;
 
-    // 4. Add property proposals with Unsplash photos (will appear after contract signing)
+    // 4. Contract signature record
+    await supabase.from("contract_signatures").insert({
+      case_id: demoCase.id,
+      signature_image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      ip_address: "203.0.113.42",
+      user_agent: "Demo Seed Script",
+      device_info: { platform: "Demo", language: "en", screen_width: 1920, screen_height: 1080 },
+      signed_at: now,
+      client_full_name: DEMO_NAME,
+      client_date_of_birth: "1999-03-15",
+      client_nationality: "Swiss",
+      client_initials: "EL",
+    });
+
+    // 5. Property proposals — one liked (chosen), one rejected
     const proposals = [
       {
         case_id: demoCase.id,
@@ -125,13 +149,13 @@ serve(async (req) => {
         charges: 90,
         rooms: 1,
         size_sqm: 30,
-        client_status: "pending",
+        client_status: "rejected",
+        rejection_reasons: ["rent_too_high", "too_small"],
+        rejection_notes: "Too small for my needs and over budget with charges.",
         tags: ["City Center", "Metro Nearby", "Compact"],
         description: "Small studio near the city center. Limited natural light, no balcony. Shared laundry in basement. Suitable for a single student on a tight budget.",
         agency_info: "ImmoVaud SA – Contact: Julie Martin, +41 21 678 90 12",
         visit_published: false,
-        visit_pros: [],
-        visit_cons: [],
         photos: [
           "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&auto=format&fit=crop&q=80",
           "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&auto=format&fit=crop&q=80",
@@ -147,7 +171,7 @@ serve(async (req) => {
         charges: 120,
         rooms: 2,
         size_sqm: 48,
-        client_status: "pending",
+        client_status: "liked",
         tags: ["Near EPFL", "Renovated", "Balcony", "Dishwasher", "Elevator"],
         description: "Bright 2-room apartment just 8 minutes walk from the EPFL campus. Recently renovated kitchen and bathroom. South-facing balcony with views of the lake. Shared laundry in basement. Available from June 1st.",
         agency_info: "Régie du Rhône – Contact: Marc Dupont, +41 21 345 67 89",
@@ -169,9 +193,47 @@ serve(async (req) => {
 
     await supabase.from("property_proposals").insert(proposals);
 
-    // 5. Documents and handover are NOT pre-populated so the demo
-    //    advances step-by-step: sign contract → Stage 2 (proposals).
-    //    Admin can add documents / handover later to advance further.
+    // 6. Documents — all validated
+    const documents = [
+      { case_id: demoCase.id, document_type: "id_card", label: "ID Card / Passport", status: "validated", file_url: "https://placeholder.demo/id_card.pdf", validated_at: now },
+      { case_id: demoCase.id, document_type: "proof_of_enrollment", label: "Proof of Enrollment (EPFL)", status: "validated", file_url: "https://placeholder.demo/enrollment.pdf", validated_at: now },
+      { case_id: demoCase.id, document_type: "proof_of_income", label: "Proof of Income / Guarantor Letter", status: "validated", file_url: "https://placeholder.demo/income.pdf", validated_at: now },
+      { case_id: demoCase.id, document_type: "residence_permit", label: "Residence Permit (B Permit)", status: "validated", file_url: "https://placeholder.demo/permit.pdf", validated_at: now },
+      { case_id: demoCase.id, document_type: "debt_certificate", label: "Debt Collection Certificate", status: "validated", file_url: "https://placeholder.demo/debt_cert.pdf", validated_at: now },
+    ];
+
+    await supabase.from("case_documents").insert(documents);
+
+    // 7. Key handover — scheduled
+    await supabase.from("key_handover").insert({
+      case_id: demoCase.id,
+      scheduled_date: "2026-06-01",
+      scheduled_time: "10:00",
+      location: "Chemin des Triaudes 4, 1024 Ecublens — Building entrance",
+      contact_person: "Marc Dupont (Régie du Rhône)",
+      contact_phone: "+41 21 345 67 89",
+      confirmed_by_client: true,
+      notes: "Please bring 2 copies of your ID and the signed lease. Parking available on-site.",
+    });
+
+    // 8. Case status history — full journey
+    const statusHistory = [
+      { case_id: demoCase.id, status: "request_received", notes: "Application submitted via website" },
+      { case_id: demoCase.id, status: "search_in_progress", notes: "Contract signed, search started" },
+      { case_id: demoCase.id, status: "proposals_available", notes: "2 proposals published" },
+      { case_id: demoCase.id, status: "visit_in_progress", notes: "Visit report published for Ecublens apartment" },
+      { case_id: demoCase.id, status: "documents_preparation", notes: "Client uploading required documents" },
+      { case_id: demoCase.id, status: "application_review", notes: "All documents validated, application sent to landlord" },
+      { case_id: demoCase.id, status: "key_handover_scheduled", notes: "Application accepted! Key handover scheduled for June 1st" },
+    ];
+
+    await supabase.from("case_status_history").insert(statusHistory);
+
+    // 9. Staff notes
+    await supabase.from("case_staff_notes").insert({
+      case_id: demoCase.id,
+      notes: "Demo client — EPFL student. Liked the Ecublens apartment near campus. All documents validated. Handover confirmed for June 1st.",
+    });
 
     return new Response(
       JSON.stringify({
@@ -180,7 +242,7 @@ serve(async (req) => {
           email: DEMO_EMAIL,
           password: DEMO_PASSWORD,
         },
-        message: `Demo client "${DEMO_NAME}" seeded at Stage 1 (unsigned contract). 2 proposals with photos ready. After signing, case will advance to Stage 2 only. Admin can advance further stages manually.`,
+        message: `Demo client "${DEMO_NAME}" seeded with FULL journey: signed contract, 2 proposals (1 liked, 1 rejected), visit report, 5 validated documents, key handover scheduled for June 1st 2026.`,
       }),
       { headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
