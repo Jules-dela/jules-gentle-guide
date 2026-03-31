@@ -40,6 +40,9 @@ export function useAdminDashboard() {
       if (proposalsRes.error) throw proposalsRes.error;
 
       if (docsRes.error) throw docsRes.error;
+      const profiles = profilesRes.data;
+      const cases = casesRes.data;
+      const proposals = proposalsRes.data;
       const allDocuments = docsRes.data;
       const allSignatures = signaturesRes.data || [];
 
