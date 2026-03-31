@@ -83,8 +83,20 @@ export default function AdminApartments() {
   };
 
   const handleSave = async () => {
-    if (!link.trim()) {
+    const trimmedLink = link.trim();
+    if (!trimmedLink) {
       toast({ title: 'Link is required', variant: 'destructive' });
+      return;
+    }
+    // Validate URL scheme — block javascript:, data:, and other dangerous schemes
+    try {
+      const url = new URL(trimmedLink);
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        toast({ title: 'Only http/https links are allowed', variant: 'destructive' });
+        return;
+      }
+    } catch {
+      toast({ title: 'Please enter a valid URL', variant: 'destructive' });
       return;
     }
     if (selectedClientIds.length === 0) {
