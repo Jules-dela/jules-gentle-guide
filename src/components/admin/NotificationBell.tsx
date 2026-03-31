@@ -25,16 +25,19 @@ export function NotificationBell({ interactions, onMarkAllRead }: NotificationBe
   // Calculate unread count
   const unreadCount = interactions.filter(i => !readIds.has(i.id)).length;
 
-  // Mark as read when opened
+  // Mark as read when opened - only depend on isOpen and interactions, not readIds
   useEffect(() => {
     if (isOpen && interactions.length > 0) {
       const timer = setTimeout(() => {
-        const newReadIds = new Set([...readIds, ...interactions.map(i => i.id)]);
-        setReadIds(newReadIds);
+        setReadIds(prev => {
+          const next = new Set(prev);
+          interactions.forEach(i => next.add(i.id));
+          return next;
+        });
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, interactions, readIds]);
+  }, [isOpen, interactions]);
 
   const getIcon = (type: ClientInteraction['type']) => {
     switch (type) {
