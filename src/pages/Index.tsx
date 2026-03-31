@@ -1,14 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { useLocation } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
-import { PartnerBanner } from "@/components/PartnerBanner";
-import { StickyStackingCards } from "@/components/StickyStackingCards";
-import { WaitlistSection } from "@/components/WaitlistSection";
-import { FAQ } from "@/components/FAQ";
 
-import { Footer } from "@/components/Footer";
-import { BackToTop } from "@/components/BackToTop";
+const StickyStackingCards = lazy(() => import("@/components/StickyStackingCards").then(m => ({ default: m.StickyStackingCards })));
+const FAQ = lazy(() => import("@/components/FAQ").then(m => ({ default: m.FAQ })));
+const WaitlistSection = lazy(() => import("@/components/WaitlistSection").then(m => ({ default: m.WaitlistSection })));
+const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.Footer })));
+const BackToTop = lazy(() => import("@/components/BackToTop").then(m => ({ default: m.BackToTop })));
 
 const Index = () => {
   const location = useLocation();
@@ -36,14 +35,16 @@ const Index = () => {
       <Header />
       <main>
         <Hero />
-        
-        
-        <StickyStackingCards />
-        <FAQ />
-        <WaitlistSection />
+        <Suspense fallback={null}>
+          <StickyStackingCards />
+          <FAQ />
+          <WaitlistSection />
+        </Suspense>
       </main>
-      <Footer />
-      <BackToTop />
+      <Suspense fallback={null}>
+        <Footer />
+        <BackToTop />
+      </Suspense>
     </div>
   );
 };
