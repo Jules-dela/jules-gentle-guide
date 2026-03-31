@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Phone, MapPin, CreditCard, Calendar, Home, FileText, ChevronDown, ChevronUp, Loader2, GraduationCap, Users, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { HandoverManager } from './HandoverManager';
 import { ContractClosurePanel } from './ContractClosurePanel';
 import { SignatureViewer, SignedBadge } from './SignatureViewer';
 import { SignedContractViewer } from './SignedContractViewer';
+import { LazySection } from './LazySection';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { ClientWithCase } from '@/types/admin';

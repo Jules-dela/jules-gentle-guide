@@ -106,7 +106,7 @@ export function VisitReport({ apartment, onComplete, onReject, readOnly = false 
   };
 
   const handleFeedbackSubmit = (reasons: string[]) => {
-    console.log('Visit feedback:', reasons);
+    // Feedback submitted
     setShowFeedback(false);
     setShowRedirect(true);
     
