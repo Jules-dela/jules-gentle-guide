@@ -204,7 +204,9 @@ export default function PortalDashboard() {
     isDemoMode ? DEMO_APARTMENT : null
   );
   
-  const isReadOnly = currentStage < highestStage;
+  // When stages 3 & 4 are both unlocked, switching between them isn't "read only"
+  const isParallelActive = highestStage >= 3 && (currentStage === 3 || currentStage === 4);
+  const isReadOnly = !isParallelActive && currentStage < highestStage;
 
   useEffect(() => {
     if (activeCase?.id && currentStage && unreadStages[currentStage]?.hasNew) {
@@ -448,7 +450,8 @@ export default function PortalDashboard() {
       <div className="h-[72px]" />
       
       <TrackerProgressBar 
-        currentStage={currentStage} 
+        currentStage={currentStage}
+        highestStage={highestStage}
         onStageClick={setCurrentStage} 
         unreadStages={unreadStages}
       />

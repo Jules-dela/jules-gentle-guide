@@ -6,6 +6,7 @@ import {
   LayoutDashboard, 
   LogOut,
   Home,
+  Building2,
   Bell,
   Menu,
   X,
@@ -20,8 +21,8 @@ interface AdminLayoutProps {
 
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
+  { to: '/admin/apartments', icon: Building2, label: 'Apartments', end: false },
   { to: '/admin/waitlist', icon: Bell, label: 'Waitlist', end: false },
-  
 ];
 
 function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
