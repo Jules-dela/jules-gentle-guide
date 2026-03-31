@@ -240,21 +240,13 @@ export function useClientPortal(): UseClientPortalReturn {
     visitQuestions?: string
   ) => {
     try {
-      const updateData: Record<string, unknown> = {
-        client_status: status,
-        rejection_reasons: rejectionReasons || [],
-        rejection_notes: rejectionNotes || null,
-      };
-
-      // Include visit questions if provided (for liked proposals)
-      if (status === 'liked' && visitQuestions !== undefined) {
-        updateData.client_visit_questions = visitQuestions || null;
-      }
-
-      const { error } = await supabase
-        .from('property_proposals')
-        .update(updateData)
-        .eq('id', proposalId);
+      const { error } = await supabase.rpc('client_update_proposal_feedback', {
+        p_proposal_id: proposalId,
+        p_client_status: status,
+        p_rejection_reasons: rejectionReasons || [],
+        p_rejection_notes: rejectionNotes || null,
+        p_client_visit_questions: (status === 'liked' && visitQuestions !== undefined) ? (visitQuestions || null) : null,
+      });
 
       if (error) throw error;
       await fetchData();
