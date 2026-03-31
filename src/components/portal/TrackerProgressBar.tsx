@@ -48,8 +48,9 @@ export function TrackerProgressBar({ currentStage, highestStage = currentStage, 
           <div className="relative z-20 grid grid-cols-5">
             {stages.map((stage) => {
               const Icon = stage.icon;
-              const isActive = stage.id === currentStage;
-              const isCompleted = stage.id < currentStage;
+              const isActive = stage.id === currentStage || isParallelUnlocked(stage.id) && stage.id === currentStage;
+              const isCompleted = stage.id < currentStage && !isParallelUnlocked(stage.id);
+              const isUnlocked = isActive || isCompleted || isParallelUnlocked(stage.id);
               const hasUnread = unreadStages[stage.id]?.hasNew;
               const unreadCount = unreadStages[stage.id]?.count;
               
