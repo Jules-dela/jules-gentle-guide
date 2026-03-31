@@ -26,35 +26,18 @@ export function useAdminDashboard() {
 
   const fetchClients = useCallback(async () => {
     try {
-      // Fetch profiles with their cases
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (profilesError) throw profilesError;
-
-      // Fetch all cases
-      const { data: cases, error: casesError } = await supabase
-        .from('cases')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (casesError) throw casesError;
-
-      // Fetch proposals to get rejection info
-      const { data: proposals, error: proposalsError } = await supabase
-        .from('property_proposals')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (proposalsError) throw proposalsError;
-
-      // Fetch all documents for all cases
-      const [docsRes, signaturesRes] = await Promise.all([
+      // Fetch all data in parallel
+      const [profilesRes, casesRes, proposalsRes, docsRes, signaturesRes] = await Promise.all([
+        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+        supabase.from('cases').select('*').order('created_at', { ascending: false }),
+        supabase.from('property_proposals').select('*').order('created_at', { ascending: false }),
         supabase.from('case_documents').select('*'),
         supabase.from('contract_signatures').select('*'),
       ]);
+
+      if (profilesRes.error) throw profilesRes.error;
+      if (casesRes.error) throw casesRes.error;
+      if (proposalsRes.error) throw proposalsRes.error;
 
       if (docsRes.error) throw docsRes.error;
       const allDocuments = docsRes.data;
