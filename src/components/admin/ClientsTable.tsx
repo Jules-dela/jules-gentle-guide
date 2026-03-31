@@ -143,7 +143,7 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 

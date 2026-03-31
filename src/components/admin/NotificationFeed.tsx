@@ -183,7 +183,7 @@ export function NotificationFeed({ interactions, isLoading, className, onDismiss
                         </p>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
