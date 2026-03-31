@@ -153,7 +153,29 @@ export function DocumentsDossier({ apartment, documents: dbDocuments, onUpload, 
   const requiredDocs = localDocuments.filter(d => d.required);
   const allRequiredUploaded = requiredDocs.every(d => d.status !== 'missing' && d.status !== 'rejected');
 
+  const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
   const handleFileUpload = useCallback(async (docId: string, file: File) => {
+    // Validate file type
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Only PDF, JPG, and PNG files are accepted.",
+        variant: "destructive",
+      });
+      return;
+    }
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      toast({
+        title: "File too large",
+        description: "Maximum file size is 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUploadingId(docId);
     
     if (onUpload) {
