@@ -25,7 +25,9 @@ const stages = [
   { id: 5, label: 'Handover', icon: Key },
 ];
 
-export function TrackerProgressBar({ currentStage, onStageClick, unreadStages = {} }: TrackerProgressBarProps) {
+export function TrackerProgressBar({ currentStage, highestStage = currentStage, onStageClick, unreadStages = {} }: TrackerProgressBarProps) {
+  // When highest stage >= 3, both Viewings (3) and Documents (4) are unlocked in parallel
+  const isParallelUnlocked = (stageId: number) => highestStage >= 3 && (stageId === 3 || stageId === 4);
   return (
     <div className="sticky top-[72px] z-40 bg-white/95 backdrop-blur-md border-b border-border shadow-sm">
       <div className="container mx-auto px-4 py-6">
