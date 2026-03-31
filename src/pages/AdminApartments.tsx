@@ -67,6 +67,21 @@ export default function AdminApartments() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  const openAddDialog = () => {
+    setEditingApartment(null);
+    setLink(''); setDescription(''); setSelectedClientIds([]); setClientSearch('');
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (apt: Apartment) => {
+    setEditingApartment(apt);
+    setLink(apt.link);
+    setDescription(apt.description || '');
+    setSelectedClientIds([...apt.assigned_client_ids]);
+    setClientSearch('');
+    setDialogOpen(true);
+  };
+
   const handleSave = async () => {
     if (!link.trim()) {
       toast({ title: 'Link is required', variant: 'destructive' });
@@ -77,18 +92,24 @@ export default function AdminApartments() {
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from('apartments').insert({
+
+    const payload = {
       link: link.trim(),
       description: description.trim() || null,
       assigned_client_ids: selectedClientIds,
-    });
+    };
+
+    const { error } = editingApartment
+      ? await supabase.from('apartments').update(payload).eq('id', editingApartment.id)
+      : await supabase.from('apartments').insert(payload);
+
     setSaving(false);
     if (error) {
       toast({ title: 'Error saving apartment', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Apartment added' });
-      setLink(''); setDescription(''); setSelectedClientIds([]); setClientSearch('');
+      toast({ title: editingApartment ? 'Apartment updated' : 'Apartment added' });
       setDialogOpen(false);
+      setEditingApartment(null);
       fetchData();
     }
   };
