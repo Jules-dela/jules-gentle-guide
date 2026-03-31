@@ -65,7 +65,7 @@ export function TrackerProgressBar({ currentStage, highestStage = currentStage, 
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: stage.id * 0.1, duration: 0.3 }}
-                  disabled={!isCompleted && !isActive}
+                  disabled={!isUnlocked}
                 >
                   <motion.div
                     className={cn(
