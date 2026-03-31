@@ -169,11 +169,10 @@ export function NotificationBell({ interactions, onMarkAllRead }: NotificationBe
                             Reason: {interaction.reason}
                           </p>
                         )}
-                        
-                        {isUnread && (
-                          <div className="w-2 h-2 rounded-full bg-primary absolute right-4 top-1/2 -translate-y-1/2" />
-                        )}
                       </div>
+                      {isUnread && (
+                        <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
+                      )}
                     </div>
                   </motion.div>
                 );

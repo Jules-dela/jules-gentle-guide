@@ -42,8 +42,16 @@ export function NotificationFeed({ interactions, isLoading, className, onDismiss
         <div className="p-4 border-b">
           <h3 className="font-semibold text-foreground">Recent Interactions</h3>
         </div>
-        <div className="p-4 text-center text-muted-foreground text-sm">
-          Loading...
+        <div className="p-3 space-y-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex items-start gap-3 animate-pulse">
+              <div className="w-8 h-8 rounded-full bg-muted shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 bg-muted rounded w-2/3" />
+                <div className="h-3 bg-muted rounded w-full" />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );

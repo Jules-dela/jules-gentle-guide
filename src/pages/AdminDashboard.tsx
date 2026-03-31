@@ -128,12 +128,16 @@ export default function AdminDashboard() {
         )}
       </div>
 
+      </ErrorBoundary>
+
       {/* Client Side Panel */}
-      <ClientSidePanel
-        client={selectedClient}
-        onClose={() => setSelectedClient(null)}
-        onStatusChange={refetch}
-      />
+      <ErrorBoundary>
+        <ClientSidePanel
+          client={selectedClient}
+          onClose={() => setSelectedClient(null)}
+          onStatusChange={refetch}
+        />
+      </ErrorBoundary>
     </AdminLayout>
   );
 }

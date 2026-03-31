@@ -234,8 +234,17 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
   if (isLoading) {
     return (
       <div className="bg-background rounded-xl border">
-        <div className="p-8 text-center text-muted-foreground">
-          Loading clients...
+        <div className="p-4 space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center gap-3 animate-pulse">
+              <div className="w-10 h-10 rounded-full bg-muted" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-muted rounded w-1/3" />
+                <div className="h-3 bg-muted rounded w-1/2" />
+              </div>
+              <div className="h-6 w-16 bg-muted rounded-full" />
+            </div>
+          ))}
         </div>
       </div>
     );
