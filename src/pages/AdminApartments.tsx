@@ -35,6 +35,7 @@ export default function AdminApartments() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingApartment, setEditingApartment] = useState<Apartment | null>(null);
   const [clientSearch, setClientSearch] = useState('');
 
   // Form state
