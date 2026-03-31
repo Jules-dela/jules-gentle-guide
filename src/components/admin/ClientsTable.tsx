@@ -92,9 +92,7 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       onClick={onClick}
       className={cn(
         "bg-background rounded-lg border p-4 cursor-pointer hover:bg-muted/50 transition-colors active:scale-[0.98]",
@@ -145,7 +143,7 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
