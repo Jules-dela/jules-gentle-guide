@@ -155,9 +155,17 @@ export default function AdminApartments() {
                     <p className="text-xs text-muted-foreground mt-1">{description.length}/300</p>
                   </div>
                   <div>
-                    <Label>Assign to clients (required)</Label>
-                    <div className="mt-2 max-h-48 overflow-y-auto border rounded-md p-2 space-y-1">
-                      {clients.map(client => (
+                    <Label>Assign to active clients (required)</Label>
+                    <Input
+                      placeholder="Search clients..."
+                      value={clientSearch}
+                      onChange={e => setClientSearch(e.target.value)}
+                      className="mt-2"
+                    />
+                    <div className="mt-1 max-h-48 overflow-y-auto border rounded-md p-2 space-y-1">
+                      {clients
+                        .filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase()))
+                        .map(client => (
                         <label
                           key={client.id}
                           className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-sm"
@@ -171,8 +179,8 @@ export default function AdminApartments() {
                           {client.name}
                         </label>
                       ))}
-                      {clients.length === 0 && (
-                        <p className="text-sm text-muted-foreground py-2 text-center">No clients found</p>
+                      {clients.filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase())).length === 0 && (
+                        <p className="text-sm text-muted-foreground py-2 text-center">No active clients found</p>
                       )}
                     </div>
                   </div>
