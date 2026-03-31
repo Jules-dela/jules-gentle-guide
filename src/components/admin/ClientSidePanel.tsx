@@ -97,6 +97,9 @@ interface FullCriteria {
   university?: string;
 }
 
+// Session-level criteria cache to avoid re-fetching when reopening same client
+const criteriaCache = new Map<string, FullCriteria>();
+
 export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSidePanelProps) {
   const [criteria, setCriteria] = useState<FullCriteria | null>(null);
   const [loadingCriteria, setLoadingCriteria] = useState(false);
