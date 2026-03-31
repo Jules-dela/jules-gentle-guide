@@ -86,7 +86,7 @@ export default function AdminApartments() {
       toast({ title: 'Error saving apartment', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Apartment added' });
-      setLink(''); setDescription(''); setSelectedClientIds([]);
+      setLink(''); setDescription(''); setSelectedClientIds([]); setClientSearch('');
       setDialogOpen(false);
       fetchData();
     }
