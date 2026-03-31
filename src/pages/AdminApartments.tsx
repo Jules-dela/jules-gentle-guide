@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Trash2, ExternalLink, Loader2 } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, Loader2, Pencil } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface Apartment {
@@ -35,6 +35,7 @@ export default function AdminApartments() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingApartment, setEditingApartment] = useState<Apartment | null>(null);
   const [clientSearch, setClientSearch] = useState('');
 
   // Form state
@@ -66,6 +67,21 @@ export default function AdminApartments() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  const openAddDialog = () => {
+    setEditingApartment(null);
+    setLink(''); setDescription(''); setSelectedClientIds([]); setClientSearch('');
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (apt: Apartment) => {
+    setEditingApartment(apt);
+    setLink(apt.link);
+    setDescription(apt.description || '');
+    setSelectedClientIds([...apt.assigned_client_ids]);
+    setClientSearch('');
+    setDialogOpen(true);
+  };
+
   const handleSave = async () => {
     if (!link.trim()) {
       toast({ title: 'Link is required', variant: 'destructive' });
@@ -76,18 +92,24 @@ export default function AdminApartments() {
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from('apartments').insert({
+
+    const payload = {
       link: link.trim(),
       description: description.trim() || null,
       assigned_client_ids: selectedClientIds,
-    });
+    };
+
+    const { error } = editingApartment
+      ? await supabase.from('apartments').update(payload).eq('id', editingApartment.id)
+      : await supabase.from('apartments').insert(payload);
+
     setSaving(false);
     if (error) {
       toast({ title: 'Error saving apartment', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Apartment added' });
-      setLink(''); setDescription(''); setSelectedClientIds([]); setClientSearch('');
+      toast({ title: editingApartment ? 'Apartment updated' : 'Apartment added' });
       setDialogOpen(false);
+      setEditingApartment(null);
       fetchData();
     }
   };
@@ -120,16 +142,16 @@ export default function AdminApartments() {
               <h1 className="text-xl sm:text-2xl font-bold text-foreground">Apartments</h1>
               <p className="text-sm text-muted-foreground hidden sm:block">Sourced listings for clients</p>
             </div>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingApartment(null); }}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-2">
+                <Button size="sm" className="gap-2" onClick={openAddDialog}>
                   <Plus className="h-4 w-4" />
                   <span className="hidden sm:inline">Add Apartment</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
-                  <DialogTitle>Add Apartment</DialogTitle>
+                  <DialogTitle>{editingApartment ? 'Edit Apartment' : 'Add Apartment'}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-2">
                   <div>
@@ -186,7 +208,7 @@ export default function AdminApartments() {
                   </div>
                   <Button onClick={handleSave} disabled={saving} className="w-full">
                     {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Save Apartment
+                    {editingApartment ? 'Update Apartment' : 'Save Apartment'}
                   </Button>
                 </div>
               </DialogContent>
@@ -229,14 +251,24 @@ export default function AdminApartments() {
                         ))}
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-muted-foreground hover:text-destructive shrink-0"
-                      onClick={() => handleDelete(apt.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex flex-col gap-1 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-primary"
+                        onClick={() => openEditDialog(apt)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-destructive"
+                        onClick={() => handleDelete(apt.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
