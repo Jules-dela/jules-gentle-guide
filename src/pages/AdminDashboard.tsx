@@ -42,6 +42,7 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout>
+      <ErrorBoundary>
       <div className="space-y-4 sm:space-y-6">
         {/* Page Header */}
         <div className="flex items-center justify-between gap-4">
