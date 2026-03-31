@@ -27,24 +27,23 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
           <Suspense fallback={null}>
-            <Route path="/" element={<Index />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/login" element={<Auth />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/waitlist" element={<AdminWaitlist />} />
-            
-            <Route path="/portal" element={<PortalDashboard />} />
-            <Route path="/portal/proposals" element={<PortalProposals />} />
-            <Route path="/portal/documents" element={<PortalDocuments />} />
-            <Route path="/portal/handover" element={<PortalHandover />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/login" element={<Auth />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/waitlist" element={<AdminWaitlist />} />
+              <Route path="/portal" element={<PortalDashboard />} />
+              <Route path="/portal/proposals" element={<PortalProposals />} />
+              <Route path="/portal/documents" element={<PortalDocuments />} />
+              <Route path="/portal/handover" element={<PortalHandover />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           </Suspense>
-          </Routes>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
