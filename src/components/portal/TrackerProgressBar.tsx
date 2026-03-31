@@ -12,6 +12,7 @@ interface UnreadStages {
 
 interface TrackerProgressBarProps {
   currentStage: number;
+  highestStage?: number;
   onStageClick?: (stage: number) => void;
   unreadStages?: UnreadStages;
 }
