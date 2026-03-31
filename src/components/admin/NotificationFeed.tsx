@@ -158,11 +158,8 @@ export function NotificationFeed({ interactions, isLoading, className, onDismiss
                 const timeAgo = formatDistanceToNow(new Date(interaction.timestamp), { addSuffix: true });
 
                 return (
-                  <motion.div
+                  <div
                     key={interaction.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
                     className="p-2.5 sm:p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
                   >
                     <div className="flex items-start gap-2.5 sm:gap-3">
