@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { CheckCircle2, Clock, AlertTriangle, FileCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -15,9 +14,7 @@ interface StatCardProps {
 
 function StatCard({ title, count, icon: Icon, colorClass, bgColorClass, highlight, active, onClick }: StatCardProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       onClick={onClick}
       className={cn(
         'bg-background rounded-xl border p-4 sm:p-6 flex items-center gap-3 sm:gap-4 relative overflow-hidden cursor-pointer hover:bg-muted/50 transition-colors active:scale-[0.98]',
@@ -37,7 +34,7 @@ function StatCard({ title, count, icon: Icon, colorClass, bgColorClass, highligh
         <p className="text-xs sm:text-sm text-muted-foreground font-medium truncate">{title}</p>
         <p className="text-2xl sm:text-3xl font-bold text-foreground">{count}</p>
       </div>
-    </motion.div>
+    </div>
   );
 }
 

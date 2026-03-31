@@ -8,6 +8,7 @@ import { ClientsTable } from '@/components/admin/ClientsTable';
 import { NotificationFeed } from '@/components/admin/NotificationFeed';
 import { ClientSidePanel } from '@/components/admin/ClientSidePanel';
 import { NotificationBell } from '@/components/admin/NotificationBell';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -41,6 +42,7 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout>
+      <ErrorBoundary>
       <div className="space-y-4 sm:space-y-6">
         {/* Page Header */}
         <div className="flex items-center justify-between gap-4">
@@ -126,12 +128,16 @@ export default function AdminDashboard() {
         )}
       </div>
 
+      </ErrorBoundary>
+
       {/* Client Side Panel */}
-      <ClientSidePanel
-        client={selectedClient}
-        onClose={() => setSelectedClient(null)}
-        onStatusChange={refetch}
-      />
+      <ErrorBoundary>
+        <ClientSidePanel
+          client={selectedClient}
+          onClose={() => setSelectedClient(null)}
+          onStatusChange={refetch}
+        />
+      </ErrorBoundary>
     </AdminLayout>
   );
 }

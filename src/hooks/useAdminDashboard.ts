@@ -240,8 +240,17 @@ export function useAdminDashboard() {
     fetchClients();
   }, [fetchClients]);
 
-  // Set up realtime subscription for proposals and documents
+  // Set up realtime subscription for proposals and documents (debounced)
   useEffect(() => {
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const debouncedRefetch = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchClients();
+      }, 1000);
+    };
+
     const channel = supabase
       .channel('admin-updates')
       .on(
@@ -251,9 +260,7 @@ export function useAdminDashboard() {
           schema: 'public',
           table: 'property_proposals',
         },
-        () => {
-          fetchClients();
-        }
+        debouncedRefetch
       )
       .on(
         'postgres_changes',
@@ -262,13 +269,12 @@ export function useAdminDashboard() {
           schema: 'public',
           table: 'case_documents',
         },
-        () => {
-          fetchClients();
-        }
+        debouncedRefetch
       )
       .subscribe();
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
   }, [fetchClients]);
