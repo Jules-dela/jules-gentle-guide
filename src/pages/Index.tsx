@@ -35,14 +35,16 @@ const Index = () => {
       <Header />
       <main>
         <Hero />
-        
-        
-        <StickyStackingCards />
-        <FAQ />
-        <WaitlistSection />
+        <Suspense fallback={null}>
+          <StickyStackingCards />
+          <FAQ />
+          <WaitlistSection />
+        </Suspense>
       </main>
-      <Footer />
-      <BackToTop />
+      <Suspense fallback={null}>
+        <Footer />
+        <BackToTop />
+      </Suspense>
     </div>
   );
 };
