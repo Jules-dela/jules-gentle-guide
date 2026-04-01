@@ -14,6 +14,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminWaitlist = lazy(() => import("./pages/AdminWaitlist"));
 const AdminApartments = lazy(() => import("./pages/AdminApartments"));
+const Apply = lazy(() => import("./pages/Apply"));
 const PortalDashboard = lazy(() => import("./pages/PortalDashboard"));
 const PortalProposals = lazy(() => import("./pages/PortalProposals"));
 const PortalDocuments = lazy(() => import("./pages/PortalDocuments"));
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/login" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/apply" element={<Apply />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/apartments" element={<AdminApartments />} />
               <Route path="/admin/waitlist" element={<AdminWaitlist />} />

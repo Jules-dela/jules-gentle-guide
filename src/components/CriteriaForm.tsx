@@ -55,7 +55,11 @@ const steps = [
   { id: 4, title: "Submit", icon: Send },
 ];
 
-export const CriteriaForm = () => {
+interface CriteriaFormProps {
+  onSubmitSuccess?: () => void | Promise<void>;
+}
+
+export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -249,6 +253,7 @@ export const CriteriaForm = () => {
       }
 
       setIsSuccess(true);
+      onSubmitSuccess?.();
       toast({
         title: "✅ Application submitted!",
         description: "Please sign the service agreement below to activate your search.",
