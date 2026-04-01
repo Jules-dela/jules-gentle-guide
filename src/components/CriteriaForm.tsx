@@ -225,7 +225,17 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
         },
       });
 
-      if (emailError) console.error("Portal creation error:", emailError);
+      if (emailError) {
+        console.error("Portal creation error:", emailError);
+        // If edge function failed, still show success but warn about portal
+        toast({
+          title: "✅ Application submitted!",
+          description: "Your application was saved. You'll receive portal access details by email shortly.",
+        });
+        setIsSuccess(true);
+        onSubmitSuccess?.();
+        return;
+      }
 
       // Store submission data for contract signing
       setSubmittedName(data.name);
@@ -247,17 +257,22 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
         } finally {
           setIsAutoLoggingIn(false);
         }
-      } else if (!result?.isNewUser) {
-        // Existing user - try to check if already logged in
-        // They'll need to sign from the portal
       }
 
       setIsSuccess(true);
       onSubmitSuccess?.();
-      toast({
-        title: "✅ Application submitted!",
-        description: "Please sign the service agreement below to activate your search.",
-      });
+      
+      if (result?.caseId) {
+        toast({
+          title: "✅ Application submitted!",
+          description: "Please sign the service agreement below to activate your search.",
+        });
+      } else {
+        toast({
+          title: "✅ Application submitted!",
+          description: "You'll receive portal access details by email. Sign the agreement from your portal.",
+        });
+      }
     } catch (error) {
       console.error("Submission error:", error);
       toast({
@@ -395,7 +410,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                       Submit another request
                     </Button>
                   </div>
-                ) : (
+                ) : submittedCaseId ? (
                   <div className="w-full max-w-2xl mx-auto space-y-6">
                     <div className="text-center space-y-2">
                       <h2 className="text-2xl md:text-3xl font-bold text-foreground">
@@ -410,6 +425,26 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                       onSign={handleContractSign}
                       isSigned={false}
                     />
+                  </div>
+                ) : (
+                  <div className="text-center space-y-6">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                      className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto"
+                    >
+                      <CheckCircle2 className="w-10 h-10 md:w-12 md:h-12 text-primary" />
+                    </motion.div>
+                    <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+                      Application Submitted! ✅
+                    </h2>
+                    <p className="text-muted-foreground text-lg max-w-md mx-auto">
+                      Check your email for your portal login credentials. You can sign the service agreement from your portal to activate your search.
+                    </p>
+                    <Button variant="outline" onClick={resetForm}>
+                      Submit another request
+                    </Button>
                   </div>
                 )}
               </motion.div>
@@ -645,7 +680,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                   name="budget"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>Budget per month</FormLabel>
+                                      <FormLabel>Budget per month (per person)</FormLabel>
                                       <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
                                           <SelectTrigger className="bg-white border border-slate-200">
@@ -686,7 +721,10 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                         <SelectContent>
                                           <SelectItem value="1">1 room</SelectItem>
                                           <SelectItem value="2">2 rooms</SelectItem>
-                                          <SelectItem value="3">3+ rooms</SelectItem>
+                                          <SelectItem value="3">3 rooms</SelectItem>
+                                          <SelectItem value="4">4 rooms</SelectItem>
+                                          <SelectItem value="5">5 rooms</SelectItem>
+                                          <SelectItem value="6+">6+ rooms</SelectItem>
                                         </SelectContent>
                                       </Select>
                                       <FormMessage />
