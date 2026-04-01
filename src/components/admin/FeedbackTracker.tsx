@@ -204,12 +204,18 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
     );
   }
 
-  if (proposals.length === 0) {
+  if (feedbackProposals.length === 0) {
     return (
       <div className="py-6 text-center">
         <MessageSquare className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-        <p className="text-sm text-muted-foreground">No proposals sent yet</p>
-        <p className="text-xs text-muted-foreground mt-1">Add apartments above to start getting feedback</p>
+        <p className="text-sm text-muted-foreground">
+          {pendingCount > 0 
+            ? `${pendingCount} proposal${pendingCount > 1 ? 's' : ''} sent — awaiting client feedback`
+            : 'No proposals sent yet'}
+        </p>
+        {pendingCount === 0 && (
+          <p className="text-xs text-muted-foreground mt-1">Add apartments above to start getting feedback</p>
+        )}
       </div>
     );
   }
