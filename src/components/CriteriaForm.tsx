@@ -885,7 +885,9 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                     <FormControl>
                                       <Textarea 
                                         placeholder="Tell us about location preferences, accessibility needs, or anything important to you." 
-                                        className="min-h-28 bg-foreground text-background placeholder:text-muted-foreground/60 backdrop-blur-sm border-foreground/30 focus:border-primary/50 transition-all resize-none"
+                                        className="min-h-28 bg-white border border-slate-200 text-foreground placeholder:text-muted-foreground backdrop-blur-sm focus:border-primary/50 transition-all resize-none"
+                                        {...field}
+                                      />
                                         {...field}
                                       />
                                     </FormControl>
