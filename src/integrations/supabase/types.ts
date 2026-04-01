@@ -676,6 +676,33 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          phone: string | null
+          token: string
+          used: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          phone?: string | null
+          token?: string
+          used?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          phone?: string | null
+          token?: string
+          used?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
