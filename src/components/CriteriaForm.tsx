@@ -468,7 +468,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
 
                 {/* Form Card */}
                 <div className="max-w-3xl mx-auto">
-                  <div className="bg-background/60 backdrop-blur-xl rounded-3xl border border-white/20 shadow-xl p-6 md:p-8 lg:p-10">
+                  <div className="bg-white rounded-3xl border border-slate-200 shadow-lg p-6 md:p-8 lg:p-10">
                     <Form {...form}>
                       <form onSubmit={form.handleSubmit(onSubmit)}>
                         <AnimatePresence mode="wait">
