@@ -831,7 +831,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                   control={form.control}
                                   name="furnished"
                                   render={({ field }) => (
-                                    <FormItem className="flex items-center justify-between rounded-2xl bg-white/50 backdrop-blur-sm border border-white/30 p-4">
+                                    <FormItem className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 p-4">
                                       <FormLabel className="cursor-pointer font-medium">Furnished</FormLabel>
                                       <FormControl>
                                         <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -843,7 +843,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                   control={form.control}
                                   name="nearTransport"
                                   render={({ field }) => (
-                                    <FormItem className="flex items-center justify-between rounded-2xl bg-white/50 backdrop-blur-sm border border-white/30 p-4">
+                                    <FormItem className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 p-4">
                                       <FormLabel className="cursor-pointer font-medium">Near transport</FormLabel>
                                       <FormControl>
                                         <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -855,7 +855,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                   control={form.control}
                                   name="pets"
                                   render={({ field }) => (
-                                    <FormItem className="flex items-center justify-between rounded-2xl bg-white/50 backdrop-blur-sm border border-white/30 p-4">
+                                    <FormItem className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 p-4">
                                       <FormLabel className="cursor-pointer font-medium">Pets allowed</FormLabel>
                                       <FormControl>
                                         <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -867,7 +867,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                   control={form.control}
                                   name="noSmoking"
                                   render={({ field }) => (
-                                    <FormItem className="flex items-center justify-between rounded-2xl bg-white/50 backdrop-blur-sm border border-white/30 p-4">
+                                    <FormItem className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 p-4">
                                       <FormLabel className="cursor-pointer font-medium">No smoking policy</FormLabel>
                                       <FormControl>
                                         <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -936,7 +936,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                 control={form.control}
                                 name="privacyAccepted"
                                 render={({ field }) => (
-                                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl bg-white/50 backdrop-blur-sm border border-white/30 p-4">
+                                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl bg-white border border-slate-200 p-4">
                                     <FormControl>
                                       <Checkbox
                                         checked={field.value}
