@@ -287,7 +287,15 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     client_initials?: string;
   }) => {
     if (!submittedCaseId) {
-      return { error: new Error('No case found') };
+      console.error('Sign contract failed: No case ID available');
+      return { error: new Error('No case found. Please try submitting again.') };
+    }
+
+    // Check if user is authenticated
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session) {
+      console.error('Sign contract failed: User not authenticated');
+      return { error: new Error('not_authenticated') };
     }
 
     try {
@@ -296,7 +304,10 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
         p_contract_data: JSON.parse(JSON.stringify(contractData)),
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('sign_contract RPC error:', error);
+        throw error;
+      }
 
       // Send contract receipt email
       try {
@@ -339,7 +350,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     >
       <div className="container max-w-6xl">
         <motion.div 
-          className="bg-muted/50 rounded-[32px] md:rounded-[40px] p-6 md:p-10 lg:p-12 relative overflow-hidden"
+          className="bg-slate-50/80 rounded-[32px] md:rounded-[40px] p-6 md:p-10 lg:p-12 relative overflow-hidden border border-slate-200 shadow-[0_8px_30px_rgba(15,23,42,0.06)]"
           initial={{ opacity: 0, y: 40 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
@@ -457,7 +468,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
 
                 {/* Form Card */}
                 <div className="max-w-3xl mx-auto">
-                  <div className="bg-background/60 backdrop-blur-xl rounded-3xl border border-white/20 shadow-xl p-6 md:p-8 lg:p-10">
+                  <div className="bg-white rounded-3xl border border-slate-200 shadow-lg p-6 md:p-8 lg:p-10">
                     <Form {...form}>
                       <form onSubmit={form.handleSubmit(onSubmit)}>
                         <AnimatePresence mode="wait">
@@ -481,7 +492,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                       <FormControl>
                                         <Input 
                                           placeholder="Jane Doe" 
-                                          className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:bg-white/70 transition-all"
+                                          className="bg-white border border-slate-200 focus:border-primary/50 focus:bg-white transition-all"
                                           {...field} 
                                         />
                                       </FormControl>
@@ -499,7 +510,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                         <Input 
                                           type="email" 
                                           placeholder="jane@university.edu" 
-                                          className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:bg-white/70 transition-all"
+                                          className="bg-white border border-slate-200 focus:border-primary/50 focus:bg-white transition-all"
                                           {...field} 
                                         />
                                       </FormControl>
@@ -519,7 +530,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                         <Input 
                                           type="tel" 
                                           placeholder="+41 79 123 45 67" 
-                                          className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:bg-white/70 transition-all"
+                                          className="bg-white border border-slate-200 focus:border-primary/50 focus:bg-white transition-all"
                                           {...field} 
                                         />
                                       </FormControl>
@@ -536,7 +547,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                       <FormControl>
                                         <Input 
                                           placeholder="EHL, EPFL, UNIL..." 
-                                          className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:bg-white/70 transition-all"
+                                          className="bg-white border border-slate-200 focus:border-primary/50 focus:bg-white transition-all"
                                           {...field} 
                                         />
                                       </FormControl>
@@ -557,7 +568,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                           <Button
                                             variant="outline"
                                             className={cn(
-                                              "w-full md:w-[280px] pl-3 text-left font-normal bg-white/50 backdrop-blur-sm border-white/30 hover:bg-white/70 transition-all",
+                                              "w-full md:w-[280px] pl-3 text-left font-normal bg-white border border-slate-200 hover:bg-slate-50 transition-all",
                                               !field.value && "text-muted-foreground"
                                             )}
                                           >
@@ -607,7 +618,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                       <FormLabel>Neighbourhood</FormLabel>
                                       <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
-                                          <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                          <SelectTrigger className="bg-white border border-slate-200">
                                             <SelectValue placeholder="Select neighbourhood" />
                                           </SelectTrigger>
                                         </FormControl>
@@ -637,7 +648,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                       <FormLabel>Budget per month</FormLabel>
                                       <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
-                                          <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                          <SelectTrigger className="bg-white border border-slate-200">
                                             <SelectValue placeholder="Select range" />
                                           </SelectTrigger>
                                         </FormControl>
@@ -668,7 +679,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                       <FormLabel>Rooms</FormLabel>
                                       <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
-                                          <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                          <SelectTrigger className="bg-white border border-slate-200">
                                             <SelectValue placeholder="Select" />
                                           </SelectTrigger>
                                         </FormControl>
@@ -690,7 +701,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                       <FormLabel>Duration</FormLabel>
                                       <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
-                                          <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                          <SelectTrigger className="bg-white border border-slate-200">
                                             <SelectValue placeholder="Select" />
                                           </SelectTrigger>
                                         </FormControl>
@@ -712,7 +723,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                       <FormLabel>Type</FormLabel>
                                       <Select onValueChange={field.onChange} value={field.value} defaultValue="studio">
                                         <FormControl>
-                                          <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                          <SelectTrigger className="bg-white border border-slate-200">
                                             <SelectValue />
                                           </SelectTrigger>
                                         </FormControl>
@@ -742,7 +753,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                       }
                                     }} value={field.value}>
                                       <FormControl>
-                                        <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                        <SelectTrigger className="bg-white border border-slate-200">
                                           <SelectValue placeholder="Select" />
                                         </SelectTrigger>
                                       </FormControl>
@@ -765,7 +776,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                         <FormLabel>Roommate arrangement</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value}>
                                           <FormControl>
-                                            <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                            <SelectTrigger className="bg-white border border-slate-200">
                                               <SelectValue placeholder="Select arrangement" />
                                             </SelectTrigger>
                                           </FormControl>
@@ -785,7 +796,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                         <FormLabel>How many roommates?</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value}>
                                           <FormControl>
-                                            <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                            <SelectTrigger className="bg-white border border-slate-200">
                                               <SelectValue placeholder="Select number" />
                                             </SelectTrigger>
                                           </FormControl>
@@ -820,7 +831,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                   control={form.control}
                                   name="furnished"
                                   render={({ field }) => (
-                                    <FormItem className="flex items-center justify-between rounded-2xl bg-white/50 backdrop-blur-sm border border-white/30 p-4">
+                                    <FormItem className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 p-4">
                                       <FormLabel className="cursor-pointer font-medium">Furnished</FormLabel>
                                       <FormControl>
                                         <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -832,7 +843,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                   control={form.control}
                                   name="nearTransport"
                                   render={({ field }) => (
-                                    <FormItem className="flex items-center justify-between rounded-2xl bg-white/50 backdrop-blur-sm border border-white/30 p-4">
+                                    <FormItem className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 p-4">
                                       <FormLabel className="cursor-pointer font-medium">Near transport</FormLabel>
                                       <FormControl>
                                         <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -844,7 +855,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                   control={form.control}
                                   name="pets"
                                   render={({ field }) => (
-                                    <FormItem className="flex items-center justify-between rounded-2xl bg-white/50 backdrop-blur-sm border border-white/30 p-4">
+                                    <FormItem className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 p-4">
                                       <FormLabel className="cursor-pointer font-medium">Pets allowed</FormLabel>
                                       <FormControl>
                                         <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -856,7 +867,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                   control={form.control}
                                   name="noSmoking"
                                   render={({ field }) => (
-                                    <FormItem className="flex items-center justify-between rounded-2xl bg-white/50 backdrop-blur-sm border border-white/30 p-4">
+                                    <FormItem className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 p-4">
                                       <FormLabel className="cursor-pointer font-medium">No smoking policy</FormLabel>
                                       <FormControl>
                                         <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -874,7 +885,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                     <FormControl>
                                       <Textarea 
                                         placeholder="Tell us about location preferences, accessibility needs, or anything important to you." 
-                                        className="min-h-28 bg-foreground text-background placeholder:text-muted-foreground/60 backdrop-blur-sm border-foreground/30 focus:border-primary/50 transition-all resize-none"
+                                        className="min-h-28 bg-white border border-slate-200 text-foreground placeholder:text-muted-foreground backdrop-blur-sm focus:border-primary/50 transition-all resize-none"
                                         {...field}
                                       />
                                     </FormControl>
@@ -925,7 +936,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                 control={form.control}
                                 name="privacyAccepted"
                                 render={({ field }) => (
-                                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl bg-white/50 backdrop-blur-sm border border-white/30 p-4">
+                                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl bg-white border border-slate-200 p-4">
                                     <FormControl>
                                       <Checkbox
                                         checked={field.value}

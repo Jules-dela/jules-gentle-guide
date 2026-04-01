@@ -91,7 +91,7 @@ const Apply = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a1628]">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       <CriteriaForm onSubmitSuccess={markTokenUsed} />
     </div>
   );

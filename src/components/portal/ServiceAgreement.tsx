@@ -245,11 +245,20 @@ export function ServiceAgreement({
       const result = await onSign(signingInput);
       if (result.error) {
         console.error('Error signing contract:', result.error);
-        toast({
-          title: "Error",
-          description: "Something went wrong while signing. Please try again.",
-          variant: "destructive",
-        });
+        const errMsg = result.error.message;
+        if (errMsg === 'not_authenticated') {
+          toast({
+            title: "Login Required",
+            description: "You already have an account. Please log in to your portal to sign the service agreement.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: errMsg || "Something went wrong while signing. Please try again.",
+            variant: "destructive",
+          });
+        }
       }
     } catch (err) {
       console.error('Error signing contract:', err);
