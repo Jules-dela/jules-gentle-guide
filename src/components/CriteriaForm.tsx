@@ -410,7 +410,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                       Submit another request
                     </Button>
                   </div>
-                ) : (
+                ) : submittedCaseId ? (
                   <div className="w-full max-w-2xl mx-auto space-y-6">
                     <div className="text-center space-y-2">
                       <h2 className="text-2xl md:text-3xl font-bold text-foreground">
@@ -425,6 +425,26 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                       onSign={handleContractSign}
                       isSigned={false}
                     />
+                  </div>
+                ) : (
+                  <div className="text-center space-y-6">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                      className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto"
+                    >
+                      <CheckCircle2 className="w-10 h-10 md:w-12 md:h-12 text-primary" />
+                    </motion.div>
+                    <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+                      Application Submitted! ✅
+                    </h2>
+                    <p className="text-muted-foreground text-lg max-w-md mx-auto">
+                      Check your email for your portal login credentials. You can sign the service agreement from your portal to activate your search.
+                    </p>
+                    <Button variant="outline" onClick={resetForm}>
+                      Submit another request
+                    </Button>
                   </div>
                 )}
               </motion.div>
