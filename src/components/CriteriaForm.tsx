@@ -253,6 +253,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
       }
 
       setIsSuccess(true);
+      onSubmitSuccess?.();
       toast({
         title: "✅ Application submitted!",
         description: "Please sign the service agreement below to activate your search.",
