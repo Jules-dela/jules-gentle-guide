@@ -189,9 +189,12 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
     }
   };
 
-  const allRejected = proposals.length > 0 && proposals.every(p => p.client_status === 'rejected');
-  const hasLiked = proposals.some(p => p.client_status === 'liked');
-  const likedCount = proposals.filter(p => p.client_status === 'liked').length;
+  // Only show proposals that have received feedback (liked or rejected)
+  const feedbackProposals = proposals.filter(p => p.client_status === 'liked' || p.client_status === 'rejected');
+  const pendingCount = proposals.filter(p => p.client_status === 'pending').length;
+  const allRejected = feedbackProposals.length > 0 && feedbackProposals.every(p => p.client_status === 'rejected');
+  const hasLiked = feedbackProposals.some(p => p.client_status === 'liked');
+  const likedCount = feedbackProposals.filter(p => p.client_status === 'liked').length;
 
   if (loading) {
     return (
@@ -201,12 +204,18 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
     );
   }
 
-  if (proposals.length === 0) {
+  if (feedbackProposals.length === 0) {
     return (
       <div className="py-6 text-center">
         <MessageSquare className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-        <p className="text-sm text-muted-foreground">No proposals sent yet</p>
-        <p className="text-xs text-muted-foreground mt-1">Add apartments above to start getting feedback</p>
+        <p className="text-sm text-muted-foreground">
+          {pendingCount > 0 
+            ? `${pendingCount} proposal${pendingCount > 1 ? 's' : ''} sent — awaiting client feedback`
+            : 'No proposals sent yet'}
+        </p>
+        {pendingCount === 0 && (
+          <p className="text-xs text-muted-foreground mt-1">Add apartments above to start getting feedback</p>
+        )}
       </div>
     );
   }
@@ -217,7 +226,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
         <div>
           <h4 className="text-sm font-semibold text-foreground">Client Feedback</h4>
           <p className="text-xs text-muted-foreground">
-            {proposals.length} sent · {likedCount} liked
+            {feedbackProposals.length} responded · {likedCount} liked{pendingCount > 0 ? ` · ${pendingCount} pending` : ''}
           </p>
         </div>
         {allRejected && (
@@ -235,7 +244,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
       </div>
 
       <AnimatePresence mode="popLayout">
-        {proposals.map((proposal, index) => (
+        {feedbackProposals.map((proposal, index) => (
           <motion.div
             key={proposal.id}
             initial={{ opacity: 0, y: 10 }}
