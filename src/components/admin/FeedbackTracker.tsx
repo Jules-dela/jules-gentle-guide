@@ -226,7 +226,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
         <div>
           <h4 className="text-sm font-semibold text-foreground">Client Feedback</h4>
           <p className="text-xs text-muted-foreground">
-            {proposals.length} sent · {likedCount} liked
+            {feedbackProposals.length} responded · {likedCount} liked{pendingCount > 0 ? ` · ${pendingCount} pending` : ''}
           </p>
         </div>
         {allRejected && (
