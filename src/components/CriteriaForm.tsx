@@ -686,7 +686,10 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                         <SelectContent>
                                           <SelectItem value="1">1 room</SelectItem>
                                           <SelectItem value="2">2 rooms</SelectItem>
-                                          <SelectItem value="3">3+ rooms</SelectItem>
+                                          <SelectItem value="3">3 rooms</SelectItem>
+                                          <SelectItem value="4">4 rooms</SelectItem>
+                                          <SelectItem value="5">5 rooms</SelectItem>
+                                          <SelectItem value="6+">6+ rooms</SelectItem>
                                         </SelectContent>
                                       </Select>
                                       <FormMessage />
