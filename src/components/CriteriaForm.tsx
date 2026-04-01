@@ -888,8 +888,6 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                         className="min-h-28 bg-white border border-slate-200 text-foreground placeholder:text-muted-foreground backdrop-blur-sm focus:border-primary/50 transition-all resize-none"
                                         {...field}
                                       />
-                                        {...field}
-                                      />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
