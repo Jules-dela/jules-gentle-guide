@@ -225,7 +225,17 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
         },
       });
 
-      if (emailError) console.error("Portal creation error:", emailError);
+      if (emailError) {
+        console.error("Portal creation error:", emailError);
+        // If edge function failed, still show success but warn about portal
+        toast({
+          title: "✅ Application submitted!",
+          description: "Your application was saved. You'll receive portal access details by email shortly.",
+        });
+        setIsSuccess(true);
+        onSubmitSuccess?.();
+        return;
+      }
 
       // Store submission data for contract signing
       setSubmittedName(data.name);
@@ -247,17 +257,22 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
         } finally {
           setIsAutoLoggingIn(false);
         }
-      } else if (!result?.isNewUser) {
-        // Existing user - try to check if already logged in
-        // They'll need to sign from the portal
       }
 
       setIsSuccess(true);
       onSubmitSuccess?.();
-      toast({
-        title: "✅ Application submitted!",
-        description: "Please sign the service agreement below to activate your search.",
-      });
+      
+      if (result?.caseId) {
+        toast({
+          title: "✅ Application submitted!",
+          description: "Please sign the service agreement below to activate your search.",
+        });
+      } else {
+        toast({
+          title: "✅ Application submitted!",
+          description: "You'll receive portal access details by email. Sign the agreement from your portal.",
+        });
+      }
     } catch (error) {
       console.error("Submission error:", error);
       toast({
