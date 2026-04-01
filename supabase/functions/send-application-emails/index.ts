@@ -193,9 +193,13 @@ const handler = async (req: Request): Promise<Response> => {
     await recordSubmission(clientIP);
     console.log("Processing application submission with portal creation");
 
-    // Check if user already exists
-    const { data: existingUsers } = await supabase.auth.admin.listUsers();
-    const existingUser = existingUsers?.users?.find(u => u.email === data.email);
+    // Check if user already exists - use listUsers with email filter for reliability
+    const { data: existingUsersData } = await supabase.auth.admin.listUsers({
+      filter: `email.eq.${data.email}`,
+      page: 1,
+      perPage: 1,
+    });
+    const existingUser = existingUsersData?.users?.[0] || null;
     
     let userId: string;
     let tempPassword: string | null = null;
@@ -219,13 +223,31 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       if (createUserError) {
-        console.error("Failed to create user:", createUserError.message);
-        throw new Error("Failed to create user account");
+        // If user already exists despite our check, try to find them
+        if (createUserError.message?.includes('already been registered')) {
+          console.log("User exists (race condition), looking up by email");
+          const { data: retryUsers } = await supabase.auth.admin.listUsers({
+            filter: `email.eq.${data.email}`,
+            page: 1,
+            perPage: 1,
+          });
+          const retryUser = retryUsers?.users?.[0];
+          if (retryUser) {
+            userId = retryUser.id;
+            console.log("Found existing user on retry:", userId);
+          } else {
+            console.error("Failed to create or find user:", createUserError.message);
+            throw new Error("Failed to create user account");
+          }
+        } else {
+          console.error("Failed to create user:", createUserError.message);
+          throw new Error("Failed to create user account");
+        }
+      } else {
+        userId = newUser.user.id;
+        isNewUser = true;
+        console.log("Created new user account");
       }
-
-      userId = newUser.user.id;
-      isNewUser = true;
-      console.log("Created new user account");
     }
 
     // Check if profile exists
