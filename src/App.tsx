@@ -14,6 +14,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminWaitlist = lazy(() => import("./pages/AdminWaitlist"));
 const AdminApartments = lazy(() => import("./pages/AdminApartments"));
+const Apply = lazy(() => import("./pages/Apply"));
 const PortalDashboard = lazy(() => import("./pages/PortalDashboard"));
 const PortalProposals = lazy(() => import("./pages/PortalProposals"));
 const PortalDocuments = lazy(() => import("./pages/PortalDocuments"));
