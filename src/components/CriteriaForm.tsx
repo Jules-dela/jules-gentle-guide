@@ -492,7 +492,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                       <FormControl>
                                         <Input 
                                           placeholder="Jane Doe" 
-                                          className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:bg-white/70 transition-all"
+                                          className="bg-white border border-slate-200 focus:border-primary/50 focus:bg-white transition-all"
                                           {...field} 
                                         />
                                       </FormControl>
@@ -510,7 +510,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                         <Input 
                                           type="email" 
                                           placeholder="jane@university.edu" 
-                                          className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:bg-white/70 transition-all"
+                                          className="bg-white border border-slate-200 focus:border-primary/50 focus:bg-white transition-all"
                                           {...field} 
                                         />
                                       </FormControl>
@@ -530,7 +530,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                         <Input 
                                           type="tel" 
                                           placeholder="+41 79 123 45 67" 
-                                          className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:bg-white/70 transition-all"
+                                          className="bg-white border border-slate-200 focus:border-primary/50 focus:bg-white transition-all"
                                           {...field} 
                                         />
                                       </FormControl>
@@ -547,7 +547,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                       <FormControl>
                                         <Input 
                                           placeholder="EHL, EPFL, UNIL..." 
-                                          className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:bg-white/70 transition-all"
+                                          className="bg-white border border-slate-200 focus:border-primary/50 focus:bg-white transition-all"
                                           {...field} 
                                         />
                                       </FormControl>
@@ -568,7 +568,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                           <Button
                                             variant="outline"
                                             className={cn(
-                                              "w-full md:w-[280px] pl-3 text-left font-normal bg-white/50 backdrop-blur-sm border-white/30 hover:bg-white/70 transition-all",
+                                              "w-full md:w-[280px] pl-3 text-left font-normal bg-white border border-slate-200 hover:bg-slate-50 transition-all",
                                               !field.value && "text-muted-foreground"
                                             )}
                                           >
@@ -618,7 +618,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                       <FormLabel>Neighbourhood</FormLabel>
                                       <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
-                                          <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                          <SelectTrigger className="bg-white border border-slate-200">
                                             <SelectValue placeholder="Select neighbourhood" />
                                           </SelectTrigger>
                                         </FormControl>
@@ -648,7 +648,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                       <FormLabel>Budget per month</FormLabel>
                                       <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
-                                          <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                          <SelectTrigger className="bg-white border border-slate-200">
                                             <SelectValue placeholder="Select range" />
                                           </SelectTrigger>
                                         </FormControl>
@@ -679,7 +679,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                       <FormLabel>Rooms</FormLabel>
                                       <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
-                                          <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                          <SelectTrigger className="bg-white border border-slate-200">
                                             <SelectValue placeholder="Select" />
                                           </SelectTrigger>
                                         </FormControl>
@@ -701,7 +701,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                       <FormLabel>Duration</FormLabel>
                                       <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
-                                          <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                          <SelectTrigger className="bg-white border border-slate-200">
                                             <SelectValue placeholder="Select" />
                                           </SelectTrigger>
                                         </FormControl>
@@ -723,7 +723,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                       <FormLabel>Type</FormLabel>
                                       <Select onValueChange={field.onChange} value={field.value} defaultValue="studio">
                                         <FormControl>
-                                          <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                          <SelectTrigger className="bg-white border border-slate-200">
                                             <SelectValue />
                                           </SelectTrigger>
                                         </FormControl>
@@ -753,7 +753,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                       }
                                     }} value={field.value}>
                                       <FormControl>
-                                        <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                        <SelectTrigger className="bg-white border border-slate-200">
                                           <SelectValue placeholder="Select" />
                                         </SelectTrigger>
                                       </FormControl>
@@ -776,7 +776,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                         <FormLabel>Roommate arrangement</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value}>
                                           <FormControl>
-                                            <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                            <SelectTrigger className="bg-white border border-slate-200">
                                               <SelectValue placeholder="Select arrangement" />
                                             </SelectTrigger>
                                           </FormControl>
@@ -796,7 +796,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                         <FormLabel>How many roommates?</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value}>
                                           <FormControl>
-                                            <SelectTrigger className="bg-white/50 backdrop-blur-sm border-white/30">
+                                            <SelectTrigger className="bg-white border border-slate-200">
                                               <SelectValue placeholder="Select number" />
                                             </SelectTrigger>
                                           </FormControl>
