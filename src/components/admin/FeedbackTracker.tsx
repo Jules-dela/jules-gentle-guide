@@ -244,7 +244,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
       </div>
 
       <AnimatePresence mode="popLayout">
-        {proposals.map((proposal, index) => (
+        {feedbackProposals.map((proposal, index) => (
           <motion.div
             key={proposal.id}
             initial={{ opacity: 0, y: 10 }}
