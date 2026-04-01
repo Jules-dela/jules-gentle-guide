@@ -645,7 +645,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                   name="budget"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>Budget per month</FormLabel>
+                                      <FormLabel>Budget per month (per person)</FormLabel>
                                       <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
                                           <SelectTrigger className="bg-white border border-slate-200">
