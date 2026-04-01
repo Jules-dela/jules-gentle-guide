@@ -287,7 +287,15 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     client_initials?: string;
   }) => {
     if (!submittedCaseId) {
-      return { error: new Error('No case found') };
+      console.error('Sign contract failed: No case ID available');
+      return { error: new Error('No case found. Please try submitting again.') };
+    }
+
+    // Check if user is authenticated
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session) {
+      console.error('Sign contract failed: User not authenticated');
+      return { error: new Error('not_authenticated') };
     }
 
     try {
@@ -296,7 +304,10 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
         p_contract_data: JSON.parse(JSON.stringify(contractData)),
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('sign_contract RPC error:', error);
+        throw error;
+      }
 
       // Send contract receipt email
       try {
