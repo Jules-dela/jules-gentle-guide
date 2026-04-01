@@ -189,9 +189,12 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
     }
   };
 
-  const allRejected = proposals.length > 0 && proposals.every(p => p.client_status === 'rejected');
-  const hasLiked = proposals.some(p => p.client_status === 'liked');
-  const likedCount = proposals.filter(p => p.client_status === 'liked').length;
+  // Only show proposals that have received feedback (liked or rejected)
+  const feedbackProposals = proposals.filter(p => p.client_status === 'liked' || p.client_status === 'rejected');
+  const pendingCount = proposals.filter(p => p.client_status === 'pending').length;
+  const allRejected = feedbackProposals.length > 0 && feedbackProposals.every(p => p.client_status === 'rejected');
+  const hasLiked = feedbackProposals.some(p => p.client_status === 'liked');
+  const likedCount = feedbackProposals.filter(p => p.client_status === 'liked').length;
 
   if (loading) {
     return (
