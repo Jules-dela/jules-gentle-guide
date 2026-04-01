@@ -683,6 +683,7 @@ export type Database = {
           name: string | null
           phone: string | null
           token: string
+          url: string | null
           used: boolean
         }
         Insert: {
@@ -691,6 +692,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           token?: string
+          url?: string | null
           used?: boolean
         }
         Update: {
@@ -699,6 +701,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           token?: string
+          url?: string | null
           used?: boolean
         }
         Relationships: []
