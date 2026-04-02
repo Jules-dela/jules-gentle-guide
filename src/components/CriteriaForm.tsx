@@ -391,6 +391,9 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     setSubmittedCaseId(null);
     setSubmittedName('');
     setContractSigned(false);
+    setPreSubmitContractSigned(false);
+    setPreSubmitContractData(null);
+    setShowContractWarning(false);
     setDocumentsAcknowledged(false);
     setShowDocWarning(false);
   };
