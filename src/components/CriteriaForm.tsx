@@ -131,8 +131,9 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
 
   const nextStep = async () => {
     const isValid = await validateStep(currentStep);
-    if (isValid && currentStep < 4) {
+    if (isValid && currentStep < 5) {
       setCurrentStep(currentStep + 1);
+      setShowDocWarning(false);
     }
   };
 
