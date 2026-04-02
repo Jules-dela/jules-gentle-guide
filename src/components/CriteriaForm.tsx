@@ -52,7 +52,8 @@ const steps = [
   { id: 1, title: "About You", icon: User },
   { id: 2, title: "Property", icon: Home },
   { id: 3, title: "Preferences", icon: Settings },
-  { id: 4, title: "Submit", icon: Send },
+  { id: 4, title: "Documents", icon: FileText },
+  { id: 5, title: "Submit", icon: Send },
 ];
 
 interface CriteriaFormProps {
