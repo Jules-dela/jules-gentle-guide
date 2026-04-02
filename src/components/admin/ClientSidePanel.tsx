@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ApartmentUploader } from './ApartmentUploader';
+import { PendingProposalsList } from './PendingProposalsList';
 import { FeedbackTracker } from './FeedbackTracker';
 import { VisitReportUploader } from './VisitReportUploader';
 import { DocumentManager } from './DocumentManager';
@@ -470,13 +471,19 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
                 {client.case_id && (
                   <LazySection title="Proposals" defaultOpen>
                     {() => (
-                      <ApartmentUploader 
-                        key={`uploader-${refreshKey}`}
-                        caseId={client.case_id!} 
-                        onSave={handleRefresh}
-                        clientEmail={client.email}
-                        clientName={client.name}
-                      />
+                      <>
+                        <ApartmentUploader 
+                          key={`uploader-${refreshKey}`}
+                          caseId={client.case_id!} 
+                          onSave={handleRefresh}
+                          clientEmail={client.email}
+                          clientName={client.name}
+                        />
+                        <PendingProposalsList
+                          key={`pending-${refreshKey}`}
+                          caseId={client.case_id!}
+                        />
+                      </>
                     )}
                   </LazySection>
                 )}
