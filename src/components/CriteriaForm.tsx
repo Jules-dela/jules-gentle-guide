@@ -69,6 +69,8 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
   const [submittedName, setSubmittedName] = useState<string>('');
   const [contractSigned, setContractSigned] = useState(false);
   const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(false);
+  const [documentsAcknowledged, setDocumentsAcknowledged] = useState(false);
+  const [showDocWarning, setShowDocWarning] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
 
