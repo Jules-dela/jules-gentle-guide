@@ -68,6 +68,9 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
   const [submittedCaseId, setSubmittedCaseId] = useState<string | null>(null);
   const [submittedName, setSubmittedName] = useState<string>('');
   const [contractSigned, setContractSigned] = useState(false);
+  const [preSubmitContractSigned, setPreSubmitContractSigned] = useState(false);
+  const [preSubmitContractData, setPreSubmitContractData] = useState<any>(null);
+  const [showContractWarning, setShowContractWarning] = useState(false);
   const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(false);
   const [documentsAcknowledged, setDocumentsAcknowledged] = useState(false);
   const [showDocWarning, setShowDocWarning] = useState(false);
