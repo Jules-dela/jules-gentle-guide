@@ -517,9 +517,14 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                       
                       return (
                         <div key={step.id} className="flex items-center">
-                          <div 
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (isCompleted) setCurrentStep(step.id);
+                            }}
                             className={`
                               flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 rounded-full transition-all duration-300
+                              ${isCompleted ? "cursor-pointer hover:shadow-md" : ""}
                               ${isActive 
                                 ? "bg-primary text-primary-foreground shadow-lg" 
                                 : isCompleted 
@@ -530,7 +535,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                           >
                             <Icon className="w-4 h-4" />
                             <span className="hidden md:inline text-sm font-medium">{step.title}</span>
-                          </div>
+                          </button>
                           {index < steps.length - 1 && (
                             <div className={`w-6 md:w-10 h-0.5 mx-1 md:mx-2 transition-colors duration-300 ${
                               isCompleted ? "bg-primary" : "bg-border"
