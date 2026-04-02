@@ -114,6 +114,13 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
         fieldsToValidate = ["furnished", "nearTransport", "pets", "noSmoking", "notes"];
         break;
       case 4:
+        // Documents acknowledgment step — no form fields, validated via state
+        if (!documentsAcknowledged) {
+          setShowDocWarning(true);
+          return false;
+        }
+        return true;
+      case 5:
         fieldsToValidate = ["privacyAccepted"];
         break;
     }
