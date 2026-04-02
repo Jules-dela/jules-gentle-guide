@@ -68,6 +68,9 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
   const [submittedCaseId, setSubmittedCaseId] = useState<string | null>(null);
   const [submittedName, setSubmittedName] = useState<string>('');
   const [contractSigned, setContractSigned] = useState(false);
+  const [preSubmitContractSigned, setPreSubmitContractSigned] = useState(false);
+  const [preSubmitContractData, setPreSubmitContractData] = useState<any>(null);
+  const [showContractWarning, setShowContractWarning] = useState(false);
   const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(false);
   const [documentsAcknowledged, setDocumentsAcknowledged] = useState(false);
   const [showDocWarning, setShowDocWarning] = useState(false);
@@ -270,20 +273,42 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
         }
       }
 
+      // Sign contract via RPC if pre-signed during form
+      if (result?.caseId && preSubmitContractData) {
+        try {
+          const { error: signError } = await supabase.rpc('sign_contract', {
+            p_case_id: result.caseId,
+            p_contract_data: JSON.parse(JSON.stringify(preSubmitContractData)),
+          });
+          if (signError) {
+            console.error('Post-submit contract sign error:', signError);
+          } else {
+            // Send contract receipt email
+            try {
+              await supabase.functions.invoke('send-contract-receipt', {
+                body: {
+                  clientName: data.name,
+                  clientEmail: data.email,
+                  signedAt: preSubmitContractData.timestamp,
+                },
+              });
+            } catch (emailErr) {
+              console.error('Error sending contract receipt email:', emailErr);
+            }
+          }
+        } catch (err) {
+          console.error('Contract sign error:', err);
+        }
+      }
+
       setIsSuccess(true);
+      setContractSigned(true);
       onSubmitSuccess?.();
       
-      if (result?.caseId) {
-        toast({
-          title: "✅ Application submitted!",
-          description: "Please sign the service agreement below to activate your search.",
-        });
-      } else {
-        toast({
-          title: "✅ Application submitted!",
-          description: "You'll receive portal access details by email. Sign the agreement from your portal.",
-        });
-      }
+      toast({
+        title: "🎉 You're all set!",
+        description: "Your application and service agreement have been submitted. We'll start your search right away.",
+      });
     } catch (error) {
       console.error("Submission error:", error);
       toast({
@@ -366,6 +391,9 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     setSubmittedCaseId(null);
     setSubmittedName('');
     setContractSigned(false);
+    setPreSubmitContractSigned(false);
+    setPreSubmitContractData(null);
+    setShowContractWarning(false);
     setDocumentsAcknowledged(false);
     setShowDocWarning(false);
   };
@@ -1070,6 +1098,28 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                 )}
                               />
 
+                              {/* Service Agreement — must be signed before submitting */}
+                              <div className="mt-6">
+                                <h3 className="font-semibold text-lg mb-3">Service Agreement</h3>
+                                <p className="text-muted-foreground text-sm mb-4">
+                                  Please read and sign the service agreement below to activate your housing search.
+                                </p>
+                                <ServiceAgreement
+                                  clientName={form.watch("name") || ""}
+                                  onSign={async (contractData) => {
+                                    setPreSubmitContractSigned(true);
+                                    setPreSubmitContractData(contractData);
+                                    setShowContractWarning(false);
+                                    toast({
+                                      title: "✅ Contract signed!",
+                                      description: "You can now submit your application.",
+                                    });
+                                    return { error: null };
+                                  }}
+                                  isSigned={preSubmitContractSigned}
+                                />
+                              </div>
+
                               {/* Honeypot */}
                               <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
                                 <FormField
@@ -1090,34 +1140,50 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                         </AnimatePresence>
 
                         {/* Navigation Buttons */}
-                        <div className="flex justify-between mt-8 pt-6 border-t border-border/30">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={prevStep}
-                            disabled={currentStep === 1}
-                            className="gap-2"
-                          >
-                            <ChevronLeft className="w-4 h-4" />
-                            Back
-                          </Button>
-                          
-                          {currentStep < 5 ? (
+                        <div className="flex flex-col mt-8 pt-6 border-t border-border/30">
+                          {currentStep === 5 && showContractWarning && !preSubmitContractSigned && (
+                            <p className="text-sm text-destructive mb-3 text-right">
+                              A signed contract is required to begin your search. Please sign the document above before submitting.
+                            </p>
+                          )}
+                          <div className="flex justify-between">
                             <Button
                               type="button"
-                              onClick={nextStep}
-                              disabled={currentStep === 4 && !documentsAcknowledged}
-                              className={cn("gap-2", currentStep === 4 && !documentsAcknowledged && "opacity-50 cursor-not-allowed")}
+                              variant="ghost"
+                              onClick={prevStep}
+                              disabled={currentStep === 1}
+                              className="gap-2"
                             >
-                              Continue
-                              <ChevronRight className="w-4 h-4" />
+                              <ChevronLeft className="w-4 h-4" />
+                              Back
                             </Button>
-                          ) : (
-                            <Button type="submit" disabled={isSubmitting} className="gap-2">
-                              {isSubmitting ? "Submitting..." : "Find my home"}
-                              <Send className="w-4 h-4" />
-                            </Button>
-                          )}
+                            
+                            {currentStep < 5 ? (
+                              <Button
+                                type="button"
+                                onClick={nextStep}
+                                disabled={currentStep === 4 && !documentsAcknowledged}
+                                className={cn("gap-2", currentStep === 4 && !documentsAcknowledged && "opacity-50 cursor-not-allowed")}
+                              >
+                                Continue
+                                <ChevronRight className="w-4 h-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                type={preSubmitContractSigned ? "submit" : "button"}
+                                disabled={isSubmitting || !preSubmitContractSigned}
+                                onClick={() => {
+                                  if (!preSubmitContractSigned) {
+                                    setShowContractWarning(true);
+                                  }
+                                }}
+                                className={cn("gap-2", !preSubmitContractSigned && "opacity-50 cursor-not-allowed")}
+                              >
+                                {isSubmitting ? "Submitting..." : "Find my home"}
+                                <Send className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </form>
                     </Form>
