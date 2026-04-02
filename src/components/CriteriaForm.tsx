@@ -1115,34 +1115,50 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                         </AnimatePresence>
 
                         {/* Navigation Buttons */}
-                        <div className="flex justify-between mt-8 pt-6 border-t border-border/30">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={prevStep}
-                            disabled={currentStep === 1}
-                            className="gap-2"
-                          >
-                            <ChevronLeft className="w-4 h-4" />
-                            Back
-                          </Button>
-                          
-                          {currentStep < 5 ? (
+                        <div className="flex flex-col mt-8 pt-6 border-t border-border/30">
+                          {currentStep === 5 && showContractWarning && !preSubmitContractSigned && (
+                            <p className="text-sm text-destructive mb-3 text-right">
+                              A signed contract is required to begin your search. Please sign the document above before submitting.
+                            </p>
+                          )}
+                          <div className="flex justify-between">
                             <Button
                               type="button"
-                              onClick={nextStep}
-                              disabled={currentStep === 4 && !documentsAcknowledged}
-                              className={cn("gap-2", currentStep === 4 && !documentsAcknowledged && "opacity-50 cursor-not-allowed")}
+                              variant="ghost"
+                              onClick={prevStep}
+                              disabled={currentStep === 1}
+                              className="gap-2"
                             >
-                              Continue
-                              <ChevronRight className="w-4 h-4" />
+                              <ChevronLeft className="w-4 h-4" />
+                              Back
                             </Button>
-                          ) : (
-                            <Button type="submit" disabled={isSubmitting} className="gap-2">
-                              {isSubmitting ? "Submitting..." : "Find my home"}
-                              <Send className="w-4 h-4" />
-                            </Button>
-                          )}
+                            
+                            {currentStep < 5 ? (
+                              <Button
+                                type="button"
+                                onClick={nextStep}
+                                disabled={currentStep === 4 && !documentsAcknowledged}
+                                className={cn("gap-2", currentStep === 4 && !documentsAcknowledged && "opacity-50 cursor-not-allowed")}
+                              >
+                                Continue
+                                <ChevronRight className="w-4 h-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                type={preSubmitContractSigned ? "submit" : "button"}
+                                disabled={isSubmitting || !preSubmitContractSigned}
+                                onClick={() => {
+                                  if (!preSubmitContractSigned) {
+                                    setShowContractWarning(true);
+                                  }
+                                }}
+                                className={cn("gap-2", !preSubmitContractSigned && "opacity-50 cursor-not-allowed")}
+                              >
+                                {isSubmitting ? "Submitting..." : "Find my home"}
+                                <Send className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </form>
                     </Form>
