@@ -471,13 +471,19 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
                 {client.case_id && (
                   <LazySection title="Proposals" defaultOpen>
                     {() => (
-                      <ApartmentUploader 
-                        key={`uploader-${refreshKey}`}
-                        caseId={client.case_id!} 
-                        onSave={handleRefresh}
-                        clientEmail={client.email}
-                        clientName={client.name}
-                      />
+                      <>
+                        <ApartmentUploader 
+                          key={`uploader-${refreshKey}`}
+                          caseId={client.case_id!} 
+                          onSave={handleRefresh}
+                          clientEmail={client.email}
+                          clientName={client.name}
+                        />
+                        <PendingProposalsList
+                          key={`pending-${refreshKey}`}
+                          caseId={client.case_id!}
+                        />
+                      </>
                     )}
                   </LazySection>
                 )}
