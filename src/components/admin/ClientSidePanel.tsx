@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ApartmentUploader } from './ApartmentUploader';
+import { PendingProposalsList } from './PendingProposalsList';
 import { FeedbackTracker } from './FeedbackTracker';
 import { VisitReportUploader } from './VisitReportUploader';
 import { DocumentManager } from './DocumentManager';
