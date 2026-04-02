@@ -1073,6 +1073,28 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                 )}
                               />
 
+                              {/* Service Agreement — must be signed before submitting */}
+                              <div className="mt-6">
+                                <h3 className="font-semibold text-lg mb-3">Service Agreement</h3>
+                                <p className="text-muted-foreground text-sm mb-4">
+                                  Please read and sign the service agreement below to activate your housing search.
+                                </p>
+                                <ServiceAgreement
+                                  clientName={form.watch("name") || ""}
+                                  onSign={async (contractData) => {
+                                    setPreSubmitContractSigned(true);
+                                    setPreSubmitContractData(contractData);
+                                    setShowContractWarning(false);
+                                    toast({
+                                      title: "✅ Contract signed!",
+                                      description: "You can now submit your application.",
+                                    });
+                                    return { error: null };
+                                  }}
+                                  isSigned={preSubmitContractSigned}
+                                />
+                              </div>
+
                               {/* Honeypot */}
                               <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
                                 <FormField
