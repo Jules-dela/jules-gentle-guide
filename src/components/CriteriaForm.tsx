@@ -945,8 +945,70 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                             </motion.div>
                           )}
 
-                          {/* Step 4: Submit */}
+                          {/* Step 4: Documents */}
                           {currentStep === 4 && (
+                            <motion.div
+                              key="step4"
+                              initial={{ opacity: 0, x: 20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: -20 }}
+                              transition={{ duration: 0.3 }}
+                              className="space-y-6"
+                            >
+                              <div className="text-center space-y-2 mb-2">
+                                <h3 className="text-xl font-semibold text-foreground">Prepare your documents</h3>
+                                <p className="text-muted-foreground text-sm">
+                                  To move fast on the best listings, have these ready before your viewing.
+                                </p>
+                              </div>
+
+                              <div className="space-y-3">
+                                {[
+                                  { emoji: "📄", title: "ID / Passport", desc: "A valid government-issued photo ID" },
+                                  { emoji: "💼", title: "Work contract or proof of enrollment", desc: "Employment contract or student enrollment certificate" },
+                                  { emoji: "💰", title: "Last 3 payslips or proof of income", desc: "Or last tax return if self-employed" },
+                                  { emoji: "🏦", title: "Bank statements (last 3 months)", desc: "To confirm financial stability" },
+                                  { emoji: "📋", title: "Debt collection register extract", desc: "Extrait du registre des poursuites — obtainable at your local office, valid within 3 months" },
+                                  { emoji: "🏠", title: "Last rental reference or landlord contact", desc: "Previous landlord's name and contact info if applicable" },
+                                ].map((doc, i) => (
+                                  <div
+                                    key={i}
+                                    className="flex items-start gap-4 p-4 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 transition-all"
+                                  >
+                                    <span className="text-2xl mt-0.5 shrink-0">{doc.emoji}</span>
+                                    <div>
+                                      <p className="font-medium text-sm text-foreground">{doc.title}</p>
+                                      <p className="text-xs text-muted-foreground mt-0.5">{doc.desc}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div className="pt-2">
+                                <label className="flex items-start gap-3 cursor-pointer rounded-2xl bg-white border border-slate-200 p-4">
+                                  <Checkbox
+                                    checked={documentsAcknowledged}
+                                    onCheckedChange={(checked) => {
+                                      setDocumentsAcknowledged(checked === true);
+                                      if (checked) setShowDocWarning(false);
+                                    }}
+                                    className="mt-0.5"
+                                  />
+                                  <span className="text-sm text-foreground leading-relaxed">
+                                    I have read and understood the required documents. I commit to having them ready before my viewing appointment.
+                                  </span>
+                                </label>
+                                {showDocWarning && (
+                                  <p className="text-xs text-destructive mt-2 ml-1">
+                                    Please confirm you've read the document requirements to continue.
+                                  </p>
+                                )}
+                              </div>
+                            </motion.div>
+                          )}
+
+                          {/* Step 5: Submit */}
+                          {currentStep === 5 && (
                             <motion.div
                               key="step4"
                               initial={{ opacity: 0, x: 20 }}
