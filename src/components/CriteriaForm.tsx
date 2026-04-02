@@ -17,7 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { ChevronRight, ChevronLeft, CheckCircle2, User, Home, Settings, Send, CalendarIcon } from "lucide-react";
+import { ChevronRight, ChevronLeft, CheckCircle2, User, Home, Settings, Send, CalendarIcon, FileText } from "lucide-react";
 import { ServiceAgreement } from "@/components/portal/ServiceAgreement";
 
 // Validation schema
