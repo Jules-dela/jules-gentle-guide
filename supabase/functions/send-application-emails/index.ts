@@ -482,7 +482,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "Unikey <contact@uni-key.ch>",
-        to: ["contact@uni-key.ch"],
+        to: ["contact@uni-key.ch", "antoinepiras007@gmail.com"],
         subject: `🏠 New Application: ${escapeHtml(data.name)} - Case ${newCase.id.substring(0, 8)}`,
         html: adminEmailHtml,
       }),
