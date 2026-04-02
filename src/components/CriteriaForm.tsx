@@ -1100,8 +1100,13 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                             Back
                           </Button>
                           
-                          {currentStep < 4 ? (
-                            <Button type="button" onClick={nextStep} className="gap-2">
+                          {currentStep < 5 ? (
+                            <Button
+                              type="button"
+                              onClick={nextStep}
+                              disabled={currentStep === 4 && !documentsAcknowledged}
+                              className={cn("gap-2", currentStep === 4 && !documentsAcknowledged && "opacity-50 cursor-not-allowed")}
+                            >
                               Continue
                               <ChevronRight className="w-4 h-4" />
                             </Button>
