@@ -273,20 +273,42 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
         }
       }
 
+      // Sign contract via RPC if pre-signed during form
+      if (result?.caseId && preSubmitContractData) {
+        try {
+          const { error: signError } = await supabase.rpc('sign_contract', {
+            p_case_id: result.caseId,
+            p_contract_data: JSON.parse(JSON.stringify(preSubmitContractData)),
+          });
+          if (signError) {
+            console.error('Post-submit contract sign error:', signError);
+          } else {
+            // Send contract receipt email
+            try {
+              await supabase.functions.invoke('send-contract-receipt', {
+                body: {
+                  clientName: data.name,
+                  clientEmail: data.email,
+                  signedAt: preSubmitContractData.timestamp,
+                },
+              });
+            } catch (emailErr) {
+              console.error('Error sending contract receipt email:', emailErr);
+            }
+          }
+        } catch (err) {
+          console.error('Contract sign error:', err);
+        }
+      }
+
       setIsSuccess(true);
+      setContractSigned(true);
       onSubmitSuccess?.();
       
-      if (result?.caseId) {
-        toast({
-          title: "✅ Application submitted!",
-          description: "Please sign the service agreement below to activate your search.",
-        });
-      } else {
-        toast({
-          title: "✅ Application submitted!",
-          description: "You'll receive portal access details by email. Sign the agreement from your portal.",
-        });
-      }
+      toast({
+        title: "🎉 You're all set!",
+        description: "Your application and service agreement have been submitted. We'll start your search right away.",
+      });
     } catch (error) {
       console.error("Submission error:", error);
       toast({
