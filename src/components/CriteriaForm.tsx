@@ -217,7 +217,22 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
           privacy_accepted: data.privacyAccepted,
         });
 
-      if (dbError) throw new Error("Failed to save application");
+      if (dbError) {
+        // Check for unique constraint violation (duplicate email or phone)
+        if (dbError.code === "23505") {
+          const isDuplicatePhone = dbError.message?.includes("phone");
+          toast({
+            title: "Application already submitted",
+            description: isDuplicatePhone
+              ? "An application with this phone number has already been submitted. Each phone number can only be used once."
+              : "An application with this email address has already been submitted. Each email can only be used once.",
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+        throw new Error("Failed to save application");
+      }
 
       const { data: result, error: emailError } = await supabase.functions.invoke("send-application-emails", {
         body: {
