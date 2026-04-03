@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX idx_housing_applications_phone ON public.housing_applications (phone) WHERE phone IS NOT NULL;
