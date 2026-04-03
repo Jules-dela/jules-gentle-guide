@@ -28,7 +28,7 @@ const Apply = () => {
         .eq("token", token)
         .maybeSingle();
 
-      if (error || !data || (data as any).used) {
+      if (error || !data) {
         setTokenState("invalid");
       } else {
         setTokenState("valid");
