@@ -155,40 +155,6 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     setIsSubmitting(true);
     
     try {
-      // Check for duplicate email or phone
-      const { data: existingByEmail } = await supabase
-        .from("housing_applications")
-        .select("id")
-        .eq("email", data.email)
-        .limit(1);
-
-      if (existingByEmail && existingByEmail.length > 0) {
-        toast({
-          title: "Application already submitted",
-          description: "An application with this email address has already been submitted.",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (data.phone) {
-        const { data: existingByPhone } = await supabase
-          .from("housing_applications")
-          .select("id")
-          .eq("phone", data.phone)
-          .limit(1);
-
-        if (existingByPhone && existingByPhone.length > 0) {
-          toast({
-            title: "Application already submitted",
-            description: "An application with this phone number has already been submitted.",
-            variant: "destructive",
-          });
-          setIsSubmitting(false);
-          return;
-        }
-      }
 
       // Parse name into first/last
       const nameParts = data.name.trim().split(/\s+/);
