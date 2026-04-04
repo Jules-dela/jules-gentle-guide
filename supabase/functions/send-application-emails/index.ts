@@ -28,6 +28,22 @@ function getCorsHeaders(origin: string | null) {
   };
 }
 
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+function normalizePhone(phone: string | null | undefined): string | null {
+  return phone ? phone.trim() : null;
+}
+
+function isDuplicateAuthError(message: string | undefined): boolean {
+  if (!message) return false;
+  const normalized = message.toLowerCase();
+  return normalized.includes('already been registered') ||
+    normalized.includes('already exists') ||
+    normalized.includes('duplicate');
+}
+
 // Rate limit configuration
 const RATE_LIMIT_MAX_REQUESTS = 5;
 const RATE_LIMIT_WINDOW_HOURS = 1;
@@ -127,25 +143,207 @@ const applicationSchema = z.object({
   notes: z.string().trim().max(2000, "Notes too long").optional().nullable(),
   movingDate: z.string().max(100).optional().nullable(),
   website: z.string().max(0).optional().nullable(),
+  skipEmails: z.boolean().optional(),
 });
 
 type ApplicationData = z.infer<typeof applicationSchema>;
 
 // Determine client type based on university field
-function determineClientType(university: string | null | undefined): 'student' | 'expat' | 'company' | 'other' {
+function determineClientType(university: string | null | undefined): 'student' | 'employee' | 'other' {
   if (!university) return 'other';
   const lowerUniversity = university.toLowerCase();
-  if (lowerUniversity.includes('epfl') || lowerUniversity.includes('unil') || 
+  if (lowerUniversity.includes('ehl') || lowerUniversity.includes('epfl') || lowerUniversity.includes('unil') || 
       lowerUniversity.includes('university') || lowerUniversity.includes('école') ||
-      lowerUniversity.includes('school') || lowerUniversity.includes('student')) {
+      lowerUniversity.includes('school') || lowerUniversity.includes('student') ||
+      lowerUniversity.includes('college') || lowerUniversity.includes('campus')) {
     return 'student';
   }
   if (lowerUniversity.includes('company') || lowerUniversity.includes('corp') || 
       lowerUniversity.includes('inc') || lowerUniversity.includes('ltd') ||
-      lowerUniversity.includes('gmbh') || lowerUniversity.includes('sa')) {
-    return 'company';
+      lowerUniversity.includes('gmbh') || lowerUniversity.includes('sa') ||
+      lowerUniversity.includes('employee') || lowerUniversity.includes('employer') ||
+      lowerUniversity.includes('office') || lowerUniversity.includes('work')) {
+    return 'employee';
   }
   return 'other';
+}
+
+async function findUserByEmail(email: string) {
+  const normalizedEmail = normalizeEmail(email);
+  let page = 1;
+  const perPage = 200;
+
+  while (true) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
+
+    if (error) {
+      console.error('Failed to list users while recovering existing account:', error.message);
+      throw new Error('Failed to look up existing user account');
+    }
+
+    const users = data?.users ?? [];
+    const existingUser = users.find((user) => normalizeEmail(user.email ?? '') === normalizedEmail);
+
+    if (existingUser) {
+      return existingUser;
+    }
+
+    if (users.length < perPage) {
+      return null;
+    }
+
+    page += 1;
+  }
+}
+
+async function getOrCreateProfile(userId: string, data: ApplicationData) {
+  const { data: existingProfile, error: profileLookupError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (profileLookupError) {
+    console.error('Failed to look up profile:', profileLookupError.message);
+    throw new Error('Failed to look up user profile');
+  }
+
+  if (existingProfile) {
+    return existingProfile;
+  }
+
+  const { data: createdProfile, error: profileError } = await supabase
+    .from('profiles')
+    .insert({
+      user_id: userId,
+      name: data.name.trim(),
+      email: normalizeEmail(data.email),
+      phone: normalizePhone(data.phone),
+      client_type: determineClientType(data.university),
+      company_school: data.university?.trim() || null,
+    })
+    .select('id')
+    .single();
+
+  if (profileError) {
+    console.error('Failed to create profile:', profileError.message);
+
+    const { data: recoveredProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (recoveredProfile) {
+      return recoveredProfile;
+    }
+
+    throw new Error('Failed to create user profile');
+  }
+
+  return createdProfile;
+}
+
+function buildInitialCriteria(data: ApplicationData) {
+  return {
+    neighbourhood: data.neighbourhood,
+    budget: data.budget,
+    rooms: data.rooms,
+    duration: data.duration,
+    property_type: data.propertyType,
+    propertyType: data.propertyType,
+    roommate_preference: data.roommatePreference,
+    roommatePreference: data.roommatePreference,
+    furnished: data.furnished,
+    near_transport: data.nearTransport,
+    nearTransport: data.nearTransport,
+    pets_allowed: data.petsAllowed,
+    petsAllowed: data.petsAllowed,
+    smoking_allowed: data.smokingAllowed,
+    smokingAllowed: data.smokingAllowed,
+    notes: data.notes,
+    moving_date: data.movingDate,
+    movingDate: data.movingDate,
+    university: data.university,
+  };
+}
+
+async function getOrCreateCase(profileId: string, data: ApplicationData) {
+  const { data: existingCase, error: caseLookupError } = await supabase
+    .from('cases')
+    .select('id')
+    .eq('client_id', profileId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (caseLookupError) {
+    console.error('Failed to look up existing case:', caseLookupError.message);
+    throw new Error('Failed to look up case');
+  }
+
+  if (existingCase) {
+    return existingCase;
+  }
+
+  const { data: createdCase, error: caseError } = await supabase
+    .from('cases')
+    .insert({
+      client_id: profileId,
+      status: 'request_received',
+      initial_criteria: buildInitialCriteria(data),
+    })
+    .select('id')
+    .single();
+
+  if (caseError) {
+    console.error('Failed to create case:', caseError.message);
+
+    const { data: recoveredCase } = await supabase
+      .from('cases')
+      .select('id')
+      .eq('client_id', profileId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (recoveredCase) {
+      return recoveredCase;
+    }
+
+    throw new Error('Failed to create case');
+  }
+
+  return createdCase;
+}
+
+async function sendEmail(payload: {
+  from: string;
+  to: string[];
+  subject: string;
+  html: string;
+}) {
+  if (!RESEND_API_KEY) {
+    console.error('RESEND_API_KEY is missing, skipping email send');
+    return;
+  }
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${RESEND_API_KEY}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const result = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    console.error('Email send failed:', response.status, result);
+  }
+
+  return result;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -201,24 +399,22 @@ const handler = async (req: Request): Promise<Response> => {
     tempPassword = generateSecurePassword();
     
     const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
-      email: data.email,
+      email: normalizeEmail(data.email),
       password: tempPassword,
       email_confirm: true,
       user_metadata: {
-        name: data.name,
-        phone: data.phone,
+        name: data.name.trim(),
+        phone: normalizePhone(data.phone),
       }
     });
 
     if (createUserError) {
-      if (createUserError.message?.includes('already been registered') || createUserError.message?.includes('already exists')) {
+      if (isDuplicateAuthError(createUserError.message)) {
         // User already exists — find them
         console.log("User already exists, looking up by email");
         tempPassword = null; // Don't send password for existing users
         
-        // Use listUsers to find the existing user
-        const { data: existingUsersData } = await supabase.auth.admin.listUsers();
-        const existingUser = existingUsersData?.users?.find(u => u.email === data.email);
+        const existingUser = await findUserByEmail(data.email);
         
         if (existingUser) {
           userId = existingUser.id;
@@ -237,75 +433,10 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Created new user account, isNewUser:", isNewUser);
     }
 
-    // Check if profile exists
-    const { data: existingProfile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('user_id', userId)
-      .single();
+    const profile = await getOrCreateProfile(userId, data);
+    console.log('Resolved profile:', profile.id);
 
-    if (!existingProfile) {
-      // Create profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: userId,
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-          client_type: determineClientType(data.university),
-          company_school: data.university,
-        });
-
-      if (profileError) {
-        console.error("Failed to create profile:", profileError.message);
-        throw new Error("Failed to create user profile");
-      }
-      console.log("Created user profile");
-    }
-
-    // Get the profile ID
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('user_id', userId)
-      .single();
-
-    if (!profile) {
-      throw new Error("Profile not found after creation");
-    }
-
-    // Create case with initial criteria
-    const initialCriteria = {
-      neighbourhood: data.neighbourhood,
-      budget: data.budget,
-      rooms: data.rooms,
-      duration: data.duration,
-      propertyType: data.propertyType,
-      roommatePreference: data.roommatePreference,
-      furnished: data.furnished,
-      nearTransport: data.nearTransport,
-      petsAllowed: data.petsAllowed,
-      smokingAllowed: data.smokingAllowed,
-      notes: data.notes,
-      movingDate: data.movingDate,
-      university: data.university,
-    };
-
-    const { data: newCase, error: caseError } = await supabase
-      .from('cases')
-      .insert({
-        client_id: profile.id,
-        status: 'request_received',
-        initial_criteria: initialCriteria,
-      })
-      .select('id')
-      .single();
-
-    if (caseError) {
-      console.error("Failed to create case:", caseError.message);
-      throw new Error("Failed to create case");
-    }
+    const newCase = await getOrCreateCase(profile.id, data);
     console.log("Created case:", newCase.id);
 
     // Format boolean preferences for email
@@ -459,42 +590,29 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    // Send emails
-    console.log("Sending admin notification email...");
-    const adminEmailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "Unikey <contact@uni-key.ch>",
-        to: ["contact@uni-key.ch", "antoinepiras007@gmail.com"],
-        subject: `🏠 New Application: ${escapeHtml(data.name)} - Case ${newCase.id.substring(0, 8)}`,
-        html: adminEmailHtml,
-      }),
-    });
-    
-    const adminResult = await adminEmailResponse.json();
-    console.log("Admin email sent:", adminResult.id ? "success" : "failed");
+    if (!data.skipEmails) {
+      try {
+        console.log("Sending admin notification email...");
+        const adminResult = await sendEmail({
+          from: "Unikey <contact@uni-key.ch>",
+          to: ["contact@uni-key.ch", "antoinepiras007@gmail.com"],
+          subject: `🏠 New Application: ${escapeHtml(data.name)} - Case ${newCase.id.substring(0, 8)}`,
+          html: adminEmailHtml,
+        });
+        console.log("Admin email sent:", adminResult && (adminResult as { id?: string }).id ? "success" : "failed");
 
-    console.log("Sending welcome email with portal access...");
-    const applicantEmailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "Unikey <contact@uni-key.ch>",
-        to: [data.email],
-        subject: "🔑 Your Unikey Portal is Ready!",
-        html: applicantEmailHtml,
-      }),
-    });
-    
-    const applicantResult = await applicantEmailResponse.json();
-    console.log("Welcome email sent:", applicantResult.id ? "success" : "failed");
+        console.log("Sending welcome email with portal access...");
+        const applicantResult = await sendEmail({
+          from: "Unikey <contact@uni-key.ch>",
+          to: [normalizeEmail(data.email)],
+          subject: "🔑 Your Unikey Portal is Ready!",
+          html: applicantEmailHtml,
+        });
+        console.log("Welcome email sent:", applicantResult && (applicantResult as { id?: string }).id ? "success" : "failed");
+      } catch (emailError) {
+        console.error('Email send step failed after case creation:', emailError);
+      }
+    }
 
     return new Response(
       JSON.stringify({ 
