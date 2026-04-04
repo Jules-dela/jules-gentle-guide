@@ -193,61 +193,48 @@ const handler = async (req: Request): Promise<Response> => {
     await recordSubmission(clientIP);
     console.log("Processing application submission with portal creation");
 
-    // Check if user already exists - use listUsers with email filter for reliability
-    const { data: existingUsersData } = await supabase.auth.admin.listUsers({
-      filter: `email.eq.${data.email}`,
-      page: 1,
-      perPage: 1,
-    });
-    const existingUser = existingUsersData?.users?.[0] || null;
-    
+    // Try to create the user first — this is the most reliable way to detect new vs existing
     let userId: string;
     let tempPassword: string | null = null;
     let isNewUser = false;
 
-    if (existingUser) {
-      userId = existingUser.id;
-      console.log("User already exists, using existing account");
-    } else {
-      // Create new user with temporary password
-      tempPassword = generateSecurePassword();
-      
-      const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
-        email: data.email,
-        password: tempPassword,
-        email_confirm: true,
-        user_metadata: {
-          name: data.name,
-          phone: data.phone,
-        }
-      });
+    tempPassword = generateSecurePassword();
+    
+    const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
+      email: data.email,
+      password: tempPassword,
+      email_confirm: true,
+      user_metadata: {
+        name: data.name,
+        phone: data.phone,
+      }
+    });
 
-      if (createUserError) {
-        // If user already exists despite our check, try to find them
-        if (createUserError.message?.includes('already been registered')) {
-          console.log("User exists (race condition), looking up by email");
-          const { data: retryUsers } = await supabase.auth.admin.listUsers({
-            filter: `email.eq.${data.email}`,
-            page: 1,
-            perPage: 1,
-          });
-          const retryUser = retryUsers?.users?.[0];
-          if (retryUser) {
-            userId = retryUser.id;
-            console.log("Found existing user on retry:", userId);
-          } else {
-            console.error("Failed to create or find user:", createUserError.message);
-            throw new Error("Failed to create user account");
-          }
+    if (createUserError) {
+      if (createUserError.message?.includes('already been registered') || createUserError.message?.includes('already exists')) {
+        // User already exists — find them
+        console.log("User already exists, looking up by email");
+        tempPassword = null; // Don't send password for existing users
+        
+        // Use listUsers to find the existing user
+        const { data: existingUsersData } = await supabase.auth.admin.listUsers();
+        const existingUser = existingUsersData?.users?.find(u => u.email === data.email);
+        
+        if (existingUser) {
+          userId = existingUser.id;
+          console.log("Found existing user:", userId);
         } else {
-          console.error("Failed to create user:", createUserError.message);
-          throw new Error("Failed to create user account");
+          console.error("User reportedly exists but could not be found by email");
+          throw new Error("Failed to find existing user account");
         }
       } else {
-        userId = newUser.user.id;
-        isNewUser = true;
-        console.log("Created new user account");
+        console.error("Failed to create user:", createUserError.message);
+        throw new Error("Failed to create user account");
       }
+    } else {
+      userId = newUser.user.id;
+      isNewUser = true;
+      console.log("Created new user account, isNewUser:", isNewUser);
     }
 
     // Check if profile exists
