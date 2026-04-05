@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Upload, X, Image, Loader2, Check, ThumbsUp, ThumbsDown, 
   RefreshCw, Plus, Trash2, Eye, Clock, Mail, MessageSquare,
-  ArrowLeft, ArrowRight, Pencil, Save
+  ArrowLeft, ArrowRight, Pencil, Save, AlertCircle, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAdminNotifications } from '@/hooks/useNotifications';
@@ -49,6 +50,8 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [notifyClient, setNotifyClient] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewLightboxIndex, setPreviewLightboxIndex] = useState<number | null>(null);
   const { createNotification } = useAdminNotifications();
   
   // Visit report form state
@@ -566,19 +569,161 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
               </Label>
             </div>
 
-            {/* Publish */}
-            <Button className="w-full gap-2" onClick={handlePublishReport} disabled={isSubmitting || !!visitRejected}>
-              {isSubmitting ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /> Publishing...</>
-              ) : selectedProposal.visit_published ? (
-                <><Check className="h-4 w-4" /> Update Report</>
-              ) : (
-                <><Upload className="h-4 w-4" /> Publish Report</>
-              )}
-            </Button>
+            {/* Preview & Publish */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => setShowPreview(true)}
+                disabled={imagePreviewUrls.length === 0 && pros.filter(p => p.trim()).length === 0}
+              >
+                <Eye className="h-4 w-4" /> Preview
+              </Button>
+              <Button className="flex-1 gap-2" onClick={handlePublishReport} disabled={isSubmitting || !!visitRejected}>
+                {isSubmitting ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Publishing...</>
+                ) : selectedProposal.visit_published ? (
+                  <><Check className="h-4 w-4" /> Update Report</>
+                ) : (
+                  <><Upload className="h-4 w-4" /> Publish Report</>
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
+
+      {/* Client Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="text-center text-lg">Client Preview</DialogTitle>
+            <p className="text-center text-sm text-muted-foreground">This is how the visit report looks to the client</p>
+          </DialogHeader>
+          
+          <div className="p-6 space-y-6">
+            {/* Apartment Recap */}
+            {selectedProposal && (
+              <div className="bg-muted/30 rounded-2xl p-4 flex items-center gap-4">
+                {selectedProposal.photos?.[0] && (
+                  <img src={selectedProposal.photos[0]} alt="" className="w-20 h-20 rounded-xl object-cover flex-shrink-0" />
+                )}
+                <div>
+                  <h4 className="font-semibold text-foreground mb-1">Property Visited</h4>
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">CHF {selectedProposal.rent?.toLocaleString()}</span>
+                    <span>{selectedProposal.neighbourhood} · {selectedProposal.rooms} rooms</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Photo Gallery */}
+            {imagePreviewUrls.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Visit Photos</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {imagePreviewUrls.map((url, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setPreviewLightboxIndex(index)}
+                      className="relative aspect-[4/3] rounded-2xl overflow-hidden group focus:outline-none"
+                    >
+                      <img src={url} alt={`Visit photo ${index + 1}`} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Pros & Cons */}
+            {(pros.some(p => p.trim()) || cons.some(c => c.trim())) && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Notes from Jules</h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {pros.filter(p => p.trim()).length > 0 && (
+                    <div>
+                      <h4 className="flex items-center gap-2 text-sm font-medium text-primary mb-3">
+                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Check className="w-3.5 h-3.5" />
+                        </div>
+                        What We Loved
+                      </h4>
+                      <ul className="space-y-2">
+                        {pros.filter(p => p.trim()).map((pro, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                            <span className="text-primary mt-0.5">✓</span>
+                            {pro}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {cons.filter(c => c.trim()).length > 0 && (
+                    <div>
+                      <h4 className="flex items-center gap-2 text-sm font-medium text-destructive mb-3">
+                        <div className="w-6 h-6 rounded-full bg-destructive/10 flex items-center justify-center">
+                          <AlertCircle className="w-3.5 h-3.5" />
+                        </div>
+                        Things to Consider
+                      </h4>
+                      <ul className="space-y-2">
+                        {cons.filter(c => c.trim()).map((con, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                            <span className="text-destructive mt-0.5">✗</span>
+                            {con}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Mock action buttons (disabled) */}
+            <div className="flex gap-4 opacity-50 pointer-events-none">
+              <Button variant="outline" className="flex-1 h-14 rounded-full">I Don't Like</Button>
+              <Button className="flex-1 h-14 rounded-full">I Like – Let's Apply!</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Preview Lightbox */}
+      <AnimatePresence>
+        {previewLightboxIndex !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center"
+            onClick={() => setPreviewLightboxIndex(null)}
+          >
+            <button onClick={() => setPreviewLightboxIndex(null)} className="absolute top-4 right-4 text-white/80 hover:text-white z-10">
+              <X className="h-6 w-6" />
+            </button>
+            {imagePreviewUrls.length > 1 && (
+              <>
+                <button onClick={(e) => { e.stopPropagation(); setPreviewLightboxIndex((previewLightboxIndex - 1 + imagePreviewUrls.length) % imagePreviewUrls.length); }} className="absolute left-4 text-white/80 hover:text-white z-10">
+                  <ChevronLeft className="h-8 w-8" />
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); setPreviewLightboxIndex((previewLightboxIndex + 1) % imagePreviewUrls.length); }} className="absolute right-4 text-white/80 hover:text-white z-10">
+                  <ChevronRight className="h-8 w-8" />
+                </button>
+              </>
+            )}
+            <img
+              src={imagePreviewUrls[previewLightboxIndex]}
+              alt=""
+              className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <span className="absolute bottom-4 text-white/60 text-sm">{previewLightboxIndex + 1} / {imagePreviewUrls.length}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
