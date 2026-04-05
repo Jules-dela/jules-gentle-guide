@@ -119,6 +119,31 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
     setCons(proposal.visit_cons && proposal.visit_cons.length > 0 ? proposal.visit_cons : ['']);
     setImagePreviewUrls(proposal.visit_photos && proposal.visit_photos.length > 0 ? proposal.visit_photos : []);
     setVisitImages([]);
+    setVisitVideoFile(null);
+    fetchVideoForProposal(proposal.id);
+  };
+
+  const fetchVideoForProposal = async (proposalId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('visit_videos')
+        .select('*')
+        .eq('proposal_id', proposalId)
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) {
+        setVisitVideoUrl(data.video_url);
+        setExistingVideoId(data.id);
+      } else {
+        setVisitVideoUrl(null);
+        setExistingVideoId(null);
+      }
+    } catch (err) {
+      console.error('Error fetching visit video:', err);
+      setVisitVideoUrl(null);
+      setExistingVideoId(null);
+    }
   };
 
   const handleFileChange = useCallback((files: FileList | null) => {
