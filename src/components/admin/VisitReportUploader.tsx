@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Upload, X, Image, Loader2, Check, ThumbsUp, ThumbsDown, 
   RefreshCw, Plus, Trash2, Eye, Clock, Mail, MessageSquare,
-  ArrowLeft, ArrowRight, Pencil, Save, AlertCircle, ChevronLeft, ChevronRight
+  ArrowLeft, ArrowRight, Pencil, Save, AlertCircle, ChevronLeft, ChevronRight,
+  Video
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
