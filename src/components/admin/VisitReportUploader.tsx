@@ -50,6 +50,8 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [notifyClient, setNotifyClient] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewLightboxIndex, setPreviewLightboxIndex] = useState<number | null>(null);
   const { createNotification } = useAdminNotifications();
   
   // Visit report form state
