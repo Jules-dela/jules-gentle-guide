@@ -522,6 +522,17 @@ const handler = async (req: Request): Promise<Response> => {
     const newCase = await getOrCreateCase(profile.id, data);
     console.log("Created case:", newCase.id);
 
+    // Sign contract server-side if contract data was provided
+    if (data.contractData && !newCase.contract_data) {
+      try {
+        await signContractServerSide(newCase.id, data.contractData);
+        console.log('Contract signed server-side successfully');
+      } catch (contractErr) {
+        console.error('Server-side contract signing failed:', contractErr);
+        // Don't fail the whole submission — client can re-sign in portal
+      }
+    }
+
     // Format boolean preferences for email
     const formatBoolean = (value?: boolean | null) => value ? "Yes" : "No";
     const safeField = (value: string | null | undefined, fallback: string): string => {
