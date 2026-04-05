@@ -272,6 +272,33 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
 
       if (updateError) throw updateError;
 
+      // Upload video if a new file was selected
+      if (visitVideoFile && selectedProposal) {
+        setVideoUploading(true);
+        const videoFileName = `visits/${caseId}/${Date.now()}-${visitVideoFile.name}`;
+        const { error: videoUploadError } = await supabase.storage
+          .from('visit-videos')
+          .upload(videoFileName, visitVideoFile);
+        if (videoUploadError) throw videoUploadError;
+
+        const { data: { publicUrl: videoPublicUrl } } = supabase.storage
+          .from('visit-videos')
+          .getPublicUrl(videoFileName);
+
+        // Upsert: delete old then insert new
+        if (existingVideoId) {
+          await supabase.from('visit_videos').delete().eq('id', existingVideoId);
+        }
+        const { error: videoInsertError } = await supabase
+          .from('visit_videos')
+          .insert({ proposal_id: selectedProposal.id, video_url: videoPublicUrl });
+        if (videoInsertError) throw videoInsertError;
+
+        setExistingVideoId(null);
+        setVisitVideoFile(null);
+        setVideoUploading(false);
+      }
+
       await createNotification(caseId, 3, 'visit_published', { address: selectedProposal.neighbourhood }, notifyClient, clientEmail, clientName);
 
       toast({
