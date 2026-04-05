@@ -63,6 +63,12 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
   const [editingDescription, setEditingDescription] = useState(false);
   const [editDescription, setEditDescription] = useState('');
   const [savingDescription, setSavingDescription] = useState(false);
+  
+  // Video state
+  const [visitVideoFile, setVisitVideoFile] = useState<File | null>(null);
+  const [visitVideoUrl, setVisitVideoUrl] = useState<string | null>(null);
+  const [existingVideoId, setExistingVideoId] = useState<string | null>(null);
+  const [videoUploading, setVideoUploading] = useState(false);
 
   const selectedProposal = likedProposals.find(p => p.id === selectedProposalId) || null;
 
