@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Upload, X, Image, Loader2, Check, ThumbsUp, ThumbsDown, 
   RefreshCw, Plus, Trash2, Eye, Clock, Mail, MessageSquare,
-  ArrowLeft, ArrowRight, Pencil, Save, AlertCircle, ChevronLeft, ChevronRight
+  ArrowLeft, ArrowRight, Pencil, Save, AlertCircle, ChevronLeft, ChevronRight,
+  Video
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -62,6 +63,12 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
   const [editingDescription, setEditingDescription] = useState(false);
   const [editDescription, setEditDescription] = useState('');
   const [savingDescription, setSavingDescription] = useState(false);
+  
+  // Video state
+  const [visitVideoFile, setVisitVideoFile] = useState<File | null>(null);
+  const [visitVideoUrl, setVisitVideoUrl] = useState<string | null>(null);
+  const [existingVideoId, setExistingVideoId] = useState<string | null>(null);
+  const [videoUploading, setVideoUploading] = useState(false);
 
   const selectedProposal = likedProposals.find(p => p.id === selectedProposalId) || null;
 
@@ -112,6 +119,31 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
     setCons(proposal.visit_cons && proposal.visit_cons.length > 0 ? proposal.visit_cons : ['']);
     setImagePreviewUrls(proposal.visit_photos && proposal.visit_photos.length > 0 ? proposal.visit_photos : []);
     setVisitImages([]);
+    setVisitVideoFile(null);
+    fetchVideoForProposal(proposal.id);
+  };
+
+  const fetchVideoForProposal = async (proposalId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('visit_videos')
+        .select('*')
+        .eq('proposal_id', proposalId)
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) {
+        setVisitVideoUrl(data.video_url);
+        setExistingVideoId(data.id);
+      } else {
+        setVisitVideoUrl(null);
+        setExistingVideoId(null);
+      }
+    } catch (err) {
+      console.error('Error fetching visit video:', err);
+      setVisitVideoUrl(null);
+      setExistingVideoId(null);
+    }
   };
 
   const handleFileChange = useCallback((files: FileList | null) => {
@@ -167,6 +199,30 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
   const addProItem = useCallback(() => setPros(prev => [...prev, '']), []);
   const removeProItem = useCallback((index: number) => setPros(prev => prev.filter((_, i) => i !== index)), []);
   const updateProItem = useCallback((index: number, value: string) => setPros(prev => prev.map((item, i) => i === index ? value : item)), []);
+
+  const handleVideoFileChange = useCallback((files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    if (file.size > 100 * 1024 * 1024) {
+      toast({ title: 'File too large', description: 'Video must be under 100MB.', variant: 'destructive' });
+      return;
+    }
+    setVisitVideoFile(file);
+    setVisitVideoUrl(URL.createObjectURL(file));
+  }, []);
+
+  const removeVideo = useCallback(async () => {
+    if (existingVideoId) {
+      try {
+        await supabase.from('visit_videos').delete().eq('id', existingVideoId);
+      } catch (err) {
+        console.error('Error deleting video:', err);
+      }
+    }
+    setVisitVideoFile(null);
+    setVisitVideoUrl(null);
+    setExistingVideoId(null);
+  }, [existingVideoId]);
   const addConItem = useCallback(() => setCons(prev => [...prev, '']), []);
   const removeConItem = useCallback((index: number) => setCons(prev => prev.filter((_, i) => i !== index)), []);
   const updateConItem = useCallback((index: number, value: string) => setCons(prev => prev.map((item, i) => i === index ? value : item)), []);
@@ -215,6 +271,33 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
         .eq('id', selectedProposal.id);
 
       if (updateError) throw updateError;
+
+      // Upload video if a new file was selected
+      if (visitVideoFile && selectedProposal) {
+        setVideoUploading(true);
+        const videoFileName = `visits/${caseId}/${Date.now()}-${visitVideoFile.name}`;
+        const { error: videoUploadError } = await supabase.storage
+          .from('visit-videos')
+          .upload(videoFileName, visitVideoFile);
+        if (videoUploadError) throw videoUploadError;
+
+        const { data: { publicUrl: videoPublicUrl } } = supabase.storage
+          .from('visit-videos')
+          .getPublicUrl(videoFileName);
+
+        // Upsert: delete old then insert new
+        if (existingVideoId) {
+          await supabase.from('visit_videos').delete().eq('id', existingVideoId);
+        }
+        const { error: videoInsertError } = await supabase
+          .from('visit_videos')
+          .insert({ proposal_id: selectedProposal.id, video_url: videoPublicUrl });
+        if (videoInsertError) throw videoInsertError;
+
+        setExistingVideoId(null);
+        setVisitVideoFile(null);
+        setVideoUploading(false);
+      }
 
       await createNotification(caseId, 3, 'visit_published', { address: selectedProposal.neighbourhood }, notifyClient, clientEmail, clientName);
 
@@ -507,6 +590,41 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
               </div>
             </div>
 
+            {/* Visit Video */}
+            <div>
+              <Label className="text-sm flex items-center gap-2 mb-2">
+                <Video className="h-4 w-4" />
+                Visit Video (optional, max 100MB)
+              </Label>
+              {visitVideoUrl ? (
+                <div className="relative rounded-lg overflow-hidden bg-muted">
+                  <video
+                    src={visitVideoUrl}
+                    controls
+                    className="w-full max-h-64 rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeVideo}
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center h-28 rounded-lg border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 cursor-pointer transition-colors bg-muted/30">
+                  <Upload className="h-5 w-5 text-muted-foreground mb-1" />
+                  <span className="text-xs text-muted-foreground">Upload video</span>
+                  <input type="file" accept="video/*" className="hidden" onChange={(e) => handleVideoFileChange(e.target.files)} />
+                </label>
+              )}
+              {videoUploading && (
+                <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Uploading video...
+                </div>
+              )}
+            </div>
+
             <Separator />
 
             {/* Pros */}
@@ -634,6 +752,14 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
                     </button>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Visit Video Preview */}
+            {visitVideoUrl && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Visit Video</h3>
+                <video src={visitVideoUrl} controls className="w-full rounded-2xl max-h-72" />
               </div>
             )}
 
