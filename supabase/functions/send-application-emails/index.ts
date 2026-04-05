@@ -124,6 +124,24 @@ function generateSecurePassword(): string {
   return password;
 }
 
+// Contract data schema for server-side signing
+const contractDataSchema = z.object({
+  signature_image: z.string().min(1),
+  ip_address: z.string().optional(),
+  timestamp: z.string().optional(),
+  user_agent: z.string().optional(),
+  device_info: z.object({
+    platform: z.string().optional(),
+    language: z.string().optional(),
+    screen_width: z.number().optional(),
+    screen_height: z.number().optional(),
+  }).optional(),
+  client_full_name: z.string().optional(),
+  client_date_of_birth: z.string().optional(),
+  client_nationality: z.string().optional(),
+  client_initials: z.string().optional(),
+}).nullable().optional();
+
 // Server-side validation schema
 const applicationSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name too long"),
@@ -144,6 +162,7 @@ const applicationSchema = z.object({
   movingDate: z.string().max(100).optional().nullable(),
   website: z.string().max(0).optional().nullable(),
   skipEmails: z.boolean().optional(),
+  contractData: contractDataSchema,
 });
 
 type ApplicationData = z.infer<typeof applicationSchema>;
@@ -271,7 +290,7 @@ function buildInitialCriteria(data: ApplicationData) {
 async function getOrCreateCase(profileId: string, data: ApplicationData) {
   const { data: existingCase, error: caseLookupError } = await supabase
     .from('cases')
-    .select('id')
+    .select('id, contract_data')
     .eq('client_id', profileId)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -293,7 +312,7 @@ async function getOrCreateCase(profileId: string, data: ApplicationData) {
       status: 'request_received',
       initial_criteria: buildInitialCriteria(data),
     })
-    .select('id')
+    .select('id, contract_data')
     .single();
 
   if (caseError) {
@@ -301,7 +320,7 @@ async function getOrCreateCase(profileId: string, data: ApplicationData) {
 
     const { data: recoveredCase } = await supabase
       .from('cases')
-      .select('id')
+      .select('id, contract_data')
       .eq('client_id', profileId)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -315,6 +334,70 @@ async function getOrCreateCase(profileId: string, data: ApplicationData) {
   }
 
   return createdCase;
+}
+
+// Sign the contract server-side using service role (bypasses RLS/auth)
+async function signContractServerSide(caseId: string, contractData: z.infer<typeof contractDataSchema>) {
+  if (!contractData || !contractData.signature_image) {
+    console.log('No contract data provided, skipping server-side signing');
+    return;
+  }
+
+  // Check if already signed
+  const { data: existingCase } = await supabase
+    .from('cases')
+    .select('contract_data')
+    .eq('id', caseId)
+    .single();
+
+  if (existingCase?.contract_data) {
+    console.log('Contract already signed for case:', caseId);
+    return;
+  }
+
+  // Insert into contract_signatures table
+  const { error: sigError } = await supabase
+    .from('contract_signatures')
+    .insert({
+      case_id: caseId,
+      signature_image: contractData.signature_image,
+      ip_address: contractData.ip_address || null,
+      user_agent: contractData.user_agent || null,
+      device_info: contractData.device_info || null,
+      signed_at: contractData.timestamp || new Date().toISOString(),
+      client_full_name: contractData.client_full_name || null,
+      client_date_of_birth: contractData.client_date_of_birth || null,
+      client_nationality: contractData.client_nationality || null,
+      client_initials: contractData.client_initials || null,
+    });
+
+  if (sigError) {
+    console.error('Failed to insert contract signature:', sigError.message);
+    // Don't throw — we'll still try to update the case
+  }
+
+  // Update cases.contract_data and advance status
+  const { error: updateError } = await supabase
+    .from('cases')
+    .update({
+      contract_data: {
+        signed: true,
+        timestamp: contractData.timestamp || new Date().toISOString(),
+        client_full_name: contractData.client_full_name || null,
+        client_date_of_birth: contractData.client_date_of_birth || null,
+        client_nationality: contractData.client_nationality || null,
+        client_initials: contractData.client_initials || null,
+      },
+      status: 'search_in_progress',
+    })
+    .eq('id', caseId);
+
+  if (updateError) {
+    console.error('Failed to update case with contract data:', updateError.message);
+    throw new Error('Failed to sign contract');
+  }
+
+  console.log('Contract signed server-side for case:', caseId);
 }
 
 async function sendEmail(payload: {
@@ -438,6 +521,17 @@ const handler = async (req: Request): Promise<Response> => {
 
     const newCase = await getOrCreateCase(profile.id, data);
     console.log("Created case:", newCase.id);
+
+    // Sign contract server-side if contract data was provided
+    if (data.contractData && !newCase.contract_data) {
+      try {
+        await signContractServerSide(newCase.id, data.contractData);
+        console.log('Contract signed server-side successfully');
+      } catch (contractErr) {
+        console.error('Server-side contract signing failed:', contractErr);
+        // Don't fail the whole submission — client can re-sign in portal
+      }
+    }
 
     // Format boolean preferences for email
     const formatBoolean = (value?: boolean | null) => value ? "Yes" : "No";

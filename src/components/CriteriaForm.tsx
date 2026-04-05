@@ -252,6 +252,8 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
           petsAllowed: data.pets,
           smokingAllowed: data.noSmoking,
           notes: data.notes,
+          // Pass contract data for server-side signing (no auth race condition)
+          contractData: preSubmitContractData || null,
         },
       });
 
@@ -289,31 +291,18 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
         }
       }
 
-      // Sign contract via RPC if pre-signed during form
+      // Contract is now signed server-side — send receipt email client-side
       if (result?.caseId && preSubmitContractData) {
         try {
-          const { error: signError } = await supabase.rpc('sign_contract', {
-            p_case_id: result.caseId,
-            p_contract_data: JSON.parse(JSON.stringify(preSubmitContractData)),
+          await supabase.functions.invoke('send-contract-receipt', {
+            body: {
+              clientName: data.name,
+              clientEmail: data.email,
+              signedAt: preSubmitContractData.timestamp,
+            },
           });
-          if (signError) {
-            console.error('Post-submit contract sign error:', signError);
-          } else {
-            // Send contract receipt email
-            try {
-              await supabase.functions.invoke('send-contract-receipt', {
-                body: {
-                  clientName: data.name,
-                  clientEmail: data.email,
-                  signedAt: preSubmitContractData.timestamp,
-                },
-              });
-            } catch (emailErr) {
-              console.error('Error sending contract receipt email:', emailErr);
-            }
-          }
-        } catch (err) {
-          console.error('Contract sign error:', err);
+        } catch (emailErr) {
+          console.error('Error sending contract receipt email:', emailErr);
         }
       }
 
