@@ -755,6 +755,14 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
               </div>
             )}
 
+            {/* Visit Video Preview */}
+            {visitVideoUrl && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Visit Video</h3>
+                <video src={visitVideoUrl} controls className="w-full rounded-2xl max-h-72" />
+              </div>
+            )}
+
             {/* Pros & Cons */}
             {(pros.some(p => p.trim()) || cons.some(c => c.trim())) && (
               <div>
