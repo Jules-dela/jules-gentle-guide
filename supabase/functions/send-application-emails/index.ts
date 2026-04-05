@@ -124,6 +124,24 @@ function generateSecurePassword(): string {
   return password;
 }
 
+// Contract data schema for server-side signing
+const contractDataSchema = z.object({
+  signature_image: z.string().min(1),
+  ip_address: z.string().optional(),
+  timestamp: z.string().optional(),
+  user_agent: z.string().optional(),
+  device_info: z.object({
+    platform: z.string().optional(),
+    language: z.string().optional(),
+    screen_width: z.number().optional(),
+    screen_height: z.number().optional(),
+  }).optional(),
+  client_full_name: z.string().optional(),
+  client_date_of_birth: z.string().optional(),
+  client_nationality: z.string().optional(),
+  client_initials: z.string().optional(),
+}).nullable().optional();
+
 // Server-side validation schema
 const applicationSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name too long"),
@@ -144,6 +162,7 @@ const applicationSchema = z.object({
   movingDate: z.string().max(100).optional().nullable(),
   website: z.string().max(0).optional().nullable(),
   skipEmails: z.boolean().optional(),
+  contractData: contractDataSchema,
 });
 
 type ApplicationData = z.infer<typeof applicationSchema>;
