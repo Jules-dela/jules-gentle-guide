@@ -590,6 +590,41 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
               </div>
             </div>
 
+            {/* Visit Video */}
+            <div>
+              <Label className="text-sm flex items-center gap-2 mb-2">
+                <Video className="h-4 w-4" />
+                Visit Video (optional, max 100MB)
+              </Label>
+              {visitVideoUrl ? (
+                <div className="relative rounded-lg overflow-hidden bg-muted">
+                  <video
+                    src={visitVideoUrl}
+                    controls
+                    className="w-full max-h-64 rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeVideo}
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center h-28 rounded-lg border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 cursor-pointer transition-colors bg-muted/30">
+                  <Upload className="h-5 w-5 text-muted-foreground mb-1" />
+                  <span className="text-xs text-muted-foreground">Upload video</span>
+                  <input type="file" accept="video/*" className="hidden" onChange={(e) => handleVideoFileChange(e.target.files)} />
+                </label>
+              )}
+              {videoUploading && (
+                <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Uploading video...
+                </div>
+              )}
+            </div>
+
             <Separator />
 
             {/* Pros */}
