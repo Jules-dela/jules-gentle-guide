@@ -199,6 +199,30 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
   const addProItem = useCallback(() => setPros(prev => [...prev, '']), []);
   const removeProItem = useCallback((index: number) => setPros(prev => prev.filter((_, i) => i !== index)), []);
   const updateProItem = useCallback((index: number, value: string) => setPros(prev => prev.map((item, i) => i === index ? value : item)), []);
+
+  const handleVideoFileChange = useCallback((files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    if (file.size > 100 * 1024 * 1024) {
+      toast({ title: 'File too large', description: 'Video must be under 100MB.', variant: 'destructive' });
+      return;
+    }
+    setVisitVideoFile(file);
+    setVisitVideoUrl(URL.createObjectURL(file));
+  }, []);
+
+  const removeVideo = useCallback(async () => {
+    if (existingVideoId) {
+      try {
+        await supabase.from('visit_videos').delete().eq('id', existingVideoId);
+      } catch (err) {
+        console.error('Error deleting video:', err);
+      }
+    }
+    setVisitVideoFile(null);
+    setVisitVideoUrl(null);
+    setExistingVideoId(null);
+  }, [existingVideoId]);
   const addConItem = useCallback(() => setCons(prev => [...prev, '']), []);
   const removeConItem = useCallback((index: number) => setCons(prev => prev.filter((_, i) => i !== index)), []);
   const updateConItem = useCallback((index: number, value: string) => setCons(prev => prev.map((item, i) => i === index ? value : item)), []);
