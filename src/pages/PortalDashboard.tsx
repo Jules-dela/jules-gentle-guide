@@ -205,7 +205,7 @@ export default function PortalDashboard() {
   
   const { unreadStages, markStageAsRead } = useNotifications(activeCase?.id || null);
   
-  const caseStage = useMemo(() => getStageFromStatus(activeCase?.status), [activeCase?.status]);
+  const caseStage = useMemo(() => getStageFromStatus(activeCase?.status, proposals), [activeCase?.status, proposals]);
   
   // Showcase-specific state
   const [showcaseContractData, setShowcaseContractData] = useState<ContractData | null>(null);
