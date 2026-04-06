@@ -299,6 +299,20 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
         setVideoUploading(false);
       }
 
+      // Auto-advance case status to visit_in_progress if still at proposals_available
+      const { data: currentCase } = await supabase
+        .from('cases')
+        .select('status')
+        .eq('id', caseId)
+        .single();
+      
+      if (currentCase && currentCase.status === 'proposals_available') {
+        await supabase
+          .from('cases')
+          .update({ status: 'visit_in_progress', updated_at: new Date().toISOString() })
+          .eq('id', caseId);
+      }
+
       await createNotification(caseId, 3, 'visit_published', { address: selectedProposal.neighbourhood }, notifyClient, clientEmail, clientName);
 
       toast({

@@ -137,8 +137,21 @@ function makeDemoCase(status: CaseStatus, contractData: ContractData | null): Ca
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function getStageFromStatus(status: CaseStatus | undefined): number {
+function getStageFromStatus(status: CaseStatus | undefined, proposals?: PropertyProposal[]): number {
   if (!status) return 1;
+  
+  // If status is proposals_available but client has liked proposals with published visits,
+  // treat as stage 3 (admin forgot to advance status)
+  if (status === 'proposals_available' && proposals) {
+    const hasPublishedVisit = proposals.some(p => p.client_status === 'liked' && p.visit_published);
+    if (hasPublishedVisit) return 3;
+    
+    // If all proposals reviewed and at least one liked, also show stage 3
+    const allReviewed = proposals.length > 0 && proposals.every(p => p.client_status !== 'pending');
+    const hasLiked = proposals.some(p => p.client_status === 'liked');
+    if (allReviewed && hasLiked) return 3;
+  }
+  
   switch (status) {
     case 'request_received':
     case 'search_in_progress':
@@ -192,7 +205,7 @@ export default function PortalDashboard() {
   
   const { unreadStages, markStageAsRead } = useNotifications(activeCase?.id || null);
   
-  const caseStage = useMemo(() => getStageFromStatus(activeCase?.status), [activeCase?.status]);
+  const caseStage = useMemo(() => getStageFromStatus(activeCase?.status, proposals), [activeCase?.status, proposals]);
   
   // Showcase-specific state
   const [showcaseContractData, setShowcaseContractData] = useState<ContractData | null>(null);
