@@ -694,7 +694,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {detailProposal.photos.map((url, i) => (
                       <div key={i} className="relative shrink-0 w-16 h-16 rounded-lg overflow-hidden group border">
-                        <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                        <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" style={{ objectPosition: `center ${Number((detailProposal.photo_positions as any)?.[String(i)] ?? 50)}%` }} />
                         {i === 0 && <span className="absolute top-0.5 left-0.5 px-1 py-0.5 rounded text-[8px] font-bold bg-primary text-primary-foreground">Cover</span>}
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-0.5 opacity-0 group-hover:opacity-100">
                           {i > 0 && (
