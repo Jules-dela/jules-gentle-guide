@@ -213,6 +213,7 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
             neighbourhood: apt.neighborhood,
             description: apt.description,
             photos: uploadedUrls,
+            photo_positions: apt.imagePositions,
             client_status: 'pending',
           })
           .select('id')
