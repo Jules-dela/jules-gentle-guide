@@ -122,15 +122,6 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
     }));
   }, [apartments]);
 
-  const adjustImagePosition = useCallback((apartmentId: string, imageIndex: number, direction: 'up' | 'down') => {
-    setApartments(prev => prev.map(apt => {
-      if (apt.id !== apartmentId) return apt;
-      const current = apt.imagePositions[imageIndex] ?? 50;
-      const next = direction === 'up' ? Math.max(0, current - 10) : Math.min(100, current + 10);
-      return { ...apt, imagePositions: { ...apt.imagePositions, [imageIndex]: next } };
-    }));
-  }, []);
-
 
   const handleFileChange = useCallback((apartmentId: string, files: FileList | null) => {
     if (!files) return;
