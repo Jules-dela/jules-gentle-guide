@@ -1,0 +1,1 @@
+ALTER TABLE public.property_proposals ADD COLUMN photo_positions jsonb DEFAULT '{}';

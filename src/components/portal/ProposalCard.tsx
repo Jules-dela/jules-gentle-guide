@@ -102,6 +102,7 @@ export function ProposalCard({ proposal, onFeedback }: ProposalCardProps) {
             src={photos[currentPhotoIndex]}
             alt={`Property photo ${currentPhotoIndex + 1}`}
             className="w-full h-full object-cover"
+            style={{ objectPosition: `center ${(proposal.photo_positions as any)?.[currentPhotoIndex] ?? 50}%` }}
           />
           
           {photos.length > 1 && (

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail, Eye, Video, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail, Eye, Video, ArrowLeft, ArrowRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +17,7 @@ interface ApartmentDraft {
   id: string;
   images: File[];
   imagePreviewUrls: string[];
+  imagePositions: Record<number, number>; // index -> vertical position % (0-100, default 50)
   video: File | null;
   videoPreviewUrl: string | null;
   rent: string;
@@ -57,6 +58,7 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
       id: `draft-${Date.now()}`,
       images: [],
       imagePreviewUrls: [],
+      imagePositions: {},
       video: null,
       videoPreviewUrl: null,
       rent: '',
@@ -118,6 +120,16 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
       return { ...apt, images: newImages, imagePreviewUrls: newPreviews };
     }));
   }, [apartments]);
+
+  const adjustImagePosition = useCallback((apartmentId: string, imageIndex: number, direction: 'up' | 'down') => {
+    setApartments(prev => prev.map(apt => {
+      if (apt.id !== apartmentId) return apt;
+      const current = apt.imagePositions[imageIndex] ?? 50;
+      const next = direction === 'up' ? Math.max(0, current - 10) : Math.min(100, current + 10);
+      return { ...apt, imagePositions: { ...apt.imagePositions, [imageIndex]: next } };
+    }));
+  }, []);
+
 
   const handleFileChange = useCallback((apartmentId: string, files: FileList | null) => {
     if (!files) return;
@@ -201,6 +213,7 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
             neighbourhood: apt.neighborhood,
             description: apt.description,
             photos: uploadedUrls,
+            photo_positions: apt.imagePositions,
             client_status: 'pending',
           })
           .select('id')
@@ -365,6 +378,7 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                                 src={url}
                                 alt={`Preview ${imgIndex + 1}`}
                                 className="w-full h-full object-cover"
+                                style={{ objectPosition: `center ${apt.imagePositions[imgIndex] ?? 50}%` }}
                               />
                               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
                               <button
@@ -374,6 +388,25 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                               >
                                 <X className="h-3 w-3" />
                               </button>
+                              {/* Reposition controls */}
+                              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                  type="button"
+                                  onClick={() => adjustImagePosition(apt.id, imgIndex, 'up')}
+                                  className="w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90"
+                                  title="Shift image up"
+                                >
+                                  <ChevronUp className="h-3 w-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => adjustImagePosition(apt.id, imgIndex, 'down')}
+                                  className="w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90"
+                                  title="Shift image down"
+                                >
+                                  <ChevronDown className="h-3 w-3" />
+                                </button>
+                              </div>
                               {apt.imagePreviewUrls.length > 1 && (
                                 <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                   {imgIndex > 0 && (

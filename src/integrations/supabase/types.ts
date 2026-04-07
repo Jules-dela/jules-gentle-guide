@@ -478,6 +478,7 @@ export type Database = {
           description: string | null
           id: string
           neighbourhood: string | null
+          photo_positions: Json | null
           photos: string[] | null
           property_type: string | null
           rejection_notes: string | null
@@ -502,6 +503,7 @@ export type Database = {
           description?: string | null
           id?: string
           neighbourhood?: string | null
+          photo_positions?: Json | null
           photos?: string[] | null
           property_type?: string | null
           rejection_notes?: string | null
@@ -526,6 +528,7 @@ export type Database = {
           description?: string | null
           id?: string
           neighbourhood?: string | null
+          photo_positions?: Json | null
           photos?: string[] | null
           property_type?: string | null
           rejection_notes?: string | null
