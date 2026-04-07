@@ -27,6 +27,7 @@ interface Proposal {
   rejection_reasons: string[] | null;
   rejection_notes: string | null;
   photos: string[] | null;
+  photo_positions: Record<string, unknown> | null;
   client_visit_questions: string | null;
   created_at: string;
 }

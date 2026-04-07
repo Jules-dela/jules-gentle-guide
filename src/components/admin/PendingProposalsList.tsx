@@ -13,7 +13,7 @@ interface PendingProposal {
   rent: number | null;
   rooms: number | null;
   photos: string[] | null;
-  photo_positions: Record<string, number> | null;
+  photo_positions: Record<string, number> | Record<string, unknown> | null;
   created_at: string;
 }
 
