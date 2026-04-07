@@ -389,7 +389,7 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                                 <X className="h-3 w-3" />
                               </button>
                               {/* Reposition controls */}
-                              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5">
                                 <button
                                   type="button"
                                   onClick={() => adjustImagePosition(apt.id, imgIndex, 'up')}
