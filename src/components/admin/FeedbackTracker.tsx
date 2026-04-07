@@ -321,23 +321,49 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
                     </AlertDialogContent>
                   </AlertDialog>
                   {/* Thumbnail */}
-                  <button
-                    className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
-                    onClick={() => {
-                      if (proposal.photos && proposal.photos.length > 0) {
-                        setGalleryProposal(proposal);
-                        setGalleryIndex(0);
-                      }
-                    }}
-                  >
-                    {proposal.photos && proposal.photos[0] ? (
-                      <img src={proposal.photos[0]} alt="Property" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Home className="h-6 w-6 text-muted-foreground/50" />
+                  <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0">
+                    <button
+                      className="w-full h-full cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (proposal.photos && proposal.photos.length > 0) {
+                          setGalleryProposal(proposal);
+                          setGalleryIndex(0);
+                        }
+                      }}
+                    >
+                      {proposal.photos && proposal.photos[0] ? (
+                        <img
+                          src={proposal.photos[0]}
+                          alt="Property"
+                          className="w-full h-full object-cover"
+                          style={{ objectPosition: `center ${Number((proposal.photo_positions as any)?.[String(0)] ?? 50)}%` }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Home className="h-6 w-6 text-muted-foreground/50" />
+                        </div>
+                      )}
+                    </button>
+                    {proposal.photos && proposal.photos[0] && (
+                      <div className="absolute right-0.5 top-1/2 -translate-y-1/2 flex flex-col gap-px">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); adjustPosition(proposal.id, 0, 'up'); }}
+                          className="w-4 h-4 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80"
+                        >
+                          <ChevronUp className="h-2.5 w-2.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); adjustPosition(proposal.id, 0, 'down'); }}
+                          className="w-4 h-4 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80"
+                        >
+                          <ChevronDown className="h-2.5 w-2.5" />
+                        </button>
                       </div>
                     )}
-                  </button>
+                  </div>
 
                   {/* Details */}
                   <div className="flex-1 min-w-0">
