@@ -190,7 +190,30 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
     }
   };
 
-  // Only show proposals that have received feedback (liked or rejected)
+  const adjustPosition = async (proposalId: string, imageIndex: number, direction: 'up' | 'down') => {
+    const proposal = proposals.find(p => p.id === proposalId);
+    if (!proposal) return;
+    const positions: Record<string, number> = { ...((proposal.photo_positions as Record<string, number>) || {}) };
+    const current = Number(positions[String(imageIndex)] ?? 50);
+    const next = direction === 'up' ? Math.max(0, current - 10) : Math.min(100, current + 10);
+    positions[String(imageIndex)] = next;
+
+    setProposals(prev => prev.map(p => p.id === proposalId ? { ...p, photo_positions: positions } : p));
+    if (detailProposal?.id === proposalId) setDetailProposal(prev => prev ? { ...prev, photo_positions: positions } : prev);
+    if (galleryProposal?.id === proposalId) setGalleryProposal(prev => prev ? { ...prev, photo_positions: positions } : prev);
+
+    try {
+      const { error } = await supabase
+        .from('property_proposals')
+        .update({ photo_positions: positions as any })
+        .eq('id', proposalId);
+      if (error) throw error;
+    } catch (err) {
+      console.error('Error updating position:', err);
+      toast({ title: 'Error', description: 'Failed to save image position.', variant: 'destructive' });
+    }
+  };
+
   const feedbackProposals = proposals.filter(p => p.client_status === 'liked' || p.client_status === 'rejected');
   const pendingCount = proposals.filter(p => p.client_status === 'pending').length;
   const allRejected = feedbackProposals.length > 0 && feedbackProposals.every(p => p.client_status === 'rejected');
