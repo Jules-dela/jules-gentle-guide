@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, RefreshCw, Loader2, Home, MessageSquare, ChevronLeft, ChevronRight, MapPin, Wallet, Maximize2, Bed, Building2, Trash2, Pencil, Save, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Check, X, RefreshCw, Loader2, Home, MessageSquare, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, MapPin, Wallet, Maximize2, Bed, Building2, Trash2, Pencil, Save, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
