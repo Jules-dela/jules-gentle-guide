@@ -552,7 +552,23 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
                     src={detailProposal.photos[detailPhotoIndex]}
                     alt={`Photo ${detailPhotoIndex + 1}`}
                     className="w-full aspect-video object-cover"
+                    style={{ objectPosition: `center ${Number((detailProposal.photo_positions as any)?.[String(detailPhotoIndex)] ?? 50)}%` }}
                   />
+                  {/* Reposition controls */}
+                  <div className="absolute right-2 bottom-10 flex flex-col gap-1">
+                    <button
+                      onClick={() => adjustPosition(detailProposal.id, detailPhotoIndex, 'up')}
+                      className="w-7 h-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background shadow"
+                    >
+                      <ChevronUp className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => adjustPosition(detailProposal.id, detailPhotoIndex, 'down')}
+                      className="w-7 h-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background shadow"
+                    >
+                      <ChevronDown className="w-4 h-4" />
+                    </button>
+                  </div>
                   {detailProposal.photos.length > 1 && (
                     <>
                       <button
