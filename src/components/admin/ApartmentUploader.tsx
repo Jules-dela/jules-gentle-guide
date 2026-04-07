@@ -377,6 +377,7 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                                 src={url}
                                 alt={`Preview ${imgIndex + 1}`}
                                 className="w-full h-full object-cover"
+                                style={{ objectPosition: `center ${apt.imagePositions[imgIndex] ?? 50}%` }}
                               />
                               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
                               <button
@@ -386,6 +387,25 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                               >
                                 <X className="h-3 w-3" />
                               </button>
+                              {/* Reposition controls */}
+                              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                  type="button"
+                                  onClick={() => adjustImagePosition(apt.id, imgIndex, 'up')}
+                                  className="w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90"
+                                  title="Shift image up"
+                                >
+                                  <ChevronUp className="h-3 w-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => adjustImagePosition(apt.id, imgIndex, 'down')}
+                                  className="w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90"
+                                  title="Shift image down"
+                                >
+                                  <ChevronDown className="h-3 w-3" />
+                                </button>
+                              </div>
                               {apt.imagePreviewUrls.length > 1 && (
                                 <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                   {imgIndex > 0 && (
