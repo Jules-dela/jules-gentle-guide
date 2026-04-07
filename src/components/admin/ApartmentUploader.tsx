@@ -389,22 +389,22 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                                 <X className="h-3 w-3" />
                               </button>
                               {/* Reposition controls */}
-                              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5">
+                              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex flex-col gap-1">
                                 <button
                                   type="button"
                                   onClick={() => adjustImagePosition(apt.id, imgIndex, 'up')}
-                                  className="w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90"
+                                  className="w-7 h-7 rounded-full bg-white/90 text-foreground shadow-md flex items-center justify-center hover:bg-white border border-border/50"
                                   title="Shift image up"
                                 >
-                                  <ChevronUp className="h-3 w-3" />
+                                  <ChevronUp className="h-4 w-4" />
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => adjustImagePosition(apt.id, imgIndex, 'down')}
-                                  className="w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90"
+                                  className="w-7 h-7 rounded-full bg-white/90 text-foreground shadow-md flex items-center justify-center hover:bg-white border border-border/50"
                                   title="Shift image down"
                                 >
-                                  <ChevronDown className="h-3 w-3" />
+                                  <ChevronDown className="h-4 w-4" />
                                 </button>
                               </div>
                               {apt.imagePreviewUrls.length > 1 && (
