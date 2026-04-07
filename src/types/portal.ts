@@ -95,6 +95,7 @@ export interface PropertyProposal {
   property_type: string | null;
   tags: string[];
   photos: string[];
+  photo_positions: Record<string, number> | null;
   description: string | null;
   agency_info: string | null;
   client_status: ProposalStatus;
