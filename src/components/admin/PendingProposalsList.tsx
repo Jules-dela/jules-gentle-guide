@@ -13,7 +13,7 @@ interface PendingProposal {
   rent: number | null;
   rooms: number | null;
   photos: string[] | null;
-  photo_positions: Record<string, number> | Record<string, unknown> | null;
+  photo_positions: any;
   created_at: string;
 }
 
@@ -62,8 +62,8 @@ export function PendingProposalsList({ caseId }: PendingProposalsListProps) {
     const proposal = proposals.find(p => p.id === proposalId);
     if (!proposal) return;
 
-    const positions = { ...(proposal.photo_positions || {}) };
-    const current = positions[String(imageIndex)] ?? 50;
+    const positions: Record<string, number> = { ...((proposal.photo_positions as Record<string, number>) || {}) };
+    const current = Number(positions[String(imageIndex)] ?? 50);
     const next = direction === 'up' ? Math.max(0, current - 10) : Math.min(100, current + 10);
     positions[String(imageIndex)] = next;
 
@@ -73,7 +73,7 @@ export function PendingProposalsList({ caseId }: PendingProposalsListProps) {
     try {
       const { error } = await supabase
         .from('property_proposals')
-        .update({ photo_positions: positions })
+        .update({ photo_positions: positions as any })
         .eq('id', proposalId);
       if (error) throw error;
     } catch (err) {
