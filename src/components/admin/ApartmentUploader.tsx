@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail, Eye, Video, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail, Eye, Video, ArrowLeft, ArrowRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +17,7 @@ interface ApartmentDraft {
   id: string;
   images: File[];
   imagePreviewUrls: string[];
+  imagePositions: Record<number, number>; // index -> vertical position % (0-100, default 50)
   video: File | null;
   videoPreviewUrl: string | null;
   rent: string;
@@ -57,6 +58,7 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
       id: `draft-${Date.now()}`,
       images: [],
       imagePreviewUrls: [],
+      imagePositions: {},
       video: null,
       videoPreviewUrl: null,
       rent: '',
