@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, RefreshCw, Loader2, Home, MessageSquare, ChevronLeft, ChevronRight, MapPin, Wallet, Maximize2, Bed, Building2, Trash2, Pencil, Save, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Check, X, RefreshCw, Loader2, Home, MessageSquare, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, MapPin, Wallet, Maximize2, Bed, Building2, Trash2, Pencil, Save, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,7 @@ interface Proposal {
   rejection_reasons: string[] | null;
   rejection_notes: string | null;
   photos: string[] | null;
+  photo_positions: any;
   client_visit_questions: string | null;
   created_at: string;
 }
@@ -189,7 +190,30 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
     }
   };
 
-  // Only show proposals that have received feedback (liked or rejected)
+  const adjustPosition = async (proposalId: string, imageIndex: number, direction: 'up' | 'down') => {
+    const proposal = proposals.find(p => p.id === proposalId);
+    if (!proposal) return;
+    const positions: Record<string, number> = { ...((proposal.photo_positions as Record<string, number>) || {}) };
+    const current = Number(positions[String(imageIndex)] ?? 50);
+    const next = direction === 'up' ? Math.max(0, current - 10) : Math.min(100, current + 10);
+    positions[String(imageIndex)] = next;
+
+    setProposals(prev => prev.map(p => p.id === proposalId ? { ...p, photo_positions: positions } : p));
+    if (detailProposal?.id === proposalId) setDetailProposal(prev => prev ? { ...prev, photo_positions: positions } : prev);
+    if (galleryProposal?.id === proposalId) setGalleryProposal(prev => prev ? { ...prev, photo_positions: positions } : prev);
+
+    try {
+      const { error } = await supabase
+        .from('property_proposals')
+        .update({ photo_positions: positions as any })
+        .eq('id', proposalId);
+      if (error) throw error;
+    } catch (err) {
+      console.error('Error updating position:', err);
+      toast({ title: 'Error', description: 'Failed to save image position.', variant: 'destructive' });
+    }
+  };
+
   const feedbackProposals = proposals.filter(p => p.client_status === 'liked' || p.client_status === 'rejected');
   const pendingCount = proposals.filter(p => p.client_status === 'pending').length;
   const allRejected = feedbackProposals.length > 0 && feedbackProposals.every(p => p.client_status === 'rejected');
@@ -297,23 +321,49 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
                     </AlertDialogContent>
                   </AlertDialog>
                   {/* Thumbnail */}
-                  <button
-                    className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
-                    onClick={() => {
-                      if (proposal.photos && proposal.photos.length > 0) {
-                        setGalleryProposal(proposal);
-                        setGalleryIndex(0);
-                      }
-                    }}
-                  >
-                    {proposal.photos && proposal.photos[0] ? (
-                      <img src={proposal.photos[0]} alt="Property" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Home className="h-6 w-6 text-muted-foreground/50" />
+                  <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0">
+                    <button
+                      className="w-full h-full cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (proposal.photos && proposal.photos.length > 0) {
+                          setGalleryProposal(proposal);
+                          setGalleryIndex(0);
+                        }
+                      }}
+                    >
+                      {proposal.photos && proposal.photos[0] ? (
+                        <img
+                          src={proposal.photos[0]}
+                          alt="Property"
+                          className="w-full h-full object-cover"
+                          style={{ objectPosition: `center ${Number((proposal.photo_positions as any)?.[String(0)] ?? 50)}%` }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Home className="h-6 w-6 text-muted-foreground/50" />
+                        </div>
+                      )}
+                    </button>
+                    {proposal.photos && proposal.photos[0] && (
+                      <div className="absolute right-0.5 top-1/2 -translate-y-1/2 flex flex-col gap-px">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); adjustPosition(proposal.id, 0, 'up'); }}
+                          className="w-4 h-4 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80"
+                        >
+                          <ChevronUp className="h-2.5 w-2.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); adjustPosition(proposal.id, 0, 'down'); }}
+                          className="w-4 h-4 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80"
+                        >
+                          <ChevronDown className="h-2.5 w-2.5" />
+                        </button>
                       </div>
                     )}
-                  </button>
+                  </div>
 
                   {/* Details */}
                   <div className="flex-1 min-w-0">
@@ -429,7 +479,23 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
                 src={galleryProposal.photos[galleryIndex]}
                 alt={`Property photo ${galleryIndex + 1}`}
                 className="w-full aspect-video object-cover"
+                style={{ objectPosition: `center ${Number((galleryProposal.photo_positions as any)?.[String(galleryIndex)] ?? 50)}%` }}
               />
+              {/* Reposition controls */}
+              <div className="absolute right-3 bottom-12 flex flex-col gap-1">
+                <button
+                  onClick={() => adjustPosition(galleryProposal.id, galleryIndex, 'up')}
+                  className="w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background shadow-md"
+                >
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => adjustPosition(galleryProposal.id, galleryIndex, 'down')}
+                  className="w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background shadow-md"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </div>
               {galleryProposal.photos.length > 1 && (
                 <>
                   <button
@@ -486,7 +552,23 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
                     src={detailProposal.photos[detailPhotoIndex]}
                     alt={`Photo ${detailPhotoIndex + 1}`}
                     className="w-full aspect-video object-cover"
+                    style={{ objectPosition: `center ${Number((detailProposal.photo_positions as any)?.[String(detailPhotoIndex)] ?? 50)}%` }}
                   />
+                  {/* Reposition controls */}
+                  <div className="absolute right-2 bottom-10 flex flex-col gap-1">
+                    <button
+                      onClick={() => adjustPosition(detailProposal.id, detailPhotoIndex, 'up')}
+                      className="w-7 h-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background shadow"
+                    >
+                      <ChevronUp className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => adjustPosition(detailProposal.id, detailPhotoIndex, 'down')}
+                      className="w-7 h-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background shadow"
+                    >
+                      <ChevronDown className="w-4 h-4" />
+                    </button>
+                  </div>
                   {detailProposal.photos.length > 1 && (
                     <>
                       <button
@@ -612,7 +694,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {detailProposal.photos.map((url, i) => (
                       <div key={i} className="relative shrink-0 w-16 h-16 rounded-lg overflow-hidden group border">
-                        <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                        <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" style={{ objectPosition: `center ${Number((detailProposal.photo_positions as any)?.[String(i)] ?? 50)}%` }} />
                         {i === 0 && <span className="absolute top-0.5 left-0.5 px-1 py-0.5 rounded text-[8px] font-bold bg-primary text-primary-foreground">Cover</span>}
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-0.5 opacity-0 group-hover:opacity-100">
                           {i > 0 && (
