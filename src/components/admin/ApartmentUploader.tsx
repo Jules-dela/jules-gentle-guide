@@ -372,73 +372,85 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                           Photos
                         </Label>
                         
-                        <div className="grid grid-cols-3 gap-2 mb-2">
+                        <div className="grid grid-cols-2 gap-3 mb-2">
                           {apt.imagePreviewUrls.map((url, imgIndex) => (
-                            <div key={imgIndex} className="relative aspect-square rounded-lg overflow-hidden">
-                              <img
-                                src={url}
-                                alt={`Preview ${imgIndex + 1}`}
-                                className="w-full h-full object-cover"
-                                style={{ objectPosition: `center ${apt.imagePositions[imgIndex] ?? 50}%` }}
-                              />
-                              {/* Remove button */}
-                              <button
-                                type="button"
-                                onClick={() => removeImage(apt.id, imgIndex)}
-                                className="absolute top-1 left-1 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                              {/* Reposition controls - always visible */}
-                              <div className="absolute right-1 top-1 bottom-1 flex flex-col items-center justify-center gap-1">
+                            <div key={imgIndex} className="space-y-2">
+                              <div className="relative aspect-square rounded-lg overflow-hidden border border-border bg-muted">
+                                <img
+                                  src={url}
+                                  alt={`Preview ${imgIndex + 1}`}
+                                  className="w-full h-full object-cover"
+                                  style={{ objectPosition: `center ${apt.imagePositions[imgIndex] ?? 50}%` }}
+                                />
                                 <button
                                   type="button"
-                                  onClick={() => adjustImagePosition(apt.id, imgIndex, 'up')}
-                                  className="w-8 h-8 rounded-md bg-white shadow-lg flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors border border-border"
-                                  title="Shift image up"
+                                  onClick={() => removeImage(apt.id, imgIndex)}
+                                  className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-background/90 text-foreground flex items-center justify-center shadow-md border border-border"
+                                  aria-label="Remove photo"
                                 >
-                                  <ChevronUp className="h-5 w-5" />
+                                  <X className="h-4 w-4" />
                                 </button>
-                                <button
-                                  type="button"
-                                  onClick={() => adjustImagePosition(apt.id, imgIndex, 'down')}
-                                  className="w-8 h-8 rounded-md bg-white shadow-lg flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors border border-border"
-                                  title="Shift image down"
-                                >
-                                  <ChevronDown className="h-5 w-5" />
-                                </button>
+                                {imgIndex === 0 && (
+                                  <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary text-primary-foreground">Cover</span>
+                                )}
                               </div>
-                              {imgIndex === 0 && (
-                                <span className="absolute top-1 left-1 mt-7 px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary text-primary-foreground">Cover</span>
-                              )}
+
+                              <div className="rounded-lg border border-border bg-muted/30 p-2.5 space-y-2">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-xs font-medium text-foreground">Image position</span>
+                                  <span className="text-[11px] text-muted-foreground">{Math.round(apt.imagePositions[imgIndex] ?? 50)}%</span>
+                                </div>
+                                <Slider
+                                  value={[apt.imagePositions[imgIndex] ?? 50]}
+                                  min={0}
+                                  max={100}
+                                  step={1}
+                                  onValueChange={(value) => {
+                                    const next = value[0] ?? 50;
+                                    setApartments(prev => prev.map(current =>
+                                      current.id === apt.id
+                                        ? {
+                                            ...current,
+                                            imagePositions: {
+                                              ...current.imagePositions,
+                                              [imgIndex]: next,
+                                            },
+                                          }
+                                        : current
+                                    ));
+                                  }}
+                                  aria-label={`Adjust vertical position for image ${imgIndex + 1}`}
+                                />
+                                <p className="text-[11px] text-muted-foreground">Drag to move the crop up or down.</p>
+                              </div>
+
                               {apt.imagePreviewUrls.length > 1 && (
-                                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex items-center justify-center gap-2">
                                   {imgIndex > 0 && (
                                     <button
                                       type="button"
                                       onClick={() => moveImage(apt.id, imgIndex, 'left')}
-                                      className="w-6 h-6 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90"
+                                      className="w-8 h-8 rounded-full bg-background text-foreground border border-border shadow-sm flex items-center justify-center"
+                                      aria-label="Move image left"
                                     >
-                                      <ArrowLeft className="h-3 w-3" />
+                                      <ArrowLeft className="h-4 w-4" />
                                     </button>
                                   )}
                                   {imgIndex < apt.imagePreviewUrls.length - 1 && (
                                     <button
                                       type="button"
                                       onClick={() => moveImage(apt.id, imgIndex, 'right')}
-                                      className="w-6 h-6 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90"
+                                      className="w-8 h-8 rounded-full bg-background text-foreground border border-border shadow-sm flex items-center justify-center"
+                                      aria-label="Move image right"
                                     >
-                                      <ArrowRight className="h-3 w-3" />
+                                      <ArrowRight className="h-4 w-4" />
                                     </button>
                                   )}
                                 </div>
                               )}
-                              {imgIndex === 0 && (
-                                <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary text-primary-foreground">Cover</span>
-                              )}
                             </div>
                           ))}
-                          
+
                           {apt.images.length < 6 && (
                             <label className="aspect-square rounded-lg border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 flex flex-col items-center justify-center cursor-pointer transition-colors bg-muted/30">
                               <Upload className="h-5 w-5 text-muted-foreground mb-1" />
