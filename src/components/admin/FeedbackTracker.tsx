@@ -243,9 +243,9 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="text-sm font-semibold text-foreground">Client Feedback</h4>
+          <h4 className="text-sm font-semibold text-foreground">Sent Listings</h4>
           <p className="text-xs text-muted-foreground">
-            {feedbackProposals.length} responded · {likedCount} liked{pendingCount > 0 ? ` · ${pendingCount} pending` : ''}
+            {proposals.length} total · {feedbackProposals.length} responded · {likedCount} liked{pendingCount > 0 ? ` · ${pendingCount} pending` : ''}
           </p>
         </div>
         {allRejected && (
@@ -263,7 +263,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
       </div>
 
       <AnimatePresence mode="popLayout">
-        {feedbackProposals.map((proposal, index) => (
+        {proposals.map((proposal, index) => (
           <motion.div
             key={proposal.id}
             initial={{ opacity: 0, y: 10 }}
