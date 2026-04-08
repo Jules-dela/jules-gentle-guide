@@ -5,7 +5,7 @@ import { Hero } from "@/components/Hero";
 
 const StickyStackingCards = lazy(() => import("@/components/StickyStackingCards").then(m => ({ default: m.StickyStackingCards })));
 const FAQ = lazy(() => import("@/components/FAQ").then(m => ({ default: m.FAQ })));
-const WaitlistSection = lazy(() => import("@/components/WaitlistSection").then(m => ({ default: m.WaitlistSection })));
+const CriteriaForm = lazy(() => import("@/components/CriteriaForm").then(m => ({ default: m.CriteriaForm })));
 const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.Footer })));
 const BackToTop = lazy(() => import("@/components/BackToTop").then(m => ({ default: m.BackToTop })));
 
@@ -38,7 +38,9 @@ const Index = () => {
         <Suspense fallback={null}>
           <StickyStackingCards />
           <FAQ />
-          <WaitlistSection />
+          <div id="apply" className="scroll-mt-20">
+            <CriteriaForm />
+          </div>
         </Suspense>
       </main>
       <Suspense fallback={null}>
