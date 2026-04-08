@@ -462,6 +462,15 @@ const handler = async (req: Request): Promise<Response> => {
     
     const data = validationResult.data;
 
+    // Enforce mandatory contract signature
+    if (!data.contractData || !data.contractData.signature_image) {
+      console.log("Submission rejected: missing contract signature");
+      return new Response(
+        JSON.stringify({ error: "A signed service agreement is required to submit your application." }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     // Honeypot check
     if (rawData.website && rawData.website.length > 0) {
       console.log("Honeypot triggered - bot detected");
