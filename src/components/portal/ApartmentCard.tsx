@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 interface Apartment {
   id: string;
   images: string[];
+  imagePositions?: Record<number, number>;
   rent: number;
   rooms: number;
   location: string;
@@ -20,6 +21,7 @@ interface ApartmentCardProps {
   onLike: () => void;
   onDislike: () => void;
   readOnly?: boolean;
+  onImagePositionChange?: (index: number, position: number) => void;
 }
 
 export function ApartmentCard({ apartment, onLike, onDislike, readOnly = false }: ApartmentCardProps) {
