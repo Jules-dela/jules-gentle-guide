@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Video } from 'lucide-react';
 import { MapPin, Banknote, X, ChevronLeft, ChevronRight, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ViewingFeedbackPopup } from './ViewingFeedbackPopup';
@@ -18,6 +19,7 @@ interface VisitData {
   visit_pros: string[];
   visit_cons: string[];
   visit_published: boolean;
+  visit_video_url: string | null;
 }
 
 // Demo mode fallback data
@@ -41,6 +43,7 @@ const DEMO_VISIT_DATA: VisitData = {
     'No in-unit laundry (shared in basement)',
   ],
   visit_published: true,
+  visit_video_url: null,
 };
 
 export function VisitReport({ apartment, onComplete, onReject, readOnly = false }: VisitReportProps) {
@@ -65,21 +68,46 @@ export function VisitReport({ apartment, onComplete, onReject, readOnly = false 
       }
 
       try {
-        const { data, error } = await supabase
-          .from('property_proposals')
-          .select('visit_photos, visit_pros, visit_cons, visit_published')
-          .eq('id', apartment.id)
-          .single();
+        // Fetch proposal data and video in parallel
+        const [proposalRes, videoRes] = await Promise.all([
+          supabase
+            .from('property_proposals')
+            .select('visit_photos, visit_pros, visit_cons, visit_published')
+            .eq('id', apartment.id)
+            .single(),
+          supabase
+            .from('visit_videos')
+            .select('video_url')
+            .eq('proposal_id', apartment.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+        ]);
 
-        if (error) {
-          console.error('Error fetching visit data:', error);
+        if (proposalRes.error) {
+          console.error('Error fetching visit data:', proposalRes.error);
           setVisitData(DEMO_VISIT_DATA);
-        } else if (data) {
+        } else if (proposalRes.data) {
+          const data = proposalRes.data;
+          // Video is in a private bucket — generate a signed URL
+          let videoUrl: string | null = null;
+          if (videoRes.data?.video_url) {
+            // Extract storage path from the full URL
+            const raw = videoRes.data.video_url;
+            const pathMatch = raw.match(/\/object\/(?:public|sign)\/visit-videos\/(.+)/);
+            const storagePath = pathMatch ? decodeURIComponent(pathMatch[1]) : raw;
+            const { data: signed } = await supabase.storage
+              .from('visit-videos')
+              .createSignedUrl(storagePath, 60 * 60); // 1 hour
+            videoUrl = signed?.signedUrl ?? raw; // fallback to raw URL
+          }
+
           setVisitData({
             visit_photos: data.visit_photos || [],
             visit_pros: data.visit_pros || [],
             visit_cons: data.visit_cons || [],
             visit_published: data.visit_published || false,
+            visit_video_url: videoUrl,
           });
         }
       } catch (err) {
@@ -241,6 +269,30 @@ export function VisitReport({ apartment, onComplete, onReject, readOnly = false 
                       </span>
                     </motion.button>
                   ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Visit Video - Only show if video exists */}
+            {visitData?.visit_video_url && (
+              <motion.div
+                className="bg-white rounded-[40px] p-6 shadow-lg mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.35 }}
+              >
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <Video className="w-5 h-5 text-primary" />
+                  Visit Video
+                </h3>
+                <div className="rounded-2xl overflow-hidden">
+                  <video
+                    src={visitData.visit_video_url}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="w-full rounded-2xl"
+                  />
                 </div>
               </motion.div>
             )}
