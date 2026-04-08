@@ -68,21 +68,46 @@ export function VisitReport({ apartment, onComplete, onReject, readOnly = false 
       }
 
       try {
-        const { data, error } = await supabase
-          .from('property_proposals')
-          .select('visit_photos, visit_pros, visit_cons, visit_published')
-          .eq('id', apartment.id)
-          .single();
+        // Fetch proposal data and video in parallel
+        const [proposalRes, videoRes] = await Promise.all([
+          supabase
+            .from('property_proposals')
+            .select('visit_photos, visit_pros, visit_cons, visit_published')
+            .eq('id', apartment.id)
+            .single(),
+          supabase
+            .from('visit_videos')
+            .select('video_url')
+            .eq('proposal_id', apartment.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+        ]);
 
-        if (error) {
-          console.error('Error fetching visit data:', error);
+        if (proposalRes.error) {
+          console.error('Error fetching visit data:', proposalRes.error);
           setVisitData(DEMO_VISIT_DATA);
-        } else if (data) {
+        } else if (proposalRes.data) {
+          const data = proposalRes.data;
+          // Video is in a private bucket — generate a signed URL
+          let videoUrl: string | null = null;
+          if (videoRes.data?.video_url) {
+            // Extract storage path from the full URL
+            const raw = videoRes.data.video_url;
+            const pathMatch = raw.match(/\/object\/(?:public|sign)\/visit-videos\/(.+)/);
+            const storagePath = pathMatch ? decodeURIComponent(pathMatch[1]) : raw;
+            const { data: signed } = await supabase.storage
+              .from('visit-videos')
+              .createSignedUrl(storagePath, 60 * 60); // 1 hour
+            videoUrl = signed?.signedUrl ?? raw; // fallback to raw URL
+          }
+
           setVisitData({
             visit_photos: data.visit_photos || [],
             visit_pros: data.visit_pros || [],
             visit_cons: data.visit_cons || [],
             visit_published: data.visit_published || false,
+            visit_video_url: videoUrl,
           });
         }
       } catch (err) {
