@@ -288,18 +288,21 @@ function buildInitialCriteria(data: ApplicationData) {
 }
 
 async function getOrCreateCase(profileId: string, data: ApplicationData) {
-  const { data: existingCase, error: caseLookupError } = await supabase
+  // Fetch all non-closed cases and prefer the signed one
+  const { data: existingCases, error: caseLookupError } = await supabase
     .from('cases')
     .select('id, contract_data')
     .eq('client_id', profileId)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .neq('status', 'closed')
+    .order('created_at', { ascending: false });
 
   if (caseLookupError) {
     console.error('Failed to look up existing case:', caseLookupError.message);
     throw new Error('Failed to look up case');
   }
+
+  // Prefer signed case, then fall back to most recent
+  const existingCase = existingCases?.find(c => c.contract_data != null) ?? existingCases?.[0];
 
   if (existingCase) {
     return existingCase;
