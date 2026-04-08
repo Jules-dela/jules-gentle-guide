@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MapPin, Bed, Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 
 interface Apartment {
   id: string;
   images: string[];
+  imagePositions?: Record<number, number>;
   rent: number;
   rooms: number;
   location: string;
@@ -20,9 +22,10 @@ interface ApartmentCardProps {
   onLike: () => void;
   onDislike: () => void;
   readOnly?: boolean;
+  onImagePositionChange?: (index: number, position: number) => void;
 }
 
-export function ApartmentCard({ apartment, onLike, onDislike, readOnly = false }: ApartmentCardProps) {
+export function ApartmentCard({ apartment, onLike, onDislike, readOnly = false, onImagePositionChange }: ApartmentCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -54,6 +57,7 @@ export function ApartmentCard({ apartment, onLike, onDislike, readOnly = false }
             src={apartment.images[currentImageIndex]}
             alt={`Apartment photo ${currentImageIndex + 1}`}
             className="w-full h-full object-cover"
+            style={{ objectPosition: `center ${apartment.imagePositions?.[currentImageIndex] ?? 50}%` }}
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
@@ -104,6 +108,22 @@ export function ApartmentCard({ apartment, onLike, onDislike, readOnly = false }
             />
           ))}
         </div>
+
+        {/* Image Position Slider (admin preview only) */}
+        {onImagePositionChange && (
+          <div className="absolute bottom-12 left-4 right-4 flex items-center gap-3 bg-black/60 backdrop-blur-sm rounded-full px-4 py-2">
+            <span className="text-white text-xs whitespace-nowrap">Position</span>
+            <Slider
+              value={[apartment.imagePositions?.[currentImageIndex] ?? 50]}
+              min={0}
+              max={100}
+              step={1}
+              onValueChange={(value) => onImagePositionChange(currentImageIndex, value[0] ?? 50)}
+              className="flex-1"
+            />
+            <span className="text-white text-xs w-8 text-right">{apartment.imagePositions?.[currentImageIndex] ?? 50}%</span>
+          </div>
+        )}
       </div>
 
       {/* Content */}
