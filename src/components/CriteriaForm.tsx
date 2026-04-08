@@ -50,7 +50,7 @@ const COUNTRY_CODES = [
 const criteriaSchema = z.object({
   name: z.string().trim().min(1, { message: "Full name is required" }).max(100),
   email: z.string().trim().email({ message: "Invalid email address" }).max(255),
-  phone: z.string().trim().min(1, { message: "Phone number is required" }).max(20),
+  phone: z.string().trim().min(1, { message: "Phone number is required" }).max(20).regex(/^\+\d{7,15}$/, { message: "Invalid phone number format" }),
   university: z.string().trim().max(100).optional().or(z.literal("")),
   movingDate: z.date({ required_error: "Please select your preferred moving date" }),
   neighbourhood: z.string().min(1, { message: "Please select a neighbourhood" }),
