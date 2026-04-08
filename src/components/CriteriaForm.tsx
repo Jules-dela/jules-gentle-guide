@@ -17,8 +17,34 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { ChevronRight, ChevronLeft, CheckCircle2, User, Home, Settings, Send, CalendarIcon, FileText } from "lucide-react";
+import { ChevronRight, ChevronLeft, CheckCircle2, User, Home, Settings, Send, CalendarIcon, FileText, ChevronDown } from "lucide-react";
 import { ServiceAgreement } from "@/components/portal/ServiceAgreement";
+
+const COUNTRY_CODES = [
+  { code: "+41", flag: "🇨🇭", label: "CH", min: 9, max: 9 },
+  { code: "+33", flag: "🇫🇷", label: "FR", min: 9, max: 9 },
+  { code: "+49", flag: "🇩🇪", label: "DE", min: 10, max: 11 },
+  { code: "+39", flag: "🇮🇹", label: "IT", min: 9, max: 10 },
+  { code: "+43", flag: "🇦🇹", label: "AT", min: 10, max: 11 },
+  { code: "+44", flag: "🇬🇧", label: "UK", min: 10, max: 10 },
+  { code: "+34", flag: "🇪🇸", label: "ES", min: 9, max: 9 },
+  { code: "+351", flag: "🇵🇹", label: "PT", min: 9, max: 9 },
+  { code: "+31", flag: "🇳🇱", label: "NL", min: 9, max: 9 },
+  { code: "+32", flag: "🇧🇪", label: "BE", min: 8, max: 9 },
+  { code: "+46", flag: "🇸🇪", label: "SE", min: 7, max: 10 },
+  { code: "+45", flag: "🇩🇰", label: "DK", min: 8, max: 8 },
+  { code: "+47", flag: "🇳🇴", label: "NO", min: 8, max: 8 },
+  { code: "+1", flag: "🇺🇸", label: "US", min: 10, max: 10 },
+  { code: "+90", flag: "🇹🇷", label: "TR", min: 10, max: 10 },
+  { code: "+91", flag: "🇮🇳", label: "IN", min: 10, max: 10 },
+  { code: "+86", flag: "🇨🇳", label: "CN", min: 11, max: 11 },
+  { code: "+81", flag: "🇯🇵", label: "JP", min: 10, max: 11 },
+  { code: "+82", flag: "🇰🇷", label: "KR", min: 10, max: 11 },
+  { code: "+55", flag: "🇧🇷", label: "BR", min: 10, max: 11 },
+  { code: "+212", flag: "🇲🇦", label: "MA", min: 9, max: 9 },
+  { code: "+216", flag: "🇹🇳", label: "TN", min: 8, max: 8 },
+  { code: "+961", flag: "🇱🇧", label: "LB", min: 7, max: 8 },
+];
 
 // Validation schema
 const criteriaSchema = z.object({
