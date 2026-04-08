@@ -43,6 +43,7 @@ const DEMO_VISIT_DATA: VisitData = {
     'No in-unit laundry (shared in basement)',
   ],
   visit_published: true,
+  visit_video_url: null,
 };
 
 export function VisitReport({ apartment, onComplete, onReject, readOnly = false }: VisitReportProps) {
