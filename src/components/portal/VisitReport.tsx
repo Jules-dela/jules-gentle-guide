@@ -273,6 +273,30 @@ export function VisitReport({ apartment, onComplete, onReject, readOnly = false 
               </motion.div>
             )}
 
+            {/* Visit Video - Only show if video exists */}
+            {visitData?.visit_video_url && (
+              <motion.div
+                className="bg-white rounded-[40px] p-6 shadow-lg mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.35 }}
+              >
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <Video className="w-5 h-5 text-primary" />
+                  Visit Video
+                </h3>
+                <div className="rounded-2xl overflow-hidden">
+                  <video
+                    src={visitData.visit_video_url}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="w-full rounded-2xl"
+                  />
+                </div>
+              </motion.div>
+            )}
+
             {/* Agent Notes Card - Only show if pros or cons exist */}
             {(pros.length > 0 || cons.length > 0) && (
               <motion.div
