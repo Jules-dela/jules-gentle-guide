@@ -95,15 +95,16 @@ export function useClientPortal(): UseClientPortalReturn {
       };
       setProfile(typedProfile);
 
-      // Fetch active case
-      const { data: caseData, error: caseError } = await supabase
+      // Fetch active case — prefer the one with a signed contract
+      const { data: allCases, error: caseError } = await supabase
         .from('cases')
         .select('*')
         .eq('client_id', profileData.id)
         .neq('status', 'closed')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .order('created_at', { ascending: false });
+
+      // Pick the signed case first, otherwise fall back to the most recent
+      const caseData = allCases?.find(c => c.contract_data != null) ?? allCases?.[0] ?? null;
 
       if (caseError) throw caseError;
 
