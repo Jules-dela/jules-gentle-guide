@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Video } from 'lucide-react';
 import { MapPin, Banknote, X, ChevronLeft, ChevronRight, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ViewingFeedbackPopup } from './ViewingFeedbackPopup';
