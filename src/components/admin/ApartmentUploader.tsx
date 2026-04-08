@@ -664,6 +664,7 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                 apartment={{
                   id: previewApartment.id,
                   images: previewApartment.imagePreviewUrls,
+                  imagePositions: previewApartment.imagePositions,
                   rent: parseFloat(previewApartment.rent) || 0,
                   rooms: parseFloat(previewApartment.rooms) || 0,
                   location: '',
@@ -674,6 +675,13 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                 onLike={() => {}}
                 onDislike={() => {}}
                 readOnly
+                onImagePositionChange={(index, position) => {
+                  setImagePosition(previewApartment.id, index, position);
+                  setPreviewApartment(prev => prev ? {
+                    ...prev,
+                    imagePositions: { ...prev.imagePositions, [index]: position }
+                  } : null);
+                }}
               />
             )}
           </div>
