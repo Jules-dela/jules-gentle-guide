@@ -25,7 +25,7 @@ interface ApartmentCardProps {
   onImagePositionChange?: (index: number, position: number) => void;
 }
 
-export function ApartmentCard({ apartment, onLike, onDislike, readOnly = false }: ApartmentCardProps) {
+export function ApartmentCard({ apartment, onLike, onDislike, readOnly = false, onImagePositionChange }: ApartmentCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
