@@ -670,24 +670,52 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                 />
                               </div>
                               <div className="grid gap-6 md:grid-cols-2">
-                                <FormField
-                                  control={form.control}
-                                  name="phone"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Phone</FormLabel>
-                                      <FormControl>
-                                        <Input 
-                                          type="tel" 
-                                          placeholder="+41 79 123 45 67" 
-                                          className="bg-white border border-slate-200 focus:border-primary/50 focus:bg-white transition-all"
-                                          {...field} 
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
+                                <FormItem>
+                                  <FormLabel>Phone</FormLabel>
+                                  <div className="flex gap-2">
+                                    <div className="relative" ref={countryDropdownRef}>
+                                      <button
+                                        type="button"
+                                        onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                                        className="h-10 px-3 bg-white border border-slate-200 rounded-md flex items-center gap-1.5 hover:border-primary/50 transition-colors min-w-[88px] text-sm"
+                                      >
+                                        <span>{selectedCountry.flag}</span>
+                                        <span className="font-medium">{phoneCountryCode}</span>
+                                        <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                                      </button>
+                                      {showCountryDropdown && (
+                                        <div className="absolute top-full left-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto w-48">
+                                          {COUNTRY_CODES.map((c) => (
+                                            <button
+                                              key={c.code}
+                                              type="button"
+                                              onClick={() => {
+                                                setPhoneCountryCode(c.code);
+                                                setShowCountryDropdown(false);
+                                              }}
+                                              className={cn(
+                                                "w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-muted/80 transition-colors text-sm",
+                                                phoneCountryCode === c.code && "bg-muted"
+                                              )}
+                                            >
+                                              <span>{c.flag}</span>
+                                              <span className="font-medium">{c.code}</span>
+                                              <span className="text-muted-foreground ml-auto">{c.label}</span>
+                                            </button>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <Input
+                                      type="tel"
+                                      placeholder={phoneCountryCode === "+41" ? "079 123 45 67" : "Local number"}
+                                      value={phoneLocal}
+                                      onChange={(e) => setPhoneLocal(e.target.value.replace(/[^\d\s\-]/g, ""))}
+                                      className="bg-white border border-slate-200 focus:border-primary/50 focus:bg-white transition-all flex-1"
+                                    />
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-1">Enter your local number — the country code is added automatically.</p>
+                                </FormItem>
                                 <FormField
                                   control={form.control}
                                   name="university"
