@@ -100,8 +100,14 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
   const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(false);
   const [documentsAcknowledged, setDocumentsAcknowledged] = useState(false);
   const [showDocWarning, setShowDocWarning] = useState(false);
+  const [phoneCountryCode, setPhoneCountryCode] = useState("+41");
+  const [phoneLocal, setPhoneLocal] = useState("");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const countryDropdownRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
+  const selectedCountry = COUNTRY_CODES.find(c => c.code === phoneCountryCode) || COUNTRY_CODES[0];
 
   const form = useForm<CriteriaFormData>({
     resolver: zodResolver(criteriaSchema),
