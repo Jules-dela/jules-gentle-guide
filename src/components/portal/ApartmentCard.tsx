@@ -57,6 +57,7 @@ export function ApartmentCard({ apartment, onLike, onDislike, readOnly = false, 
             src={apartment.images[currentImageIndex]}
             alt={`Apartment photo ${currentImageIndex + 1}`}
             className="w-full h-full object-cover"
+            style={{ objectPosition: `center ${apartment.imagePositions?.[currentImageIndex] ?? 50}%` }}
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
