@@ -19,6 +19,7 @@ interface VisitData {
   visit_pros: string[];
   visit_cons: string[];
   visit_published: boolean;
+  visit_video_url: string | null;
 }
 
 // Demo mode fallback data
