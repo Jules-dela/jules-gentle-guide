@@ -17,14 +17,40 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { ChevronRight, ChevronLeft, CheckCircle2, User, Home, Settings, Send, CalendarIcon, FileText } from "lucide-react";
+import { ChevronRight, ChevronLeft, CheckCircle2, User, Home, Settings, Send, CalendarIcon, FileText, ChevronDown } from "lucide-react";
 import { ServiceAgreement } from "@/components/portal/ServiceAgreement";
+
+const COUNTRY_CODES = [
+  { code: "+41", flag: "🇨🇭", label: "CH", min: 9, max: 9 },
+  { code: "+33", flag: "🇫🇷", label: "FR", min: 9, max: 9 },
+  { code: "+49", flag: "🇩🇪", label: "DE", min: 10, max: 11 },
+  { code: "+39", flag: "🇮🇹", label: "IT", min: 9, max: 10 },
+  { code: "+43", flag: "🇦🇹", label: "AT", min: 10, max: 11 },
+  { code: "+44", flag: "🇬🇧", label: "UK", min: 10, max: 10 },
+  { code: "+34", flag: "🇪🇸", label: "ES", min: 9, max: 9 },
+  { code: "+351", flag: "🇵🇹", label: "PT", min: 9, max: 9 },
+  { code: "+31", flag: "🇳🇱", label: "NL", min: 9, max: 9 },
+  { code: "+32", flag: "🇧🇪", label: "BE", min: 8, max: 9 },
+  { code: "+46", flag: "🇸🇪", label: "SE", min: 7, max: 10 },
+  { code: "+45", flag: "🇩🇰", label: "DK", min: 8, max: 8 },
+  { code: "+47", flag: "🇳🇴", label: "NO", min: 8, max: 8 },
+  { code: "+1", flag: "🇺🇸", label: "US", min: 10, max: 10 },
+  { code: "+90", flag: "🇹🇷", label: "TR", min: 10, max: 10 },
+  { code: "+91", flag: "🇮🇳", label: "IN", min: 10, max: 10 },
+  { code: "+86", flag: "🇨🇳", label: "CN", min: 11, max: 11 },
+  { code: "+81", flag: "🇯🇵", label: "JP", min: 10, max: 11 },
+  { code: "+82", flag: "🇰🇷", label: "KR", min: 10, max: 11 },
+  { code: "+55", flag: "🇧🇷", label: "BR", min: 10, max: 11 },
+  { code: "+212", flag: "🇲🇦", label: "MA", min: 9, max: 9 },
+  { code: "+216", flag: "🇹🇳", label: "TN", min: 8, max: 8 },
+  { code: "+961", flag: "🇱🇧", label: "LB", min: 7, max: 8 },
+];
 
 // Validation schema
 const criteriaSchema = z.object({
   name: z.string().trim().min(1, { message: "Full name is required" }).max(100),
   email: z.string().trim().email({ message: "Invalid email address" }).max(255),
-  phone: z.string().trim().min(1, { message: "Phone number is required" }).max(20),
+  phone: z.string().trim().min(1, { message: "Phone number is required" }).max(20).regex(/^\+\d{7,15}$/, { message: "Invalid phone number format" }),
   university: z.string().trim().max(100).optional().or(z.literal("")),
   movingDate: z.date({ required_error: "Please select your preferred moving date" }),
   neighbourhood: z.string().min(1, { message: "Please select a neighbourhood" }),
@@ -74,8 +100,14 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
   const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(false);
   const [documentsAcknowledged, setDocumentsAcknowledged] = useState(false);
   const [showDocWarning, setShowDocWarning] = useState(false);
+  const [phoneCountryCode, setPhoneCountryCode] = useState("+41");
+  const [phoneLocal, setPhoneLocal] = useState("");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const countryDropdownRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
+  const selectedCountry = COUNTRY_CODES.find(c => c.code === phoneCountryCode) || COUNTRY_CODES[0];
 
   const form = useForm<CriteriaFormData>({
     resolver: zodResolver(criteriaSchema),
@@ -103,12 +135,44 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     },
   });
 
+  const getFullPhone = () => {
+    const digits = phoneLocal.replace(/[^\d]/g, "");
+    const trimmed = digits.startsWith("0") ? digits.slice(1) : digits;
+    return phoneCountryCode + trimmed;
+  };
+
+  const validatePhoneNumber = (): string | null => {
+    const digits = phoneLocal.replace(/[^\d]/g, "");
+    if (!digits || digits.length === 0) return "Phone number is required";
+    const trimmed = digits.startsWith("0") ? digits.slice(1) : digits;
+    if (trimmed.length < 6 || trimmed.length > 13) return "Please enter a valid phone number";
+    const country = COUNTRY_CODES.find(c => c.code === phoneCountryCode);
+    if (country) {
+      if (trimmed.length < country.min || trimmed.length > country.max) {
+        return `A ${country.label} number should have ${country.min === country.max ? country.min : `${country.min}-${country.max}`} digits after the country code`;
+      }
+    }
+    const full = phoneCountryCode + trimmed;
+    if (!/^\+\d{7,15}$/.test(full)) return "Invalid phone number format";
+    return null;
+  };
+
   const validateStep = async (step: number) => {
     let fieldsToValidate: (keyof CriteriaFormData)[] = [];
     
     switch (step) {
-      case 1:
-        fieldsToValidate = ["name", "email", "phone", "university", "movingDate"];
+      case 1: {
+        fieldsToValidate = ["name", "email", "university", "movingDate"];
+        // Validate phone separately
+        const phoneError = validatePhoneNumber();
+        if (phoneError) {
+          toast({ title: "Invalid phone number", description: phoneError, variant: "destructive" });
+          return false;
+        }
+        // Set the full phone in the form so it passes zod
+        form.setValue("phone", getFullPhone());
+        break;
+      }
         break;
       case 2:
         fieldsToValidate = ["neighbourhood", "budget", "rooms", "duration", "type", "roommates"];
@@ -606,24 +670,52 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                 />
                               </div>
                               <div className="grid gap-6 md:grid-cols-2">
-                                <FormField
-                                  control={form.control}
-                                  name="phone"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Phone</FormLabel>
-                                      <FormControl>
-                                        <Input 
-                                          type="tel" 
-                                          placeholder="+41 79 123 45 67" 
-                                          className="bg-white border border-slate-200 focus:border-primary/50 focus:bg-white transition-all"
-                                          {...field} 
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
+                                <FormItem>
+                                  <FormLabel>Phone</FormLabel>
+                                  <div className="flex gap-2">
+                                    <div className="relative" ref={countryDropdownRef}>
+                                      <button
+                                        type="button"
+                                        onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                                        className="h-10 px-3 bg-white border border-slate-200 rounded-md flex items-center gap-1.5 hover:border-primary/50 transition-colors min-w-[88px] text-sm"
+                                      >
+                                        <span>{selectedCountry.flag}</span>
+                                        <span className="font-medium">{phoneCountryCode}</span>
+                                        <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                                      </button>
+                                      {showCountryDropdown && (
+                                        <div className="absolute top-full left-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto w-48">
+                                          {COUNTRY_CODES.map((c) => (
+                                            <button
+                                              key={c.code}
+                                              type="button"
+                                              onClick={() => {
+                                                setPhoneCountryCode(c.code);
+                                                setShowCountryDropdown(false);
+                                              }}
+                                              className={cn(
+                                                "w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-muted/80 transition-colors text-sm",
+                                                phoneCountryCode === c.code && "bg-muted"
+                                              )}
+                                            >
+                                              <span>{c.flag}</span>
+                                              <span className="font-medium">{c.code}</span>
+                                              <span className="text-muted-foreground ml-auto">{c.label}</span>
+                                            </button>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <Input
+                                      type="tel"
+                                      placeholder={phoneCountryCode === "+41" ? "079 123 45 67" : "Local number"}
+                                      value={phoneLocal}
+                                      onChange={(e) => setPhoneLocal(e.target.value.replace(/[^\d\s\-]/g, ""))}
+                                      className="bg-white border border-slate-200 focus:border-primary/50 focus:bg-white transition-all flex-1"
+                                    />
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-1">Enter your local number — the country code is added automatically.</p>
+                                </FormItem>
                                 <FormField
                                   control={form.control}
                                   name="university"
