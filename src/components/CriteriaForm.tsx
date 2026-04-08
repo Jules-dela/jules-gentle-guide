@@ -135,12 +135,44 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     },
   });
 
+  const getFullPhone = () => {
+    const digits = phoneLocal.replace(/[^\d]/g, "");
+    const trimmed = digits.startsWith("0") ? digits.slice(1) : digits;
+    return phoneCountryCode + trimmed;
+  };
+
+  const validatePhoneNumber = (): string | null => {
+    const digits = phoneLocal.replace(/[^\d]/g, "");
+    if (!digits || digits.length === 0) return "Phone number is required";
+    const trimmed = digits.startsWith("0") ? digits.slice(1) : digits;
+    if (trimmed.length < 6 || trimmed.length > 13) return "Please enter a valid phone number";
+    const country = COUNTRY_CODES.find(c => c.code === phoneCountryCode);
+    if (country) {
+      if (trimmed.length < country.min || trimmed.length > country.max) {
+        return `A ${country.label} number should have ${country.min === country.max ? country.min : `${country.min}-${country.max}`} digits after the country code`;
+      }
+    }
+    const full = phoneCountryCode + trimmed;
+    if (!/^\+\d{7,15}$/.test(full)) return "Invalid phone number format";
+    return null;
+  };
+
   const validateStep = async (step: number) => {
     let fieldsToValidate: (keyof CriteriaFormData)[] = [];
     
     switch (step) {
-      case 1:
-        fieldsToValidate = ["name", "email", "phone", "university", "movingDate"];
+      case 1: {
+        fieldsToValidate = ["name", "email", "university", "movingDate"];
+        // Validate phone separately
+        const phoneError = validatePhoneNumber();
+        if (phoneError) {
+          toast({ title: "Invalid phone number", description: phoneError, variant: "destructive" });
+          return false;
+        }
+        // Set the full phone in the form so it passes zod
+        form.setValue("phone", getFullPhone());
+        break;
+      }
         break;
       case 2:
         fieldsToValidate = ["neighbourhood", "budget", "rooms", "duration", "type", "roommates"];
