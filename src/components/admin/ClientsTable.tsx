@@ -142,6 +142,15 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
                 pendingReview={client.docs_pending_review}
               />
             )}
+            {client.listing_statuses.length > 0 && (
+              <div className="flex items-center gap-1 flex-wrap">
+                {client.listing_statuses.map((ls) => (
+                  <span key={ls.id} className={cn('px-1.5 py-0.5 rounded-full text-[10px] font-medium capitalize', listingStatusColors[ls.status] || 'bg-muted text-muted-foreground')}>
+                    {ls.status}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
           
           {!isArchived && (client.budget || client.neighbourhood) && (
