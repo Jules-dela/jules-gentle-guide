@@ -11,10 +11,11 @@ import { ResearchGallery, type SelectedApartment } from '@/components/portal/Res
 import { VisitReport } from '@/components/portal/VisitReport';
 import { DocumentsDossier } from '@/components/portal/DocumentsDossier';
 import { KeyHandoverStage } from '@/components/portal/KeyHandoverStage';
+import { ListingSwitcher } from '@/components/portal/ListingSwitcher';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import type { CaseStatus, PropertyProposal, KeyHandover, Profile, Case, CaseDocument, ContractData } from '@/types/portal';
+import type { CaseStatus, PropertyProposal, KeyHandover, Profile, Case, CaseDocument, ContractData, ListingStatus } from '@/types/portal';
 
 // ─── Showcase / Demo data ────────────────────────────────────────────────────
 
@@ -171,6 +172,15 @@ function getStageFromStatus(status: CaseStatus | undefined, proposals?: Property
   }
 }
 
+function listingStatusToStage(ls: ListingStatus): number {
+  switch (ls) {
+    case 'research': return 2;
+    case 'viewings': return 3;
+    case 'documents': return 4;
+    case 'completed': return 5;
+  }
+}
+
 function proposalToApartment(proposal: PropertyProposal): SelectedApartment {
   return {
     id: proposal.id,
@@ -216,6 +226,22 @@ export default function PortalDashboard() {
   const [selectedApartment, setSelectedApartment] = useState<SelectedApartment | null>(
     isDemoMode ? DEMO_APARTMENT : null
   );
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
+  
+  // Liked proposals that act as independent "listings" for the switcher
+  const likedListings = useMemo(() =>
+    proposals.filter(p => p.client_status === 'liked'),
+    [proposals]
+  );
+
+  // The currently selected listing (for multi-listing support)
+  const activeListing = useMemo(() => {
+    if (likedListings.length === 0) return null;
+    return likedListings.find(l => l.id === selectedListingId) || likedListings[0];
+  }, [likedListings, selectedListingId]);
+
+  // When the active listing changes, derive the stage from its listing_status
+  const listingDerivedStage = activeListing ? listingStatusToStage(activeListing.listing_status) : null;
   
   // When stages 3 & 4 are both unlocked, switching between them isn't "read only"
   const isParallelActive = highestStage >= 3 && (currentStage === 3 || currentStage === 4);
@@ -238,23 +264,28 @@ export default function PortalDashboard() {
         setCurrentStage(1);
         setHighestStage(1);
       } else {
-        setCurrentStage(prev => Math.max(prev, caseStage));
-        setHighestStage(prev => Math.max(prev, caseStage));
+        // If a listing is selected, derive stage from its listing_status
+        const effectiveStage = listingDerivedStage ?? caseStage;
+        setCurrentStage(prev => Math.max(prev, effectiveStage));
+        setHighestStage(prev => Math.max(prev, effectiveStage));
       }
     }
-  }, [caseStage, isOfflineMode, contractSigned]);
+  }, [caseStage, isOfflineMode, contractSigned, listingDerivedStage]);
 
   // Find first liked proposal with published visit for stage 3+
   useEffect(() => {
     if (isOfflineMode) return;
-    const likedProposals = proposals.filter(p => p.client_status === 'liked');
-    const published = likedProposals.find(p => p.visit_published);
-    const target = published || likedProposals[0];
-    if (target) {
-      // Always update to the best available apartment (published visit takes priority)
-      setSelectedApartment(proposalToApartment(target));
+    if (activeListing) {
+      setSelectedApartment(proposalToApartment(activeListing));
+    } else {
+      const likedProposals = proposals.filter(p => p.client_status === 'liked');
+      const published = likedProposals.find(p => p.visit_published);
+      const target = published || likedProposals[0];
+      if (target) {
+        setSelectedApartment(proposalToApartment(target));
+      }
     }
-  }, [proposals, isOfflineMode]);
+  }, [proposals, isOfflineMode, activeListing]);
 
   useEffect(() => {
     if (isOfflineMode) return;
@@ -341,6 +372,16 @@ export default function PortalDashboard() {
     setCurrentStage(2);
     scrollToContent();
   };
+
+  // Handle listing switcher selection
+  const handleListingSelect = useCallback((listing: PropertyProposal) => {
+    setSelectedListingId(listing.id);
+    setSelectedApartment(proposalToApartment(listing));
+    const stage = listingStatusToStage(listing.listing_status);
+    setCurrentStage(stage);
+    setHighestStage(prev => Math.max(prev, stage));
+    scrollToContent();
+  }, []);
 
   // All proposals mapped for the research gallery (pending ones for swiping)
   const pendingProposals = useMemo(() => 
@@ -468,6 +509,15 @@ export default function PortalDashboard() {
         onStageClick={setCurrentStage} 
         unreadStages={unreadStages}
       />
+
+      {/* Listing Switcher — only for real data with multiple liked listings */}
+      {!isOfflineMode && likedListings.length > 1 && (
+        <ListingSwitcher
+          listings={likedListings}
+          activeListingId={activeListing?.id || null}
+          onSelect={handleListingSelect}
+        />
+      )}
       
       <AnimatePresence>
         {isReadOnly && (

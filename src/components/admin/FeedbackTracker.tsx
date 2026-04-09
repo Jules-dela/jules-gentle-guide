@@ -29,8 +29,16 @@ interface Proposal {
   photos: string[] | null;
   photo_positions: any;
   client_visit_questions: string | null;
+  listing_status: string;
   created_at: string;
 }
+
+const LISTING_STATUSES = [
+  { value: 'research', label: 'Research', color: 'bg-blue-100 text-blue-700' },
+  { value: 'viewings', label: 'Viewings', color: 'bg-amber-100 text-amber-700' },
+  { value: 'documents', label: 'Documents', color: 'bg-purple-100 text-purple-700' },
+  { value: 'completed', label: 'Completed', color: 'bg-green-100 text-green-700' },
+] as const;
 
 interface FeedbackTrackerProps {
   caseId: string;
@@ -139,6 +147,20 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
       toast({ title: "Error", description: "Failed to delete listing.", variant: "destructive" });
     } finally {
       setDeletingId(null);
+    }
+  };
+  const updateListingStatus = async (proposalId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('property_proposals')
+        .update({ listing_status: newStatus } as any)
+        .eq('id', proposalId);
+      if (error) throw error;
+      setProposals(prev => prev.map(p => p.id === proposalId ? { ...p, listing_status: newStatus } : p));
+      toast({ title: 'Listing stage updated', description: `Moved to ${newStatus}` });
+    } catch (err) {
+      console.error('Error updating listing status:', err);
+      toast({ title: 'Error', description: 'Failed to update listing stage.', variant: 'destructive' });
     }
   };
 
@@ -384,6 +406,26 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {proposal.rooms} rooms · CHF {proposal.rent?.toLocaleString()}
                     </p>
+
+                    {/* Listing stage selector for liked proposals */}
+                    {proposal.client_status === 'liked' && (
+                      <div className="mt-2 flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                        {LISTING_STATUSES.map((ls) => (
+                          <button
+                            key={ls.value}
+                            onClick={() => updateListingStatus(proposal.id, ls.value)}
+                            className={cn(
+                              'text-[10px] px-2 py-0.5 rounded-full border transition-all',
+                              proposal.listing_status === ls.value
+                                ? `${ls.color} border-current font-semibold`
+                                : 'bg-muted/50 text-muted-foreground border-transparent hover:bg-muted'
+                            )}
+                          >
+                            {ls.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Visit questions — clickable for liked proposals */}
                     {proposal.client_status === 'liked' && proposal.client_visit_questions && (
