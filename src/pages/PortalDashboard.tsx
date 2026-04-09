@@ -172,6 +172,15 @@ function getStageFromStatus(status: CaseStatus | undefined, proposals?: Property
   }
 }
 
+function listingStatusToStage(ls: ListingStatus): number {
+  switch (ls) {
+    case 'research': return 2;
+    case 'viewings': return 3;
+    case 'documents': return 4;
+    case 'completed': return 5;
+  }
+}
+
 function proposalToApartment(proposal: PropertyProposal): SelectedApartment {
   return {
     id: proposal.id,
