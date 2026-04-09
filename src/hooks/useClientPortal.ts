@@ -154,6 +154,7 @@ export function useClientPortal(): UseClientPortalReturn {
           photos: p.photos || [],
           photo_positions: (p.photo_positions as Record<string, number>) || null,
           rejection_reasons: p.rejection_reasons || [],
+          listing_status: (p as any).listing_status as PropertyProposal['listing_status'] || 'research',
         }));
         setProposals(typedProposals);
 
