@@ -149,6 +149,20 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
       setDeletingId(null);
     }
   };
+  const updateListingStatus = async (proposalId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('property_proposals')
+        .update({ listing_status: newStatus } as any)
+        .eq('id', proposalId);
+      if (error) throw error;
+      setProposals(prev => prev.map(p => p.id === proposalId ? { ...p, listing_status: newStatus } : p));
+      toast({ title: 'Listing stage updated', description: `Moved to ${newStatus}` });
+    } catch (err) {
+      console.error('Error updating listing status:', err);
+      toast({ title: 'Error', description: 'Failed to update listing stage.', variant: 'destructive' });
+    }
+  };
 
   const saveDescription = async () => {
     if (!detailProposal) return;
