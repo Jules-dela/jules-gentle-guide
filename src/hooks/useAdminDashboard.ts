@@ -130,6 +130,13 @@ export function useAdminDashboard() {
             client_initials: (signature as any).client_initials || null,
           } : null,
           is_contract_signed: !!contractData?.signed,
+          listing_statuses: clientProposals
+            .filter((p) => p.client_status === 'liked')
+            .map((p) => ({
+              id: p.id,
+              address: p.address ?? p.neighbourhood ?? null,
+              status: (p as any).listing_status || 'research',
+            })),
         };
       });
 

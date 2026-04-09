@@ -45,6 +45,14 @@ function DocsBadge({ uploaded, total, pendingReview }: {
   );
 }
 
+// Listing status badge colors
+const listingStatusColors: Record<string, string> = {
+  research: 'bg-blue-100 text-blue-700',
+  viewings: 'bg-amber-100 text-amber-700',
+  documents: 'bg-purple-100 text-purple-700',
+  completed: 'bg-green-100 text-green-700',
+};
+
 // Stage configuration
 const stageConfig: Record<string, { label: string; color: string }> = {
   request_received: { label: 'Criteria', color: 'bg-slate-100 text-slate-700' },
@@ -133,6 +141,15 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
                 total={client.docs_total}
                 pendingReview={client.docs_pending_review}
               />
+            )}
+            {client.listing_statuses.length > 0 && (
+              <div className="flex items-center gap-1 flex-wrap">
+                {client.listing_statuses.map((ls) => (
+                  <span key={ls.id} className={cn('px-1.5 py-0.5 rounded-full text-[10px] font-medium capitalize', listingStatusColors[ls.status] || 'bg-muted text-muted-foreground')}>
+                    {ls.status}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
           
@@ -373,6 +390,7 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
                       <TableHead className="font-semibold">University / Company</TableHead>
                       <TableHead className="font-semibold">Stage</TableHead>
                       {filter === 'active' && <TableHead className="font-semibold">Docs</TableHead>}
+                      {filter === 'active' && <TableHead className="font-semibold">Listings</TableHead>}
                       <TableHead className="font-semibold">Budget</TableHead>
                       <TableHead className="font-semibold">Area</TableHead>
                       <TableHead className="font-semibold">Rooms</TableHead>
@@ -442,6 +460,21 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
                                 total={client.docs_total}
                                 pendingReview={client.docs_pending_review}
                               />
+                            </TableCell>
+                          )}
+                          {filter === 'active' && (
+                            <TableCell>
+                              {client.listing_statuses.length > 0 ? (
+                                <div className="flex items-center gap-1 flex-wrap">
+                                  {client.listing_statuses.map((ls) => (
+                                    <span key={ls.id} className={cn('px-2 py-0.5 rounded-full text-[10px] font-medium capitalize whitespace-nowrap', listingStatusColors[ls.status] || 'bg-muted text-muted-foreground')}>
+                                      {ls.status}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-sm text-muted-foreground">—</span>
+                              )}
                             </TableCell>
                           )}
                           <TableCell>
