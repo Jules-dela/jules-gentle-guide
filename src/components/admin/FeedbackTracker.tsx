@@ -29,8 +29,16 @@ interface Proposal {
   photos: string[] | null;
   photo_positions: any;
   client_visit_questions: string | null;
+  listing_status: string;
   created_at: string;
 }
+
+const LISTING_STATUSES = [
+  { value: 'research', label: 'Research', color: 'bg-blue-100 text-blue-700' },
+  { value: 'viewings', label: 'Viewings', color: 'bg-amber-100 text-amber-700' },
+  { value: 'documents', label: 'Documents', color: 'bg-purple-100 text-purple-700' },
+  { value: 'completed', label: 'Completed', color: 'bg-green-100 text-green-700' },
+] as const;
 
 interface FeedbackTrackerProps {
   caseId: string;
