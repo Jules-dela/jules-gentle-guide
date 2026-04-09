@@ -390,6 +390,7 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
                       <TableHead className="font-semibold">University / Company</TableHead>
                       <TableHead className="font-semibold">Stage</TableHead>
                       {filter === 'active' && <TableHead className="font-semibold">Docs</TableHead>}
+                      {filter === 'active' && <TableHead className="font-semibold">Listings</TableHead>}
                       <TableHead className="font-semibold">Budget</TableHead>
                       <TableHead className="font-semibold">Area</TableHead>
                       <TableHead className="font-semibold">Rooms</TableHead>
