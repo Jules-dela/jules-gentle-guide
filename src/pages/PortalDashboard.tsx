@@ -509,6 +509,15 @@ export default function PortalDashboard() {
         onStageClick={setCurrentStage} 
         unreadStages={unreadStages}
       />
+
+      {/* Listing Switcher — only for real data with multiple liked listings */}
+      {!isOfflineMode && likedListings.length > 1 && (
+        <ListingSwitcher
+          listings={likedListings}
+          activeListingId={activeListing?.id || null}
+          onSelect={handleListingSelect}
+        />
+      )}
       
       <AnimatePresence>
         {isReadOnly && (
