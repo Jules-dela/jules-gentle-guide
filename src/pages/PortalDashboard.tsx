@@ -226,6 +226,22 @@ export default function PortalDashboard() {
   const [selectedApartment, setSelectedApartment] = useState<SelectedApartment | null>(
     isDemoMode ? DEMO_APARTMENT : null
   );
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
+  
+  // Liked proposals that act as independent "listings" for the switcher
+  const likedListings = useMemo(() =>
+    proposals.filter(p => p.client_status === 'liked'),
+    [proposals]
+  );
+
+  // The currently selected listing (for multi-listing support)
+  const activeListing = useMemo(() => {
+    if (likedListings.length === 0) return null;
+    return likedListings.find(l => l.id === selectedListingId) || likedListings[0];
+  }, [likedListings, selectedListingId]);
+
+  // When the active listing changes, derive the stage from its listing_status
+  const listingDerivedStage = activeListing ? listingStatusToStage(activeListing.listing_status) : null;
   
   // When stages 3 & 4 are both unlocked, switching between them isn't "read only"
   const isParallelActive = highestStage >= 3 && (currentStage === 3 || currentStage === 4);
