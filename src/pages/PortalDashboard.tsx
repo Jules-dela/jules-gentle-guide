@@ -264,23 +264,28 @@ export default function PortalDashboard() {
         setCurrentStage(1);
         setHighestStage(1);
       } else {
-        setCurrentStage(prev => Math.max(prev, caseStage));
-        setHighestStage(prev => Math.max(prev, caseStage));
+        // If a listing is selected, derive stage from its listing_status
+        const effectiveStage = listingDerivedStage ?? caseStage;
+        setCurrentStage(prev => Math.max(prev, effectiveStage));
+        setHighestStage(prev => Math.max(prev, effectiveStage));
       }
     }
-  }, [caseStage, isOfflineMode, contractSigned]);
+  }, [caseStage, isOfflineMode, contractSigned, listingDerivedStage]);
 
   // Find first liked proposal with published visit for stage 3+
   useEffect(() => {
     if (isOfflineMode) return;
-    const likedProposals = proposals.filter(p => p.client_status === 'liked');
-    const published = likedProposals.find(p => p.visit_published);
-    const target = published || likedProposals[0];
-    if (target) {
-      // Always update to the best available apartment (published visit takes priority)
-      setSelectedApartment(proposalToApartment(target));
+    if (activeListing) {
+      setSelectedApartment(proposalToApartment(activeListing));
+    } else {
+      const likedProposals = proposals.filter(p => p.client_status === 'liked');
+      const published = likedProposals.find(p => p.visit_published);
+      const target = published || likedProposals[0];
+      if (target) {
+        setSelectedApartment(proposalToApartment(target));
+      }
     }
-  }, [proposals, isOfflineMode]);
+  }, [proposals, isOfflineMode, activeListing]);
 
   useEffect(() => {
     if (isOfflineMode) return;
