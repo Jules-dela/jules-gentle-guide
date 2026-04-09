@@ -45,6 +45,14 @@ function DocsBadge({ uploaded, total, pendingReview }: {
   );
 }
 
+// Listing status badge colors
+const listingStatusColors: Record<string, string> = {
+  research: 'bg-blue-100 text-blue-700',
+  viewings: 'bg-amber-100 text-amber-700',
+  documents: 'bg-purple-100 text-purple-700',
+  completed: 'bg-green-100 text-green-700',
+};
+
 // Stage configuration
 const stageConfig: Record<string, { label: string; color: string }> = {
   request_received: { label: 'Criteria', color: 'bg-slate-100 text-slate-700' },
