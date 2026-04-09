@@ -462,6 +462,21 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
                               />
                             </TableCell>
                           )}
+                          {filter === 'active' && (
+                            <TableCell>
+                              {client.listing_statuses.length > 0 ? (
+                                <div className="flex items-center gap-1 flex-wrap">
+                                  {client.listing_statuses.map((ls) => (
+                                    <span key={ls.id} className={cn('px-2 py-0.5 rounded-full text-[10px] font-medium capitalize whitespace-nowrap', listingStatusColors[ls.status] || 'bg-muted text-muted-foreground')}>
+                                      {ls.status}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-sm text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
+                          )}
                           <TableCell>
                             <p className="text-sm text-muted-foreground whitespace-nowrap">{client.budget || '—'}</p>
                           </TableCell>
