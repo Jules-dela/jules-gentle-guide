@@ -373,6 +373,16 @@ export default function PortalDashboard() {
     scrollToContent();
   };
 
+  // Handle listing switcher selection
+  const handleListingSelect = useCallback((listing: PropertyProposal) => {
+    setSelectedListingId(listing.id);
+    setSelectedApartment(proposalToApartment(listing));
+    const stage = listingStatusToStage(listing.listing_status);
+    setCurrentStage(stage);
+    setHighestStage(prev => Math.max(prev, stage));
+    scrollToContent();
+  }, []);
+
   // All proposals mapped for the research gallery (pending ones for swiping)
   const pendingProposals = useMemo(() => 
     proposals.filter(p => p.client_status === 'pending').map(proposalToApartment),
