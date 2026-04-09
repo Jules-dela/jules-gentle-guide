@@ -407,6 +407,26 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
                       {proposal.rooms} rooms · CHF {proposal.rent?.toLocaleString()}
                     </p>
 
+                    {/* Listing stage selector for liked proposals */}
+                    {proposal.client_status === 'liked' && (
+                      <div className="mt-2 flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                        {LISTING_STATUSES.map((ls) => (
+                          <button
+                            key={ls.value}
+                            onClick={() => updateListingStatus(proposal.id, ls.value)}
+                            className={cn(
+                              'text-[10px] px-2 py-0.5 rounded-full border transition-all',
+                              proposal.listing_status === ls.value
+                                ? `${ls.color} border-current font-semibold`
+                                : 'bg-muted/50 text-muted-foreground border-transparent hover:bg-muted'
+                            )}
+                          >
+                            {ls.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
                     {/* Visit questions — clickable for liked proposals */}
                     {proposal.client_status === 'liked' && proposal.client_visit_questions && (
                       <button
