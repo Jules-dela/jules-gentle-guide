@@ -43,6 +43,8 @@ export interface ClientWithCase {
   // Contract signing
   contract_data: ContractSignatureData | null;
   is_contract_signed: boolean;
+  // Listing statuses for liked proposals
+  listing_statuses: { id: string; address: string | null; status: string }[];
 }
 
 export interface ClientInteraction {
