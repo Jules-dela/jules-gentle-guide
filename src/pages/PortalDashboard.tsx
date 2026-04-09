@@ -11,10 +11,11 @@ import { ResearchGallery, type SelectedApartment } from '@/components/portal/Res
 import { VisitReport } from '@/components/portal/VisitReport';
 import { DocumentsDossier } from '@/components/portal/DocumentsDossier';
 import { KeyHandoverStage } from '@/components/portal/KeyHandoverStage';
+import { ListingSwitcher } from '@/components/portal/ListingSwitcher';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import type { CaseStatus, PropertyProposal, KeyHandover, Profile, Case, CaseDocument, ContractData } from '@/types/portal';
+import type { CaseStatus, PropertyProposal, KeyHandover, Profile, Case, CaseDocument, ContractData, ListingStatus } from '@/types/portal';
 
 // ─── Showcase / Demo data ────────────────────────────────────────────────────
 
