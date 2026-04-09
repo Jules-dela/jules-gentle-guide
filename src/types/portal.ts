@@ -16,6 +16,8 @@ export type DocumentStatus = 'missing' | 'uploaded' | 'validated' | 'rejected';
 
 export type ProposalStatus = 'pending' | 'liked' | 'rejected';
 
+export type ListingStatus = 'research' | 'viewings' | 'documents' | 'completed';
+
 export interface Profile {
   id: string;
   user_id: string;
@@ -103,6 +105,7 @@ export interface PropertyProposal {
   rejection_notes: string | null;
   client_visit_questions: string | null;
   visit_published: boolean | null;
+  listing_status: ListingStatus;
   created_at: string;
 }
 
