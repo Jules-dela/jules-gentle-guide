@@ -477,6 +477,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          listing_status: Database["public"]["Enums"]["listing_status"]
           neighbourhood: string | null
           photo_positions: Json | null
           photos: string[] | null
@@ -502,6 +503,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          listing_status?: Database["public"]["Enums"]["listing_status"]
           neighbourhood?: string | null
           photo_positions?: Json | null
           photos?: string[] | null
@@ -527,6 +529,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          listing_status?: Database["public"]["Enums"]["listing_status"]
           neighbourhood?: string | null
           photo_positions?: Json | null
           photos?: string[] | null
@@ -753,6 +756,7 @@ export type Database = {
         | "closed"
       client_type: "student" | "employee" | "other"
       document_status: "missing" | "uploaded" | "validated" | "rejected"
+      listing_status: "research" | "viewings" | "documents" | "completed"
       proposal_status: "pending" | "liked" | "rejected"
     }
     CompositeTypes: {
@@ -894,6 +898,7 @@ export const Constants = {
       ],
       client_type: ["student", "employee", "other"],
       document_status: ["missing", "uploaded", "validated", "rejected"],
+      listing_status: ["research", "viewings", "documents", "completed"],
       proposal_status: ["pending", "liked", "rejected"],
     },
   },
