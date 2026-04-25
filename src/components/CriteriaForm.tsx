@@ -312,22 +312,13 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
       setSubmittedName(data.name);
       setSubmittedCaseId(result?.caseId || null);
 
-      // Auto-login if new user with temp password returned
-      if (result?.isNewUser && result?.tempPassword) {
+      // For new users we receive a one-time magic link instead of a password.
+      // Redirect immediately so the user lands authenticated in the portal.
+      if (result?.isNewUser && result?.actionLink) {
         setIsAutoLoggingIn(true);
-        try {
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: data.email,
-            password: result.tempPassword,
-          });
-          if (signInError) {
-            console.error("Auto-login failed:", signInError);
-          }
-        } catch (loginErr) {
-          console.error("Auto-login error:", loginErr);
-        } finally {
-          setIsAutoLoggingIn(false);
-        }
+        onSubmitSuccess?.();
+        window.location.href = result.actionLink;
+        return;
       }
 
       // Contract is now signed server-side — send receipt email client-side
