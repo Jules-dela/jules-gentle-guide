@@ -163,6 +163,8 @@ const applicationSchema = z.object({
   website: z.string().max(0).optional().nullable(),
   skipEmails: z.boolean().optional(),
   contractData: contractDataSchema,
+  token: z.string().min(1, "Invitation token is required"),
+  privacyAccepted: z.boolean().optional().nullable(),
 });
 
 type ApplicationData = z.infer<typeof applicationSchema>;
@@ -486,12 +488,28 @@ const handler = async (req: Request): Promise<Response> => {
     await recordSubmission(clientIP);
     console.log("Processing application submission with portal creation");
 
+    // ---- Validate waitlist invitation token ----
+    const { data: tokenRow, error: tokenError } = await supabase
+      .from('waitlist_tokens')
+      .select('id, used')
+      .eq('token', data.token)
+      .eq('used', false)
+      .maybeSingle();
+
+    if (tokenError || !tokenRow) {
+      console.log('Token validation failed:', tokenError?.message ?? 'not found or used');
+      return new Response(
+        JSON.stringify({ error: "Invalid or used invitation" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     // Try to create the user first — this is the most reliable way to detect new vs existing
     let userId: string;
-    let tempPassword: string | null = null;
+    let actionLink: string | null = null;
     let isNewUser = false;
 
-    tempPassword = generateSecurePassword();
+    const tempPassword = generateSecurePassword();
     
     const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
       email: normalizeEmail(data.email),
@@ -507,7 +525,6 @@ const handler = async (req: Request): Promise<Response> => {
       if (isDuplicateAuthError(createUserError.message)) {
         // User already exists — find them
         console.log("User already exists, looking up by email");
-        tempPassword = null; // Don't send password for existing users
         
         const existingUser = await findUserByEmail(data.email);
         
@@ -528,11 +545,94 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Created new user account, isNewUser:", isNewUser);
     }
 
+    // Generate a one-time magic link for auto-login (replaces returning the temp password)
+    try {
+      const origin = req.headers.get('origin') || 'https://uni-key.ch';
+      const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email: normalizeEmail(data.email),
+        options: { redirectTo: `${origin}/portal` },
+      });
+      if (linkError) {
+        console.error('Failed to generate magic link:', linkError.message);
+      } else {
+        actionLink = linkData?.properties?.action_link ?? null;
+      }
+    } catch (linkErr) {
+      console.error('Magic link generation error:', linkErr);
+    }
+
     const profile = await getOrCreateProfile(userId, data);
     console.log('Resolved profile:', profile.id);
 
     const newCase = await getOrCreateCase(profile.id, data);
     console.log("Created case:", newCase.id);
+
+    // ---- Persist leads + housing_applications rows server-side ----
+    // (moved out of the client to enforce rate-limit + token validation)
+    try {
+      const nameParts = data.name.trim().split(/\s+/);
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      let budgetMin: number | null = null;
+      let budgetMax: number | null = null;
+      if (data.budget) {
+        const m = data.budget.match(/^(\d+)-(\d+)$/);
+        if (m) {
+          budgetMin = parseInt(m[1], 10);
+          budgetMax = parseInt(m[2], 10);
+        } else if (data.budget.endsWith('+')) {
+          budgetMin = parseInt(data.budget.replace('+', ''), 10);
+        }
+      }
+
+      const { error: leadsErr } = await supabase.from('leads').insert({
+        first_name: firstName,
+        last_name: lastName,
+        email: normalizeEmail(data.email),
+        phone: normalizePhone(data.phone),
+        budget_min: budgetMin,
+        budget_max: budgetMax,
+        city: data.neighbourhood || null,
+        rooms: data.rooms || null,
+        move_in_date: data.movingDate || null,
+        additional_notes: data.notes || null,
+      });
+      if (leadsErr) console.error('leads insert error:', leadsErr.message);
+
+      const { error: appErr } = await supabase.from('housing_applications').insert({
+        name: data.name,
+        email: normalizeEmail(data.email),
+        phone: normalizePhone(data.phone),
+        university: data.university || null,
+        moving_date: data.movingDate || null,
+        neighbourhood: data.neighbourhood || null,
+        budget: data.budget || null,
+        rooms: data.rooms || null,
+        duration: data.duration || null,
+        property_type: data.propertyType || null,
+        roommate_preference: data.roommatePreference || null,
+        furnished: data.furnished ?? false,
+        near_transport: data.nearTransport ?? false,
+        pets_allowed: data.petsAllowed ?? false,
+        smoking_allowed: data.smokingAllowed ?? false,
+        notes: data.notes || null,
+        privacy_accepted: data.privacyAccepted ?? true,
+      });
+      if (appErr) console.error('housing_applications insert error:', appErr.message);
+    } catch (insertErr) {
+      console.error('Lead/application insert step failed:', insertErr);
+    }
+
+    // Mark the invitation token as used
+    {
+      const { error: tokenUpdErr } = await supabase
+        .from('waitlist_tokens')
+        .update({ used: true })
+        .eq('id', tokenRow.id);
+      if (tokenUpdErr) console.error('Failed to mark token used:', tokenUpdErr.message);
+    }
 
     // Sign contract server-side if contract data was provided
     if (data.contractData && !newCase.contract_data) {
@@ -623,13 +723,11 @@ const handler = async (req: Request): Promise<Response> => {
               Thank you for choosing <strong style="color: #1E3A8A;">Unikey</strong>! Your application has been received and your personal housing portal is now ready.
             </p>
             
-            ${isNewUser && tempPassword ? `
-            <!-- Credentials Box -->
+            ${isNewUser ? `
             <div style="background: linear-gradient(135deg, #1E3A8A 0%, #3B5998 100%); padding: 28px; border-radius: 12px; margin: 24px 0; color: white;">
               <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">🔐 Your Portal Access</h3>
               <p style="margin: 0 0 8px 0; font-size: 14px; opacity: 0.9;">Email: <strong>${escapeHtml(data.email)}</strong></p>
-              <p style="margin: 0 0 16px 0; font-size: 14px; opacity: 0.9;">Temporary Password: <strong style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px;">${escapeHtml(tempPassword)}</strong></p>
-              <p style="margin: 0; font-size: 12px; opacity: 0.7;">⚠️ Please change your password after first login</p>
+              <p style="margin: 0; font-size: 13px; opacity: 0.9;">Use the button below to securely access your portal. We'll ask you to set a password on first sign-in.</p>
             </div>
             ` : `
             <div style="background: #F0F4FF; padding: 20px; border-radius: 12px; margin: 24px 0; border-left: 4px solid #1E3A8A;">
@@ -726,7 +824,7 @@ const handler = async (req: Request): Promise<Response> => {
         caseId: newCase.id,
         isNewUser,
         portalUrl,
-        ...(isNewUser && tempPassword ? { tempPassword } : {}),
+        ...(actionLink ? { actionLink } : {}),
       }),
       {
         status: 200,

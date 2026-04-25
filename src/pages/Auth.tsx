@@ -14,18 +14,17 @@ import { Eye, EyeOff, Lock, Mail, ArrowLeft } from "lucide-react";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 type AuthFormData = z.infer<typeof authSchema>;
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
-  const { signIn, signUp, user, isAdmin, loading } = useAuth();
+  const { signIn, user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -51,52 +50,26 @@ export default function Auth() {
   const onSubmit = async (data: AuthFormData) => {
     setIsSubmitting(true);
     try {
-      if (isLogin) {
-        const { error } = await signIn(data.email, data.password);
-        if (error) {
-          if (error.message.includes("Invalid login credentials")) {
-            toast({
-              title: "Login failed",
-              description: "Invalid email or password. Please try again.",
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Login failed",
-              description: error.message,
-              variant: "destructive",
-            });
-          }
+      const { error } = await signIn(data.email, data.password);
+      if (error) {
+        if (error.message.includes("Invalid login credentials")) {
+          toast({
+            title: "Login failed",
+            description: "Invalid email or password. Please try again.",
+            variant: "destructive",
+          });
         } else {
           toast({
-            title: "Welcome back!",
-            description: "You have successfully logged in.",
+            title: "Login failed",
+            description: error.message,
+            variant: "destructive",
           });
         }
       } else {
-        const { error } = await signUp(data.email, data.password);
-        if (error) {
-          if (error.message.includes("already registered")) {
-            toast({
-              title: "Account exists",
-              description: "This email is already registered. Please sign in instead.",
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Sign up failed",
-              description: error.message,
-              variant: "destructive",
-            });
-          }
-        } else {
-          toast({
-            title: "Account created!",
-            description: "You can now sign in with your credentials.",
-          });
-          setIsLogin(true);
-          form.reset();
-        }
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully logged in.",
+        });
       }
     } finally {
       setIsSubmitting(false);
@@ -207,12 +180,10 @@ export default function Auth() {
       <Card className="w-full max-w-md shadow-xl border-0">
         <CardHeader className="space-y-2 text-center pb-6">
           <CardTitle className="text-2xl font-bold text-primary">
-            {isLogin ? "Portal Login" : "Create Account"}
+            Portal Login
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            {isLogin
-              ? "Sign in to access your portal"
-              : "Create an account to get started"}
+            Sign in to access your portal
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -247,15 +218,13 @@ export default function Auth() {
                   <FormItem>
                     <div className="flex items-center justify-between">
                       <FormLabel className="text-foreground">Password</FormLabel>
-                      {isLogin && (
-                        <button
-                          type="button"
-                          onClick={() => setIsForgotPassword(true)}
-                          className="text-xs text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          Forgot password?
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => setIsForgotPassword(true)}
+                        className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        Forgot password?
+                      </button>
                     </div>
                     <FormControl>
                       <div className="relative">
@@ -289,28 +258,10 @@ export default function Auth() {
                 className="w-full"
                 disabled={isSubmitting}
               >
-                {isSubmitting
-                  ? "Please wait..."
-                  : isLogin
-                  ? "Sign In"
-                  : "Create Account"}
+                {isSubmitting ? "Please wait..." : "Sign In"}
               </Button>
             </form>
           </Form>
-
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => {
-                setIsLogin(!isLogin);
-                form.reset();
-              }}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              {isLogin
-                ? "Don't have an account? Sign up"
-                : "Already have an account? Sign in"}
-            </button>
-          </div>
         </CardContent>
       </Card>
     </div>

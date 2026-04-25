@@ -124,10 +124,10 @@ export function useAdminDashboard() {
             user_agent: signature.user_agent,
             signed_at: signature.signed_at,
             device_info: signature.device_info as any,
-            client_full_name: (signature as any).client_full_name || null,
-            client_date_of_birth: (signature as any).client_date_of_birth || null,
-            client_nationality: (signature as any).client_nationality || null,
-            client_initials: (signature as any).client_initials || null,
+            client_full_name: signature.client_full_name || null,
+            client_date_of_birth: signature.client_date_of_birth || null,
+            client_nationality: signature.client_nationality || null,
+            client_initials: signature.client_initials || null,
           } : null,
           is_contract_signed: !!contractData?.signed,
           listing_statuses: clientProposals
@@ -135,7 +135,7 @@ export function useAdminDashboard() {
             .map((p) => ({
               id: p.id,
               address: p.address ?? p.neighbourhood ?? null,
-              status: (p as any).listing_status || 'research',
+              status: p.listing_status || 'research',
             })),
         };
       });
