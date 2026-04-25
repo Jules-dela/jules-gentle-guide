@@ -23,9 +23,10 @@ const Apply = () => {
 
     const validate = async () => {
       const { data, error } = await supabase
-        .from("waitlist_tokens" as any)
+        .from("waitlist_tokens")
         .select("id, used")
         .eq("token", token)
+        .eq("used", false)
         .maybeSingle();
 
       if (error || !data) {
@@ -38,13 +39,10 @@ const Apply = () => {
     validate();
   }, [searchParams]);
 
-  // Mark token as used after successful form submission
+  // Token is marked as used server-side inside send-application-emails after a
+  // successful submission, so the frontend no longer needs to do anything here.
   const markTokenUsed = async () => {
-    if (!tokenValue) return;
-    await supabase
-      .from("waitlist_tokens" as any)
-      .update({ used: true } as any)
-      .eq("token", tokenValue);
+    /* no-op — handled server-side */
   };
 
   if (tokenState === "loading") {
