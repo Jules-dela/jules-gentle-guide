@@ -268,83 +268,8 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     
     try {
 
-      // Parse name into first/last
-      const nameParts = data.name.trim().split(/\s+/);
-      const firstName = nameParts[0] || "";
-      const lastName = nameParts.slice(1).join(" ") || "";
-
-      // Parse budget range into min/max
-      let budgetMin: number | null = null;
-      let budgetMax: number | null = null;
-      if (data.budget) {
-        const budgetMatch = data.budget.match(/^(\d+)-(\d+)$/);
-        if (budgetMatch) {
-          budgetMin = parseInt(budgetMatch[1], 10);
-          budgetMax = parseInt(budgetMatch[2], 10);
-        } else if (data.budget.endsWith("+")) {
-          budgetMin = parseInt(data.budget.replace("+", ""), 10);
-        }
-      }
-
-      // Save to leads table
-      const { error: leadsError } = await supabase
-        .from("leads" as any)
-        .insert({
-          first_name: firstName,
-          last_name: lastName,
-          email: data.email,
-          phone: data.phone || null,
-          budget_min: budgetMin,
-          budget_max: budgetMax,
-          city: data.neighbourhood || null,
-          rooms: data.rooms || null,
-          move_in_date: data.movingDate ? format(data.movingDate, "yyyy-MM-dd") : null,
-          additional_notes: data.notes || null,
-        });
-
-      if (leadsError) {
-        console.error("Leads insert error:", leadsError);
-      }
-
-      // Save to housing_applications (existing)
-      const { error: dbError } = await supabase
-        .from("housing_applications")
-        .insert({
-          name: data.name,
-          email: data.email,
-          phone: data.phone || null,
-          university: data.university || null,
-          moving_date: data.movingDate ? format(data.movingDate, "yyyy-MM-dd") : null,
-          neighbourhood: data.neighbourhood,
-          budget: data.budget,
-          rooms: data.rooms,
-          duration: data.duration,
-          property_type: data.type,
-          roommate_preference: data.roommates === "yes" ? `Yes - ${data.roommateDetail || "not specified"} (${data.roommateCount || "?"} roommates)` : "No",
-          furnished: data.furnished,
-          near_transport: data.nearTransport,
-          pets_allowed: data.pets,
-          smoking_allowed: data.noSmoking,
-          notes: data.notes || null,
-          privacy_accepted: data.privacyAccepted,
-        });
-
-      if (dbError) {
-        // Check for unique constraint violation (duplicate email or phone)
-        if (dbError.code === "23505") {
-          const isDuplicatePhone = dbError.message?.includes("phone");
-          toast({
-            title: "Application already submitted",
-            description: isDuplicatePhone
-              ? "An application with this phone number has already been submitted. Each phone number can only be used once."
-              : "An application with this email address has already been submitted. Each email can only be used once.",
-            variant: "destructive",
-          });
-          setIsSubmitting(false);
-          return;
-        }
-        throw new Error("Failed to save application");
-      }
+      // Pull invitation token from the URL (gates the /apply flow)
+      const urlToken = new URLSearchParams(window.location.search).get("token") || "";
 
       const { data: result, error: emailError } = await supabase.functions.invoke("send-application-emails", {
         body: {
@@ -352,7 +277,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
           email: data.email,
           phone: data.phone,
           university: data.university,
-          movingDate: data.movingDate ? format(data.movingDate, "PPP") : null,
+          movingDate: data.movingDate ? format(data.movingDate, "yyyy-MM-dd") : null,
           neighbourhood: data.neighbourhood,
           budget: data.budget,
           rooms: data.rooms,
@@ -364,6 +289,8 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
           petsAllowed: data.pets,
           smokingAllowed: data.noSmoking,
           notes: data.notes,
+          privacyAccepted: data.privacyAccepted,
+          token: urlToken,
           // Pass contract data for server-side signing (no auth race condition)
           contractData: preSubmitContractData || null,
         },
