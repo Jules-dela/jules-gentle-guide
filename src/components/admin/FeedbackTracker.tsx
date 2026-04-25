@@ -153,7 +153,7 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
     try {
       const { error } = await supabase
         .from('property_proposals')
-        .update({ listing_status: newStatus } as any)
+        .update({ listing_status: newStatus as 'research' | 'viewings' | 'documents' | 'completed' })
         .eq('id', proposalId);
       if (error) throw error;
       setProposals(prev => prev.map(p => p.id === proposalId ? { ...p, listing_status: newStatus } : p));

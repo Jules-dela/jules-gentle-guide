@@ -129,7 +129,7 @@ export const ApplicationForm = () => {
 
       // Save to leads table
       const { error: leadsError } = await supabase
-        .from("leads" as any)
+        .from("leads")
         .insert({
           first_name: firstName,
           last_name: lastName,
