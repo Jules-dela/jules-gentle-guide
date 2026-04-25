@@ -723,13 +723,11 @@ const handler = async (req: Request): Promise<Response> => {
               Thank you for choosing <strong style="color: #1E3A8A;">Unikey</strong>! Your application has been received and your personal housing portal is now ready.
             </p>
             
-            ${isNewUser && tempPassword ? `
-            <!-- Credentials Box -->
+            ${isNewUser ? `
             <div style="background: linear-gradient(135deg, #1E3A8A 0%, #3B5998 100%); padding: 28px; border-radius: 12px; margin: 24px 0; color: white;">
               <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">🔐 Your Portal Access</h3>
               <p style="margin: 0 0 8px 0; font-size: 14px; opacity: 0.9;">Email: <strong>${escapeHtml(data.email)}</strong></p>
-              <p style="margin: 0 0 16px 0; font-size: 14px; opacity: 0.9;">Temporary Password: <strong style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px;">${escapeHtml(tempPassword)}</strong></p>
-              <p style="margin: 0; font-size: 12px; opacity: 0.7;">⚠️ Please change your password after first login</p>
+              <p style="margin: 0; font-size: 13px; opacity: 0.9;">Use the button below to securely access your portal. We'll ask you to set a password on first sign-in.</p>
             </div>
             ` : `
             <div style="background: #F0F4FF; padding: 20px; border-radius: 12px; margin: 24px 0; border-left: 4px solid #1E3A8A;">
@@ -826,7 +824,7 @@ const handler = async (req: Request): Promise<Response> => {
         caseId: newCase.id,
         isNewUser,
         portalUrl,
-        ...(isNewUser && tempPassword ? { tempPassword } : {}),
+        ...(actionLink ? { actionLink } : {}),
       }),
       {
         status: 200,
