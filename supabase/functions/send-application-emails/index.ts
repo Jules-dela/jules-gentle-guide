@@ -163,6 +163,8 @@ const applicationSchema = z.object({
   website: z.string().max(0).optional().nullable(),
   skipEmails: z.boolean().optional(),
   contractData: contractDataSchema,
+  token: z.string().min(1, "Invitation token is required"),
+  privacyAccepted: z.boolean().optional().nullable(),
 });
 
 type ApplicationData = z.infer<typeof applicationSchema>;
