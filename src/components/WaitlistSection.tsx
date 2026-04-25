@@ -164,7 +164,17 @@ export const WaitlistSection = () => {
     setIsSubmitting(true);
     try {
       const { error } = await supabase.from("waitlist").insert({ phone: fullNumber });
-      if (error) throw error;
+      if (error) {
+        if ((error as { code?: string }).code === "23505") {
+          setIsSuccess(true);
+          toast({
+            title: "You're already on our list",
+            description: "We'll be in touch soon.",
+          });
+          return;
+        }
+        throw error;
+      }
 
       setIsSuccess(true);
       toast({
