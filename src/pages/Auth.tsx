@@ -180,12 +180,10 @@ export default function Auth() {
       <Card className="w-full max-w-md shadow-xl border-0">
         <CardHeader className="space-y-2 text-center pb-6">
           <CardTitle className="text-2xl font-bold text-primary">
-            {isLogin ? "Portal Login" : "Create Account"}
+            Portal Login
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            {isLogin
-              ? "Sign in to access your portal"
-              : "Create an account to get started"}
+            Sign in to access your portal
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -220,15 +218,13 @@ export default function Auth() {
                   <FormItem>
                     <div className="flex items-center justify-between">
                       <FormLabel className="text-foreground">Password</FormLabel>
-                      {isLogin && (
-                        <button
-                          type="button"
-                          onClick={() => setIsForgotPassword(true)}
-                          className="text-xs text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          Forgot password?
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => setIsForgotPassword(true)}
+                        className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        Forgot password?
+                      </button>
                     </div>
                     <FormControl>
                       <div className="relative">
@@ -262,28 +258,10 @@ export default function Auth() {
                 className="w-full"
                 disabled={isSubmitting}
               >
-                {isSubmitting
-                  ? "Please wait..."
-                  : isLogin
-                  ? "Sign In"
-                  : "Create Account"}
+                {isSubmitting ? "Please wait..." : "Sign In"}
               </Button>
             </form>
           </Form>
-
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => {
-                setIsLogin(!isLogin);
-                form.reset();
-              }}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              {isLogin
-                ? "Don't have an account? Sign up"
-                : "Already have an account? Sign in"}
-            </button>
-          </div>
         </CardContent>
       </Card>
     </div>
