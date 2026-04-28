@@ -1610,6 +1610,38 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
           </AnimatePresence>
         </motion.div>
       </div>
+      <Dialog open={verifyEmailOpen} onOpenChange={(open) => { setVerifyEmailOpen(open); if (!open) setVerifyEmailError(null); }}>
+        <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle>Verify your payment</DialogTitle>
+            <DialogDescription>
+              Enter the email you used when you paid the deposit. We'll restore your application.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              type="email"
+              placeholder="you@example.com"
+              value={verifyEmailInput}
+              onChange={(e) => setVerifyEmailInput(e.target.value)}
+              maxLength={255}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); verifyByEmail(); } }}
+              className="bg-white border-slate-200"
+            />
+            {verifyEmailError && (
+              <p className="text-sm text-destructive">{verifyEmailError}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setVerifyEmailOpen(false)} disabled={isVerifyingEmail}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={verifyByEmail} disabled={isVerifyingEmail}>
+              {isVerifyingEmail ? "Checking…" : "Verify"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
