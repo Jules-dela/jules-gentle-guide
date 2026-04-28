@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -151,6 +151,10 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
   const [phoneCountryCode, setPhoneCountryCode] = useState("+41");
   const [phoneLocal, setPhoneLocal] = useState("");
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
+  const [paymentVerified, setPaymentVerified] = useState(false);
+  const [paymentBannerVisible, setPaymentBannerVisible] = useState(false);
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
@@ -188,6 +192,151 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     const trimmed = digits.startsWith("0") ? digits.slice(1) : digits;
     return phoneCountryCode + trimmed;
   };
+
+  // Restore form from intake_submissions when returning from Stripe (?session_id=...)
+  const restoreFromSession = async (sessionId: string) => {
+    try {
+      // Try to match by stripe_session_id first; fall back to most recent submission.
+      let { data, error } = await supabase
+        .from("intake_submissions")
+        .select("*")
+        .eq("stripe_session_id", sessionId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if ((!data || error) && !error) {
+        const fallback = await supabase
+          .from("intake_submissions")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        data = fallback.data;
+      }
+
+      if (!data) {
+        setPaymentBannerVisible(true);
+        setCurrentStep(4);
+        return;
+      }
+
+      // Restore form fields
+      const prefs: any = data.preferences || {};
+      form.reset({
+        name: data.name || "",
+        email: data.email || "",
+        phone: data.phone || "",
+        university: prefs.university || "",
+        movingDate: prefs.moving_date ? new Date(prefs.moving_date) : undefined,
+        neighbourhood: prefs.neighbourhood || "",
+        budget: data.budget || "",
+        rooms: prefs.rooms || "",
+        duration: data.duration || "",
+        type: (data.property_type as any) || "studio",
+        roommates: prefs.roommates || "",
+        roommateDetail: prefs.roommate_detail || "",
+        roommateCount: prefs.roommate_count || "",
+        furnished: prefs.furnished ?? true,
+        nearTransport: prefs.near_transport ?? true,
+        pets: prefs.pets ?? false,
+        noSmoking: prefs.no_smoking ?? false,
+        notes: prefs.notes || "",
+        privacyAccepted: prefs.privacy_accepted ?? true,
+        website: "",
+      });
+
+      // Restore phone parts (best-effort)
+      if (data.phone) {
+        const match = COUNTRY_CODES
+          .slice()
+          .sort((a, b) => b.code.length - a.code.length)
+          .find((c) => data.phone!.startsWith(c.code));
+        if (match) {
+          setPhoneCountryCode(match.code);
+          setPhoneLocal(data.phone.slice(match.code.length));
+        } else {
+          setPhoneLocal(data.phone);
+        }
+      }
+
+      // Restore contract state
+      if (data.contract_signed) {
+        setPreSubmitContractSigned(true);
+        setPreSubmitContractData({
+          signature_image: data.signature_image,
+          client_date_of_birth: data.date_of_birth,
+          client_nationality: data.nationality,
+          client_full_name: data.name,
+          timestamp: data.updated_at || data.created_at,
+        });
+      }
+
+      setDocumentsAcknowledged(true);
+
+      if (data.deposit_paid) {
+        setPaymentVerified(true);
+        setPaymentBannerVisible(false);
+      } else {
+        setPaymentVerified(false);
+        setPaymentBannerVisible(true);
+      }
+
+      setCurrentStep(4);
+    } catch (e) {
+      console.error("Failed to restore intake submission", e);
+      setPaymentBannerVisible(true);
+      setCurrentStep(4);
+    }
+  };
+
+  const verifyPayment = async () => {
+    if (!paymentSessionId || isVerifyingPayment) return;
+    setIsVerifyingPayment(true);
+    try {
+      let { data } = await supabase
+        .from("intake_submissions")
+        .select("deposit_paid")
+        .eq("stripe_session_id", paymentSessionId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!data) {
+        const fallback = await supabase
+          .from("intake_submissions")
+          .select("deposit_paid")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        data = fallback.data;
+      }
+      if (data?.deposit_paid) {
+        setPaymentVerified(true);
+        setPaymentBannerVisible(false);
+        toast({ title: "Payment confirmed", description: "You can now submit your application." });
+      } else {
+        toast({
+          title: "Payment not yet confirmed",
+          description: "Please wait a few moments and try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (e: any) {
+      toast({ title: "Verification failed", description: e?.message || "Try again shortly.", variant: "destructive" });
+    } finally {
+      setIsVerifyingPayment(false);
+    }
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+    if (sessionId) {
+      setPaymentSessionId(sessionId);
+      restoreFromSession(sessionId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const validatePhoneNumber = (): string | null => {
     const digits = phoneLocal.replace(/[^\d]/g, "");
@@ -1059,6 +1208,33 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                 </p>
                               </div>
 
+                              {paymentBannerVisible && !paymentVerified && (
+                                <div className="rounded-2xl border border-yellow-300 bg-yellow-50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                                  <p className="text-sm text-yellow-900 flex-1">
+                                    Payment not confirmed yet. If you completed payment, please wait a few seconds or click "Verify payment".
+                                  </p>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={verifyPayment}
+                                    disabled={isVerifyingPayment}
+                                    className="border-yellow-400 text-yellow-900 hover:bg-yellow-100 shrink-0"
+                                  >
+                                    {isVerifyingPayment ? "Verifying…" : "Verify payment"}
+                                  </Button>
+                                </div>
+                              )}
+
+                              {paymentVerified && (
+                                <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4 sm:p-5 flex items-center gap-3">
+                                  <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
+                                  <p className="text-sm text-emerald-900">
+                                    Payment confirmed. You can now submit your application.
+                                  </p>
+                                </div>
+                              )}
+
                               {/* ─── Section 1: Documents to prepare ─── */}
                               <section className="rounded-3xl bg-white border border-slate-200 p-5 sm:p-6 shadow-sm">
                                 <header className="flex items-start gap-3 mb-4">
@@ -1307,14 +1483,14 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                               </Button>
                             ) : (
                               <Button
-                                type={preSubmitContractSigned ? "submit" : "button"}
-                                disabled={isSubmitting || !preSubmitContractSigned}
+                                type={preSubmitContractSigned && paymentVerified ? "submit" : "button"}
+                                disabled={isSubmitting || !preSubmitContractSigned || !paymentVerified}
                                 onClick={() => {
                                   if (!preSubmitContractSigned) {
                                     setShowContractWarning(true);
                                   }
                                 }}
-                                className={cn("gap-2", !preSubmitContractSigned && "opacity-50 cursor-not-allowed")}
+                                className={cn("gap-2", (!preSubmitContractSigned || !paymentVerified) && "opacity-50 cursor-not-allowed")}
                               >
                                 {isSubmitting ? "Submitting..." : "Find my home"}
                                 <Send className="w-4 h-4" />
