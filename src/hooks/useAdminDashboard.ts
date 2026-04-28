@@ -27,12 +27,13 @@ export function useAdminDashboard() {
   const fetchClients = useCallback(async () => {
     try {
       // Fetch all data in parallel
-      const [profilesRes, casesRes, proposalsRes, docsRes, signaturesRes] = await Promise.all([
+      const [profilesRes, casesRes, proposalsRes, docsRes, signaturesRes, intakeRes] = await Promise.all([
         supabase.from('profiles').select('*').order('created_at', { ascending: false }),
         supabase.from('cases').select('*').order('created_at', { ascending: false }),
         supabase.from('property_proposals').select('*').order('created_at', { ascending: false }),
         supabase.from('case_documents').select('*'),
         supabase.from('contract_signatures').select('*'),
+        supabase.from('intake_submissions').select('email, deposit_paid, payment_confirmed_at'),
       ]);
 
       if (profilesRes.error) throw profilesRes.error;
@@ -45,6 +46,7 @@ export function useAdminDashboard() {
       const proposals = proposalsRes.data;
       const allDocuments = docsRes.data;
       const allSignatures = signaturesRes.data || [];
+      const allIntakes = intakeRes.data || [];
 
       // Map profiles to clients with case data
       const clientsWithCases: ClientWithCase[] = (profiles || []).map((profile) => {
@@ -52,6 +54,7 @@ export function useAdminDashboard() {
         const criteria = profileCase?.initial_criteria as Record<string, unknown> | null;
         const contractData = profileCase?.contract_data as unknown as { signed?: boolean; timestamp?: string } | null;
         const signature = allSignatures.find((s: any) => s.case_id === profileCase?.id);
+        const intake = allIntakes.find((i: any) => i.email && profile.email && i.email.toLowerCase() === profile.email.toLowerCase());
 
         // Check for rejected proposals
         const clientProposals = proposals?.filter((p) => p.case_id === profileCase?.id) || [];
@@ -130,6 +133,8 @@ export function useAdminDashboard() {
             client_initials: signature.client_initials || null,
           } : null,
           is_contract_signed: !!contractData?.signed,
+          deposit_paid: !!intake?.deposit_paid,
+          deposit_paid_at: intake?.payment_confirmed_at || null,
           listing_statuses: clientProposals
             .filter((p) => p.client_status === 'liked')
             .map((p) => ({

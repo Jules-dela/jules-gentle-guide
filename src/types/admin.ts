@@ -43,6 +43,9 @@ export interface ClientWithCase {
   // Contract signing
   contract_data: ContractSignatureData | null;
   is_contract_signed: boolean;
+  // Deposit (intake_submissions)
+  deposit_paid: boolean;
+  deposit_paid_at: string | null;
   // Listing statuses for liked proposals
   listing_statuses: { id: string; address: string | null; status: string }[];
 }
