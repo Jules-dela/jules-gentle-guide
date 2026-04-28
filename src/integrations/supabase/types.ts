@@ -346,6 +346,7 @@ export type Database = {
           contract_signed: boolean
           created_at: string
           deposit_paid: boolean
+          email: string | null
           id: string
           status: string
           stripe_session_id: string | null
@@ -355,6 +356,7 @@ export type Database = {
           contract_signed?: boolean
           created_at?: string
           deposit_paid?: boolean
+          email?: string | null
           id?: string
           status?: string
           stripe_session_id?: string | null
@@ -364,6 +366,7 @@ export type Database = {
           contract_signed?: boolean
           created_at?: string
           deposit_paid?: boolean
+          email?: string | null
           id?: string
           status?: string
           stripe_session_id?: string | null

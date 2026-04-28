@@ -1,0 +1,1 @@
+ALTER TABLE public.intake_submissions ADD COLUMN email text;
