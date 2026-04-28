@@ -256,22 +256,23 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
       setVerifyEmailError("Please enter a valid email address.");
       return;
     }
+    if (Date.now() < verifyCooldownUntil) {
+      const secs = Math.ceil((verifyCooldownUntil - Date.now()) / 1000);
+      setVerifyEmailError(`Please wait ${secs}s before trying again.`);
+      return;
+    }
     setIsVerifyingEmail(true);
     try {
-      const { data, error } = await supabase
-        .from("intake_submissions")
-        .select("*")
-        .ilike("email", email)
-        .eq("deposit_paid", true)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const { data, error } = await supabase.functions.invoke("verify-payment", {
+        body: { mode: "email", email },
+      });
       if (error) throw error;
-      if (!data) {
+      if (!data?.found) {
         setVerifyEmailError("No payment found for this email. Please contact us at contact@uni-key.ch.");
+        setVerifyCooldownUntil(Date.now() + 3000);
         return;
       }
-      applyRestoredRow(data);
+      applyRestoredRow(data.row);
       setPaymentVerified(true);
       setPaymentBannerVisible(false);
       setCurrentStep(4);
@@ -280,129 +281,60 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
       toast({ title: "Payment confirmed", description: "Your application has been restored." });
     } catch (e: any) {
       setVerifyEmailError(e?.message || "Could not verify. Please try again.");
+      setVerifyCooldownUntil(Date.now() + 3000);
     } finally {
       setIsVerifyingEmail(false);
     }
   };
 
-  // Restore form from intake_submissions when returning from Stripe (?session_id=...)
+  // Server-validated restore: edge function checks Stripe directly for session_id.
   const restoreFromSession = async (sessionId: string) => {
     try {
-      // Try to match by stripe_session_id first; fall back to most recent submission.
-      let { data, error } = await supabase
-        .from("intake_submissions")
-        .select("*")
-        .eq("stripe_session_id", sessionId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if ((!data || error) && !error) {
-        const fallback = await supabase
-          .from("intake_submissions")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        data = fallback.data;
-      }
-
-      if (!data) {
-        setPaymentBannerVisible(true);
-        setCurrentStep(4);
-        return;
-      }
-
-      // Restore form fields
-      const prefs: any = data.preferences || {};
-      form.reset({
-        name: data.name || "",
-        email: data.email || "",
-        phone: data.phone || "",
-        university: prefs.university || "",
-        movingDate: prefs.moving_date ? new Date(prefs.moving_date) : undefined,
-        neighbourhood: prefs.neighbourhood || "",
-        budget: data.budget || "",
-        rooms: prefs.rooms || "",
-        duration: data.duration || "",
-        type: (data.property_type as any) || "studio",
-        roommates: prefs.roommates || "",
-        roommateDetail: prefs.roommate_detail || "",
-        roommateCount: prefs.roommate_count || "",
-        furnished: prefs.furnished ?? true,
-        nearTransport: prefs.near_transport ?? true,
-        pets: prefs.pets ?? false,
-        noSmoking: prefs.no_smoking ?? false,
-        notes: prefs.notes || "",
-        privacyAccepted: prefs.privacy_accepted ?? true,
-        website: "",
+      const { data, error } = await supabase.functions.invoke("verify-payment", {
+        body: { mode: "session", session_id: sessionId },
       });
-
-      // Restore phone parts (best-effort)
-      if (data.phone) {
-        const match = COUNTRY_CODES
-          .slice()
-          .sort((a, b) => b.code.length - a.code.length)
-          .find((c) => data.phone!.startsWith(c.code));
-        if (match) {
-          setPhoneCountryCode(match.code);
-          setPhoneLocal(data.phone.slice(match.code.length));
-        } else {
-          setPhoneLocal(data.phone);
-        }
-      }
-
-      // Restore contract state
-      if (data.contract_signed) {
-        setPreSubmitContractSigned(true);
-        setPreSubmitContractData({
-          signature_image: data.signature_image,
-          client_date_of_birth: data.date_of_birth,
-          client_nationality: data.nationality,
-          client_full_name: data.name,
-          timestamp: data.updated_at || data.created_at,
-        });
-      }
-
-      setDocumentsAcknowledged(true);
-
-      if (data.deposit_paid) {
+      if (error) throw error;
+      if (data?.paid && data.row) {
+        applyRestoredRow(data.row);
         setPaymentVerified(true);
         setPaymentBannerVisible(false);
       } else {
         setPaymentVerified(false);
         setPaymentBannerVisible(true);
       }
-
       setCurrentStep(4);
     } catch (e) {
-      console.error("Failed to restore intake submission", e);
+      console.error("Failed to restore from session", e);
       setPaymentBannerVisible(true);
       setCurrentStep(4);
     }
   };
 
   const verifyPayment = async () => {
-    if (!paymentSessionId || isVerifyingPayment) return;
+    if (isVerifyingPayment) return;
+    if (Date.now() < verifyCooldownUntil) {
+      toast({
+        title: "Please wait",
+        description: `Try again in ${Math.ceil((verifyCooldownUntil - Date.now()) / 1000)}s.`,
+      });
+      return;
+    }
+    if (!paymentSessionId) {
+      toast({
+        title: "Payment not yet confirmed",
+        description: "Use \"Already paid? Click here to verify\" to verify by email.",
+        variant: "destructive",
+      });
+      return;
+    }
     setIsVerifyingPayment(true);
     try {
-      let { data } = await supabase
-        .from("intake_submissions")
-        .select("deposit_paid")
-        .eq("stripe_session_id", paymentSessionId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (!data) {
-        const fallback = await supabase
-          .from("intake_submissions")
-          .select("deposit_paid")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        data = fallback.data;
-      }
-      if (data?.deposit_paid) {
+      const { data, error } = await supabase.functions.invoke("verify-payment", {
+        body: { mode: "session", session_id: paymentSessionId },
+      });
+      if (error) throw error;
+      if (data?.paid && data.row) {
+        applyRestoredRow(data.row);
         setPaymentVerified(true);
         setPaymentBannerVisible(false);
         toast({ title: "Payment confirmed", description: "You can now submit your application." });
@@ -412,9 +344,11 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
           description: "Please wait a few moments and try again.",
           variant: "destructive",
         });
+        setVerifyCooldownUntil(Date.now() + 3000);
       }
     } catch (e: any) {
       toast({ title: "Verification failed", description: e?.message || "Try again shortly.", variant: "destructive" });
+      setVerifyCooldownUntil(Date.now() + 3000);
     } finally {
       setIsVerifyingPayment(false);
     }
