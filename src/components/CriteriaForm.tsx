@@ -1420,6 +1420,42 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                     setIsActivating(true);
                                     try {
                                       const values = form.getValues();
+                                      // Block reuse of the Stripe Payment Link by the same email.
+                                      const emailLower = (values.email || "").trim().toLowerCase();
+                                      if (emailLower) {
+                                        const { data: existing } = await supabase.functions.invoke(
+                                          "verify-payment",
+                                          { body: { mode: "check_existing", email: emailLower } },
+                                        );
+                                        if (existing?.exists) {
+                                          if (existing.deposit_paid) {
+                                            toast({
+                                              title: "Payment already on file",
+                                              description:
+                                                "We already have a confirmed payment for this email. Use \"Already paid? Click here to verify\" below to restore your application.",
+                                            });
+                                          } else {
+                                            toast({
+                                              title: "Application already in progress",
+                                              description:
+                                                "An application for this email is already awaiting payment. Please complete the existing one or contact contact@uni-key.ch.",
+                                            });
+                                          }
+                                          setIsActivating(false);
+                                          return;
+                                        }
+                                      }
+                                      // Compute a tamper-evident hash of the signature payload.
+                                      const sigPayload = JSON.stringify({
+                                        image: preSubmitContractData?.signature_image || "",
+                                        full_name: preSubmitContractData?.client_full_name || values.name || "",
+                                        dob: preSubmitContractData?.client_date_of_birth || "",
+                                        nationality: preSubmitContractData?.client_nationality || "",
+                                        timestamp: preSubmitContractData?.timestamp || new Date().toISOString(),
+                                      });
+                                      const signatureHash = preSubmitContractData?.signature_image
+                                        ? await sha256Hex(sigPayload)
+                                        : null;
                                       const { error } = await supabase
                                         .from("intake_submissions")
                                         .insert({
@@ -1449,6 +1485,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                           date_of_birth: preSubmitContractData?.client_date_of_birth || null,
                                           nationality: preSubmitContractData?.client_nationality || null,
                                           signature_image: preSubmitContractData?.signature_image || null,
+                                          signature_hash: signatureHash,
                                           contract_signed: true,
                                           status: "awaiting_payment",
                                         });
