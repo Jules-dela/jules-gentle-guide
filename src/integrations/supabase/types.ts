@@ -343,31 +343,58 @@ export type Database = {
       }
       intake_submissions: {
         Row: {
+          budget: string | null
           contract_signed: boolean
           created_at: string
+          date_of_birth: string | null
           deposit_paid: boolean
+          duration: string | null
           email: string | null
           id: string
+          name: string | null
+          nationality: string | null
+          phone: string | null
+          preferences: Json | null
+          property_type: string | null
+          signature_image: string | null
           status: string
           stripe_session_id: string | null
           updated_at: string
         }
         Insert: {
+          budget?: string | null
           contract_signed?: boolean
           created_at?: string
+          date_of_birth?: string | null
           deposit_paid?: boolean
+          duration?: string | null
           email?: string | null
           id?: string
+          name?: string | null
+          nationality?: string | null
+          phone?: string | null
+          preferences?: Json | null
+          property_type?: string | null
+          signature_image?: string | null
           status?: string
           stripe_session_id?: string | null
           updated_at?: string
         }
         Update: {
+          budget?: string | null
           contract_signed?: boolean
           created_at?: string
+          date_of_birth?: string | null
           deposit_paid?: boolean
+          duration?: string | null
           email?: string | null
           id?: string
+          name?: string | null
+          nationality?: string | null
+          phone?: string | null
+          preferences?: Json | null
+          property_type?: string | null
+          signature_image?: string | null
           status?: string
           stripe_session_id?: string | null
           updated_at?: string
