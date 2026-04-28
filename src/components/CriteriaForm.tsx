@@ -1222,7 +1222,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
 
                         {/* Navigation Buttons */}
                         <div className="flex flex-col mt-8 pt-6 border-t border-border/30">
-                          {currentStep === 5 && showContractWarning && !preSubmitContractSigned && (
+                          {currentStep === 4 && showContractWarning && !preSubmitContractSigned && (
                             <p className="text-sm text-destructive mb-3 text-right">
                               A signed contract is required to begin your search. Please sign the document above before submitting.
                             </p>
@@ -1239,12 +1239,11 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                               Back
                             </Button>
                             
-                            {currentStep < 5 ? (
+                            {currentStep < 4 ? (
                               <Button
                                 type="button"
                                 onClick={nextStep}
-                                disabled={currentStep === 4 && !documentsAcknowledged}
-                                className={cn("gap-2", currentStep === 4 && !documentsAcknowledged && "opacity-50 cursor-not-allowed")}
+                                className="gap-2"
                               >
                                 Continue
                                 <ChevronRight className="w-4 h-4" />
