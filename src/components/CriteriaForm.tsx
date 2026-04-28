@@ -1483,14 +1483,14 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                               </Button>
                             ) : (
                               <Button
-                                type={preSubmitContractSigned ? "submit" : "button"}
-                                disabled={isSubmitting || !preSubmitContractSigned}
+                                type={preSubmitContractSigned && paymentVerified ? "submit" : "button"}
+                                disabled={isSubmitting || !preSubmitContractSigned || !paymentVerified}
                                 onClick={() => {
                                   if (!preSubmitContractSigned) {
                                     setShowContractWarning(true);
                                   }
                                 }}
-                                className={cn("gap-2", !preSubmitContractSigned && "opacity-50 cursor-not-allowed")}
+                                className={cn("gap-2", (!preSubmitContractSigned || !paymentVerified) && "opacity-50 cursor-not-allowed")}
                               >
                                 {isSubmitting ? "Submitting..." : "Find my home"}
                                 <Send className="w-4 h-4" />
