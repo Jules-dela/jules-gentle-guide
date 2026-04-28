@@ -1197,7 +1197,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                   Activate your search
                                 </Button>
                                 <p className="text-xs text-muted-foreground text-center mt-3">
-                                  Secure payment powered by Stripe.
+                                  Secure payment via Stripe. Your €50 deposit will be fully deducted from your final invoice — refunded if we don't find your home.
                                 </p>
                               </section>
 
