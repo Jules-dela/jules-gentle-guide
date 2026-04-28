@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -155,6 +156,10 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
   const [paymentVerified, setPaymentVerified] = useState(false);
   const [paymentBannerVisible, setPaymentBannerVisible] = useState(false);
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
+  const [verifyEmailOpen, setVerifyEmailOpen] = useState(false);
+  const [verifyEmailInput, setVerifyEmailInput] = useState("");
+  const [verifyEmailError, setVerifyEmailError] = useState<string | null>(null);
+  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
@@ -191,6 +196,91 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     const digits = phoneLocal.replace(/[^\d]/g, "");
     const trimmed = digits.startsWith("0") ? digits.slice(1) : digits;
     return phoneCountryCode + trimmed;
+  };
+
+  const applyRestoredRow = (data: any) => {
+    const prefs: any = data.preferences || {};
+    form.reset({
+      name: data.name || "",
+      email: data.email || "",
+      phone: data.phone || "",
+      university: prefs.university || "",
+      movingDate: prefs.moving_date ? new Date(prefs.moving_date) : undefined,
+      neighbourhood: prefs.neighbourhood || "",
+      budget: data.budget || "",
+      rooms: prefs.rooms || "",
+      duration: data.duration || "",
+      type: (data.property_type as any) || "studio",
+      roommates: prefs.roommates || "",
+      roommateDetail: prefs.roommate_detail || "",
+      roommateCount: prefs.roommate_count || "",
+      furnished: prefs.furnished ?? true,
+      nearTransport: prefs.near_transport ?? true,
+      pets: prefs.pets ?? false,
+      noSmoking: prefs.no_smoking ?? false,
+      notes: prefs.notes || "",
+      privacyAccepted: prefs.privacy_accepted ?? true,
+      website: "",
+    });
+    if (data.phone) {
+      const match = COUNTRY_CODES
+        .slice()
+        .sort((a, b) => b.code.length - a.code.length)
+        .find((c) => data.phone!.startsWith(c.code));
+      if (match) {
+        setPhoneCountryCode(match.code);
+        setPhoneLocal(data.phone.slice(match.code.length));
+      } else {
+        setPhoneLocal(data.phone);
+      }
+    }
+    if (data.contract_signed) {
+      setPreSubmitContractSigned(true);
+      setPreSubmitContractData({
+        signature_image: data.signature_image,
+        client_date_of_birth: data.date_of_birth,
+        client_nationality: data.nationality,
+        client_full_name: data.name,
+        timestamp: data.updated_at || data.created_at,
+      });
+    }
+    setDocumentsAcknowledged(true);
+  };
+
+  const verifyByEmail = async () => {
+    const email = verifyEmailInput.trim().toLowerCase();
+    setVerifyEmailError(null);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 255) {
+      setVerifyEmailError("Please enter a valid email address.");
+      return;
+    }
+    setIsVerifyingEmail(true);
+    try {
+      const { data, error } = await supabase
+        .from("intake_submissions")
+        .select("*")
+        .ilike("email", email)
+        .eq("deposit_paid", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) {
+        setVerifyEmailError("No payment found for this email. Please contact us at contact@uni-key.ch.");
+        return;
+      }
+      applyRestoredRow(data);
+      setPaymentVerified(true);
+      setPaymentBannerVisible(false);
+      setCurrentStep(4);
+      setVerifyEmailOpen(false);
+      setVerifyEmailInput("");
+      toast({ title: "Payment confirmed", description: "Your application has been restored." });
+    } catch (e: any) {
+      setVerifyEmailError(e?.message || "Could not verify. Please try again.");
+    } finally {
+      setIsVerifyingEmail(false);
+    }
   };
 
   // Restore form from intake_submissions when returning from Stripe (?session_id=...)
@@ -1432,6 +1522,19 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                     Please complete and sign the Service Agreement above to enable payment.
                                   </p>
                                 )}
+                                <div className="text-center mt-3">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setVerifyEmailError(null);
+                                      setVerifyEmailInput(form.getValues("email") || "");
+                                      setVerifyEmailOpen(true);
+                                    }}
+                                    className="text-xs text-slate-500 hover:text-slate-700 underline underline-offset-2"
+                                  >
+                                    Already paid? Click here to verify
+                                  </button>
+                                </div>
                               </section>
 
                               {/* Honeypot */}
@@ -1507,6 +1610,38 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
           </AnimatePresence>
         </motion.div>
       </div>
+      <Dialog open={verifyEmailOpen} onOpenChange={(open) => { setVerifyEmailOpen(open); if (!open) setVerifyEmailError(null); }}>
+        <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle>Verify your payment</DialogTitle>
+            <DialogDescription>
+              Enter the email you used when you paid the deposit. We'll restore your application.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              type="email"
+              placeholder="you@example.com"
+              value={verifyEmailInput}
+              onChange={(e) => setVerifyEmailInput(e.target.value)}
+              maxLength={255}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); verifyByEmail(); } }}
+              className="bg-white border-slate-200"
+            />
+            {verifyEmailError && (
+              <p className="text-sm text-destructive">{verifyEmailError}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setVerifyEmailOpen(false)} disabled={isVerifyingEmail}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={verifyByEmail} disabled={isVerifyingEmail}>
+              {isVerifyingEmail ? "Checking…" : "Verify"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
