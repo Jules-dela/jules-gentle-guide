@@ -137,6 +137,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [submittedCaseId, setSubmittedCaseId] = useState<string | null>(null);
   const [submittedName, setSubmittedName] = useState<string>('');
