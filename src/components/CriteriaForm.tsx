@@ -200,6 +200,15 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     return phoneCountryCode + trimmed;
   };
 
+  // SHA-256 of an arbitrary payload, returned as hex. Used to make the signature tamper-evident.
+  const sha256Hex = async (input: string): Promise<string> => {
+    const buf = new TextEncoder().encode(input);
+    const digest = await crypto.subtle.digest("SHA-256", buf);
+    return Array.from(new Uint8Array(digest))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  };
+
   const applyRestoredRow = (data: any) => {
     const prefs: any = data.preferences || {};
     form.reset({
