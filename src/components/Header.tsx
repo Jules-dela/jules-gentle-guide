@@ -103,15 +103,16 @@ export const Header = () => {
             >
               Services
             </button>
-            <button 
-              onClick={() => scrollToSection('apply')} 
+            <Link
+              to="/apply"
+              onClick={() => setOpen(false)}
               className={cn(
                 "text-[16px] font-normal hover:opacity-80 transition-all duration-300",
                 useDarkText ? "text-primary" : "text-white"
               )}
             >
               Apply
-            </button>
+            </Link>
 
             <Link to={portalHref} className="ml-2">
               <Button
@@ -151,12 +152,13 @@ export const Header = () => {
                 >
                   Services
                 </button>
-                <button 
-                  onClick={() => scrollToSection('apply')} 
+                <Link
+                  to="/apply"
+                  onClick={() => setOpen(false)}
                   className="text-[18px] font-normal text-white hover:opacity-80 transition-opacity duration-300 text-left"
                 >
                   Apply
-                </button>
+                </Link>
               </nav>
             </SheetContent>
           </Sheet>
