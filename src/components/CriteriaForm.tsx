@@ -1522,6 +1522,19 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                     Please complete and sign the Service Agreement above to enable payment.
                                   </p>
                                 )}
+                                <div className="text-center mt-3">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setVerifyEmailError(null);
+                                      setVerifyEmailInput(form.getValues("email") || "");
+                                      setVerifyEmailOpen(true);
+                                    }}
+                                    className="text-xs text-slate-500 hover:text-slate-700 underline underline-offset-2"
+                                  >
+                                    Already paid? Click here to verify
+                                  </button>
+                                </div>
                               </section>
 
                               {/* Honeypot */}
