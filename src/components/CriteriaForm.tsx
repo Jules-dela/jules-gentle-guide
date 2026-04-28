@@ -373,6 +373,21 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Countdown ticker for the verify cooldown (drives UI re-renders).
+  useEffect(() => {
+    if (verifyCooldownUntil <= Date.now()) {
+      setVerifyCooldownRemaining(0);
+      return;
+    }
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((verifyCooldownUntil - Date.now()) / 1000));
+      setVerifyCooldownRemaining(remaining);
+    };
+    tick();
+    const id = window.setInterval(tick, 250);
+    return () => window.clearInterval(id);
+  }, [verifyCooldownUntil]);
+
   const validatePhoneNumber = (): string | null => {
     const digits = phoneLocal.replace(/[^\d]/g, "");
     if (!digits || digits.length === 0) return "Phone number is required";
