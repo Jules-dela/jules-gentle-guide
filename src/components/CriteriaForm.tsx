@@ -1187,15 +1187,26 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
 
                                 <Button
                                   type="button"
+                                  disabled={!preSubmitContractSigned}
                                   onClick={() => {
                                     // TODO: wire up Stripe checkout
                                     console.log("Stripe checkout TBD");
                                   }}
-                                  className="w-full h-12 sm:h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm sm:text-base gap-2"
+                                  className={cn(
+                                    "w-full h-12 sm:h-14 rounded-2xl font-medium text-sm sm:text-base gap-2 transition-colors",
+                                    preSubmitContractSigned
+                                      ? "bg-slate-900 hover:bg-slate-800 text-white"
+                                      : "bg-slate-200 text-slate-400 cursor-not-allowed hover:bg-slate-200"
+                                  )}
                                 >
                                   <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
                                   Activate your search
                                 </Button>
+                                {!preSubmitContractSigned && (
+                                  <p className="text-xs text-muted-foreground text-center mt-2">
+                                    Please complete and sign the Service Agreement above to enable payment.
+                                  </p>
+                                )}
                                 <p className="text-xs text-muted-foreground text-center mt-3">
                                   Secure payment via Stripe. Your €50 deposit will be fully deducted from your final invoice — refunded if we don't find your home.
                                 </p>
