@@ -24,10 +24,49 @@ function corsFor(origin: string | null) {
 const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
+
+async function sendActivationEmail(toEmail: string, name: string | null) {
+  if (!RESEND_API_KEY) {
+    console.warn("RESEND_API_KEY not set; skipping activation email");
+    return;
+  }
+  const firstName = (name || "").trim().split(/\s+/)[0] || "there";
+  const subject = "Your UniKey search is now active 🏠";
+  const text = `Hi ${firstName}, your €50 deposit has been received and your housing search is now active. Our team will be in touch shortly with matching listings. This deposit will be fully deducted from your final invoice.\n\nQuestions? Reply to this email or contact us at contact@uni-key.ch.\n\n— The UniKey Team`;
+  const html = `<div style="font-family:-apple-system,Segoe UI,Arial,sans-serif;font-size:15px;line-height:1.6;color:#0f172a;max-width:560px">
+    <p>Hi ${firstName},</p>
+    <p>Your <strong>€50 deposit has been received</strong> and your housing search is now active. Our team will be in touch shortly with matching listings.</p>
+    <p>This deposit will be <strong>fully deducted from your final invoice</strong>.</p>
+    <p>Questions? Reply to this email or contact us at <a href="mailto:contact@uni-key.ch">contact@uni-key.ch</a>.</p>
+    <p>— The UniKey Team</p>
+  </div>`;
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "UniKey <contact@uni-key.ch>",
+        to: [toEmail],
+        subject,
+        text,
+        html,
+      }),
+    });
+    if (!res.ok) {
+      console.error("Resend error:", res.status, (await res.text()).slice(0, 300));
+    }
+  } catch (e) {
+    console.error("Activation email send failed:", (e as Error).message);
+  }
+}
 
 const BodySchema = z.discriminatedUnion("mode", [
   z.object({
@@ -156,6 +195,9 @@ Deno.serve(async (req) => {
           })
           .eq("id", row.id);
         row = { ...row, deposit_paid: true, payment_confirmed_at: new Date().toISOString() };
+        if (row.email) {
+          await sendActivationEmail(row.email, row.name ?? null);
+        }
       }
 
       return new Response(
