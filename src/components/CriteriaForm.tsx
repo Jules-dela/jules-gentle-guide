@@ -228,13 +228,12 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
         fieldsToValidate = ["furnished", "nearTransport", "pets", "noSmoking", "notes"];
         break;
       case 4:
-        // Documents acknowledgment step — no form fields, validated via state
+        // Sign & Pay: documents acknowledgment + privacy acceptance.
+        // Contract signing is enforced separately at submit time.
         if (!documentsAcknowledged) {
           setShowDocWarning(true);
           return false;
         }
-        return true;
-      case 5:
         fieldsToValidate = ["privacyAccepted"];
         break;
     }
@@ -245,7 +244,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
 
   const nextStep = async () => {
     const isValid = await validateStep(currentStep);
-    if (isValid && currentStep < 5) {
+    if (isValid && currentStep < 4) {
       setCurrentStep(currentStep + 1);
       setShowDocWarning(false);
     }
