@@ -155,6 +155,10 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
   const [paymentVerified, setPaymentVerified] = useState(false);
   const [paymentBannerVisible, setPaymentBannerVisible] = useState(false);
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
+  const [verifyEmailOpen, setVerifyEmailOpen] = useState(false);
+  const [verifyEmailInput, setVerifyEmailInput] = useState("");
+  const [verifyEmailError, setVerifyEmailError] = useState<string | null>(null);
+  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
@@ -191,6 +195,91 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     const digits = phoneLocal.replace(/[^\d]/g, "");
     const trimmed = digits.startsWith("0") ? digits.slice(1) : digits;
     return phoneCountryCode + trimmed;
+  };
+
+  const applyRestoredRow = (data: any) => {
+    const prefs: any = data.preferences || {};
+    form.reset({
+      name: data.name || "",
+      email: data.email || "",
+      phone: data.phone || "",
+      university: prefs.university || "",
+      movingDate: prefs.moving_date ? new Date(prefs.moving_date) : undefined,
+      neighbourhood: prefs.neighbourhood || "",
+      budget: data.budget || "",
+      rooms: prefs.rooms || "",
+      duration: data.duration || "",
+      type: (data.property_type as any) || "studio",
+      roommates: prefs.roommates || "",
+      roommateDetail: prefs.roommate_detail || "",
+      roommateCount: prefs.roommate_count || "",
+      furnished: prefs.furnished ?? true,
+      nearTransport: prefs.near_transport ?? true,
+      pets: prefs.pets ?? false,
+      noSmoking: prefs.no_smoking ?? false,
+      notes: prefs.notes || "",
+      privacyAccepted: prefs.privacy_accepted ?? true,
+      website: "",
+    });
+    if (data.phone) {
+      const match = COUNTRY_CODES
+        .slice()
+        .sort((a, b) => b.code.length - a.code.length)
+        .find((c) => data.phone!.startsWith(c.code));
+      if (match) {
+        setPhoneCountryCode(match.code);
+        setPhoneLocal(data.phone.slice(match.code.length));
+      } else {
+        setPhoneLocal(data.phone);
+      }
+    }
+    if (data.contract_signed) {
+      setPreSubmitContractSigned(true);
+      setPreSubmitContractData({
+        signature_image: data.signature_image,
+        client_date_of_birth: data.date_of_birth,
+        client_nationality: data.nationality,
+        client_full_name: data.name,
+        timestamp: data.updated_at || data.created_at,
+      });
+    }
+    setDocumentsAcknowledged(true);
+  };
+
+  const verifyByEmail = async () => {
+    const email = verifyEmailInput.trim().toLowerCase();
+    setVerifyEmailError(null);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 255) {
+      setVerifyEmailError("Please enter a valid email address.");
+      return;
+    }
+    setIsVerifyingEmail(true);
+    try {
+      const { data, error } = await supabase
+        .from("intake_submissions")
+        .select("*")
+        .ilike("email", email)
+        .eq("deposit_paid", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) {
+        setVerifyEmailError("No payment found for this email. Please contact us at contact@uni-key.ch.");
+        return;
+      }
+      applyRestoredRow(data);
+      setPaymentVerified(true);
+      setPaymentBannerVisible(false);
+      setCurrentStep(4);
+      setVerifyEmailOpen(false);
+      setVerifyEmailInput("");
+      toast({ title: "Payment confirmed", description: "Your application has been restored." });
+    } catch (e: any) {
+      setVerifyEmailError(e?.message || "Could not verify. Please try again.");
+    } finally {
+      setIsVerifyingEmail(false);
+    }
   };
 
   // Restore form from intake_submissions when returning from Stripe (?session_id=...)
