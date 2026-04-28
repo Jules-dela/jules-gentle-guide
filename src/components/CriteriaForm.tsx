@@ -1208,6 +1208,33 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                 </p>
                               </div>
 
+                              {paymentBannerVisible && !paymentVerified && (
+                                <div className="rounded-2xl border border-yellow-300 bg-yellow-50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                                  <p className="text-sm text-yellow-900 flex-1">
+                                    Payment not confirmed yet. If you completed payment, please wait a few seconds or click "Verify payment".
+                                  </p>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={verifyPayment}
+                                    disabled={isVerifyingPayment}
+                                    className="border-yellow-400 text-yellow-900 hover:bg-yellow-100 shrink-0"
+                                  >
+                                    {isVerifyingPayment ? "Verifying…" : "Verify payment"}
+                                  </Button>
+                                </div>
+                              )}
+
+                              {paymentVerified && (
+                                <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4 sm:p-5 flex items-center gap-3">
+                                  <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
+                                  <p className="text-sm text-emerald-900">
+                                    Payment confirmed. You can now submit your application.
+                                  </p>
+                                </div>
+                              )}
+
                               {/* ─── Section 1: Documents to prepare ─── */}
                               <section className="rounded-3xl bg-white border border-slate-200 p-5 sm:p-6 shadow-sm">
                                 <header className="flex items-start gap-3 mb-4">
