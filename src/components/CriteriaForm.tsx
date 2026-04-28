@@ -151,6 +151,10 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
   const [phoneCountryCode, setPhoneCountryCode] = useState("+41");
   const [phoneLocal, setPhoneLocal] = useState("");
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [paymentSessionId, setPaymentSessionId] = useState<string | null>(null);
+  const [paymentVerified, setPaymentVerified] = useState(false);
+  const [paymentBannerVisible, setPaymentBannerVisible] = useState(false);
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
