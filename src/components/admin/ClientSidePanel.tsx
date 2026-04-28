@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, Phone, MapPin, CreditCard, Calendar, Home, FileText, ChevronDown, ChevronUp, Loader2, GraduationCap, Users, KeyRound } from 'lucide-react';
+import { X, Mail, Phone, MapPin, CreditCard, Calendar, Home, FileText, ChevronDown, ChevronUp, Loader2, GraduationCap, Users, KeyRound, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -331,6 +331,31 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
                       clientName={client.name} 
                     />
                   </div>
+                </div>
+
+                {/* Deposit Payment Status */}
+                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">€50 Deposit</p>
+                    <p className="text-xs text-muted-foreground">
+                      {client.deposit_paid
+                        ? client.deposit_paid_at
+                          ? `Paid on ${new Date(client.deposit_paid_at).toLocaleDateString('en-GB')}`
+                          : 'Paid'
+                        : 'Not paid yet'}
+                    </p>
+                  </div>
+                  {client.deposit_paid ? (
+                    <Badge className="bg-green-100 text-green-700 hover:bg-green-100 gap-1">
+                      <CheckCircle2 className="h-3 w-3" />
+                      Paid
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-muted-foreground gap-1">
+                      <XCircle className="h-3 w-3" />
+                      Unpaid
+                    </Badge>
+                  )}
                 </div>
 
                 <Separator />

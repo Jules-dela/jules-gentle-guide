@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { ChevronRight, FileText, Archive, Filter, X } from 'lucide-react';
+import { ChevronRight, FileText, Archive, Filter, X, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SignedBadge } from './SignatureViewer';
 import type { ClientWithCase } from '@/types/admin';
@@ -42,6 +42,19 @@ function DocsBadge({ uploaded, total, pendingReview }: {
         <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-blue-500 rounded-full ring-2 ring-background animate-pulse" />
       )}
     </div>
+  );
+}
+
+// Deposit paid badge
+function DepositBadge() {
+  return (
+    <span
+      title="€50 deposit paid"
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700"
+    >
+      <CheckCircle2 className="h-3 w-3" />
+      Paid
+    </span>
   );
 }
 
@@ -122,6 +135,7 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
             <p className="font-medium text-foreground truncate flex items-center gap-2">
               {client.name}
               {client.is_contract_signed && <SignedBadge isSigned={true} />}
+              {client.deposit_paid && <DepositBadge />}
               {isArchived && <Archive className="h-3.5 w-3.5 text-muted-foreground" />}
             </p>
             <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -431,6 +445,7 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
                                 <p className="font-medium text-foreground flex items-center gap-2">
                                   {client.name}
                                   {client.is_contract_signed && <SignedBadge isSigned={true} />}
+                                  {client.deposit_paid && <DepositBadge />}
                                   {isArchived && <Archive className="h-3.5 w-3.5 text-muted-foreground" />}
                                 </p>
                                 <p className="text-sm text-muted-foreground">{client.email}</p>
