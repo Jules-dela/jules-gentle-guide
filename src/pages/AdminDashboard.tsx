@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAdminDashboard } from '@/hooks/useAdminDashboard';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { StatCards, StatFilter } from '@/components/admin/StatCards';
+import { ConversionFunnel } from '@/components/admin/ConversionFunnel';
 import { ClientsTable } from '@/components/admin/ClientsTable';
 import { NotificationFeed } from '@/components/admin/NotificationFeed';
 import { ClientSidePanel } from '@/components/admin/ClientSidePanel';
@@ -74,6 +75,9 @@ export default function AdminDashboard() {
           activeFilter={statFilter}
           onFilterChange={setStatFilter}
         />
+
+        {/* Conversion Funnel */}
+        <ConversionFunnel />
 
         {/* Main Content - Stack on mobile, grid on desktop */}
         <div className={cn("grid grid-cols-1 gap-4 sm:gap-6", showNotifications && "lg:grid-cols-3")}>
