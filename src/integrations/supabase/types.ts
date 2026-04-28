@@ -235,6 +235,7 @@ export type Database = {
           device_info: Json | null
           id: string
           ip_address: string | null
+          signature_hash: string | null
           signature_image: string
           signed_at: string
           user_agent: string | null
@@ -248,6 +249,7 @@ export type Database = {
           device_info?: Json | null
           id?: string
           ip_address?: string | null
+          signature_hash?: string | null
           signature_image: string
           signed_at?: string
           user_agent?: string | null
@@ -261,6 +263,7 @@ export type Database = {
           device_info?: Json | null
           id?: string
           ip_address?: string | null
+          signature_hash?: string | null
           signature_image?: string
           signed_at?: string
           user_agent?: string | null
@@ -353,9 +356,11 @@ export type Database = {
           id: string
           name: string | null
           nationality: string | null
+          payment_confirmed_at: string | null
           phone: string | null
           preferences: Json | null
           property_type: string | null
+          signature_hash: string | null
           signature_image: string | null
           status: string
           stripe_session_id: string | null
@@ -372,9 +377,11 @@ export type Database = {
           id?: string
           name?: string | null
           nationality?: string | null
+          payment_confirmed_at?: string | null
           phone?: string | null
           preferences?: Json | null
           property_type?: string | null
+          signature_hash?: string | null
           signature_image?: string | null
           status?: string
           stripe_session_id?: string | null
@@ -391,9 +398,11 @@ export type Database = {
           id?: string
           name?: string | null
           nationality?: string | null
+          payment_confirmed_at?: string | null
           phone?: string | null
           preferences?: Json | null
           property_type?: string | null
+          signature_hash?: string | null
           signature_image?: string | null
           status?: string
           stripe_session_id?: string | null
