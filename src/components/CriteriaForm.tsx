@@ -1188,20 +1188,68 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
 
                                 <Button
                                   type="button"
-                                  disabled={!preSubmitContractSigned}
-                                  onClick={() => {
-                                    // TODO: wire up Stripe checkout
-                                    console.log("Stripe checkout TBD");
+                                  disabled={!preSubmitContractSigned || isActivating}
+                                  onClick={async () => {
+                                    if (!preSubmitContractSigned || isActivating) return;
+                                    setIsActivating(true);
+                                    try {
+                                      const values = form.getValues();
+                                      const { error } = await supabase
+                                        .from("intake_submissions")
+                                        .insert({
+                                          name: values.name || null,
+                                          email: values.email || null,
+                                          phone: getFullPhone() || null,
+                                          budget: values.budget || null,
+                                          property_type: values.type || null,
+                                          duration: values.duration || null,
+                                          preferences: {
+                                            university: values.university || null,
+                                            moving_date: values.movingDate
+                                              ? new Date(values.movingDate).toISOString().slice(0, 10)
+                                              : null,
+                                            neighbourhood: values.neighbourhood || null,
+                                            rooms: values.rooms || null,
+                                            roommates: values.roommates || null,
+                                            roommate_detail: values.roommateDetail || null,
+                                            roommate_count: values.roommateCount || null,
+                                            furnished: values.furnished ?? null,
+                                            near_transport: values.nearTransport ?? null,
+                                            pets: values.pets ?? null,
+                                            no_smoking: values.noSmoking ?? null,
+                                            notes: values.notes || null,
+                                            privacy_accepted: values.privacyAccepted ?? null,
+                                          },
+                                          date_of_birth: preSubmitContractData?.client_date_of_birth || null,
+                                          nationality: preSubmitContractData?.client_nationality || null,
+                                          signature_image: preSubmitContractData?.signature_image || null,
+                                          contract_signed: true,
+                                          status: "awaiting_payment",
+                                        });
+                                      if (error) throw error;
+                                      window.location.href =
+                                        "https://buy.stripe.com/4gM28rcBY1Kl8E713fcEw00";
+                                    } catch (err: any) {
+                                      console.error("Failed to save intake submission", err);
+                                      toast({
+                                        title: "Could not start payment",
+                                        description:
+                                          err?.message ||
+                                          "Something went wrong saving your application. Please try again.",
+                                        variant: "destructive",
+                                      });
+                                      setIsActivating(false);
+                                    }
                                   }}
                                   className={cn(
                                     "w-full h-12 sm:h-14 rounded-2xl font-medium text-sm sm:text-base gap-2 transition-colors",
-                                    preSubmitContractSigned
+                                    preSubmitContractSigned && !isActivating
                                       ? "bg-slate-900 hover:bg-slate-800 text-white"
                                       : "bg-slate-200 text-slate-400 cursor-not-allowed hover:bg-slate-200"
                                   )}
                                 >
                                   <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
-                                  Activate your search
+                                  {isActivating ? "Redirecting…" : "Activate your search"}
                                 </Button>
                                 {!preSubmitContractSigned && (
                                   <p className="text-xs text-muted-foreground text-center mt-2">
