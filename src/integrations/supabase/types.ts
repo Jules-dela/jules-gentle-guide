@@ -341,6 +341,36 @@ export type Database = {
         }
         Relationships: []
       }
+      intake_submissions: {
+        Row: {
+          contract_signed: boolean
+          created_at: string
+          deposit_paid: boolean
+          id: string
+          status: string
+          stripe_session_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          contract_signed?: boolean
+          created_at?: string
+          deposit_paid?: boolean
+          id?: string
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contract_signed?: boolean
+          created_at?: string
+          deposit_paid?: boolean
+          id?: string
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       key_handover: {
         Row: {
           case_id: string
