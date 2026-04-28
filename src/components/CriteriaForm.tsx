@@ -160,6 +160,8 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
   const [verifyEmailInput, setVerifyEmailInput] = useState("");
   const [verifyEmailError, setVerifyEmailError] = useState<string | null>(null);
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
+  const [verifyCooldownUntil, setVerifyCooldownUntil] = useState(0);
+  const [verifyCooldownRemaining, setVerifyCooldownRemaining] = useState(0);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
@@ -196,6 +198,15 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     const digits = phoneLocal.replace(/[^\d]/g, "");
     const trimmed = digits.startsWith("0") ? digits.slice(1) : digits;
     return phoneCountryCode + trimmed;
+  };
+
+  // SHA-256 of an arbitrary payload, returned as hex. Used to make the signature tamper-evident.
+  const sha256Hex = async (input: string): Promise<string> => {
+    const buf = new TextEncoder().encode(input);
+    const digest = await crypto.subtle.digest("SHA-256", buf);
+    return Array.from(new Uint8Array(digest))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
   };
 
   const applyRestoredRow = (data: any) => {
@@ -254,22 +265,23 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
       setVerifyEmailError("Please enter a valid email address.");
       return;
     }
+    if (Date.now() < verifyCooldownUntil) {
+      const secs = Math.ceil((verifyCooldownUntil - Date.now()) / 1000);
+      setVerifyEmailError(`Please wait ${secs}s before trying again.`);
+      return;
+    }
     setIsVerifyingEmail(true);
     try {
-      const { data, error } = await supabase
-        .from("intake_submissions")
-        .select("*")
-        .ilike("email", email)
-        .eq("deposit_paid", true)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const { data, error } = await supabase.functions.invoke("verify-payment", {
+        body: { mode: "email", email },
+      });
       if (error) throw error;
-      if (!data) {
+      if (!data?.found) {
         setVerifyEmailError("No payment found for this email. Please contact us at contact@uni-key.ch.");
+        setVerifyCooldownUntil(Date.now() + 3000);
         return;
       }
-      applyRestoredRow(data);
+      applyRestoredRow(data.row);
       setPaymentVerified(true);
       setPaymentBannerVisible(false);
       setCurrentStep(4);
@@ -278,129 +290,60 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
       toast({ title: "Payment confirmed", description: "Your application has been restored." });
     } catch (e: any) {
       setVerifyEmailError(e?.message || "Could not verify. Please try again.");
+      setVerifyCooldownUntil(Date.now() + 3000);
     } finally {
       setIsVerifyingEmail(false);
     }
   };
 
-  // Restore form from intake_submissions when returning from Stripe (?session_id=...)
+  // Server-validated restore: edge function checks Stripe directly for session_id.
   const restoreFromSession = async (sessionId: string) => {
     try {
-      // Try to match by stripe_session_id first; fall back to most recent submission.
-      let { data, error } = await supabase
-        .from("intake_submissions")
-        .select("*")
-        .eq("stripe_session_id", sessionId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if ((!data || error) && !error) {
-        const fallback = await supabase
-          .from("intake_submissions")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        data = fallback.data;
-      }
-
-      if (!data) {
-        setPaymentBannerVisible(true);
-        setCurrentStep(4);
-        return;
-      }
-
-      // Restore form fields
-      const prefs: any = data.preferences || {};
-      form.reset({
-        name: data.name || "",
-        email: data.email || "",
-        phone: data.phone || "",
-        university: prefs.university || "",
-        movingDate: prefs.moving_date ? new Date(prefs.moving_date) : undefined,
-        neighbourhood: prefs.neighbourhood || "",
-        budget: data.budget || "",
-        rooms: prefs.rooms || "",
-        duration: data.duration || "",
-        type: (data.property_type as any) || "studio",
-        roommates: prefs.roommates || "",
-        roommateDetail: prefs.roommate_detail || "",
-        roommateCount: prefs.roommate_count || "",
-        furnished: prefs.furnished ?? true,
-        nearTransport: prefs.near_transport ?? true,
-        pets: prefs.pets ?? false,
-        noSmoking: prefs.no_smoking ?? false,
-        notes: prefs.notes || "",
-        privacyAccepted: prefs.privacy_accepted ?? true,
-        website: "",
+      const { data, error } = await supabase.functions.invoke("verify-payment", {
+        body: { mode: "session", session_id: sessionId },
       });
-
-      // Restore phone parts (best-effort)
-      if (data.phone) {
-        const match = COUNTRY_CODES
-          .slice()
-          .sort((a, b) => b.code.length - a.code.length)
-          .find((c) => data.phone!.startsWith(c.code));
-        if (match) {
-          setPhoneCountryCode(match.code);
-          setPhoneLocal(data.phone.slice(match.code.length));
-        } else {
-          setPhoneLocal(data.phone);
-        }
-      }
-
-      // Restore contract state
-      if (data.contract_signed) {
-        setPreSubmitContractSigned(true);
-        setPreSubmitContractData({
-          signature_image: data.signature_image,
-          client_date_of_birth: data.date_of_birth,
-          client_nationality: data.nationality,
-          client_full_name: data.name,
-          timestamp: data.updated_at || data.created_at,
-        });
-      }
-
-      setDocumentsAcknowledged(true);
-
-      if (data.deposit_paid) {
+      if (error) throw error;
+      if (data?.paid && data.row) {
+        applyRestoredRow(data.row);
         setPaymentVerified(true);
         setPaymentBannerVisible(false);
       } else {
         setPaymentVerified(false);
         setPaymentBannerVisible(true);
       }
-
       setCurrentStep(4);
     } catch (e) {
-      console.error("Failed to restore intake submission", e);
+      console.error("Failed to restore from session", e);
       setPaymentBannerVisible(true);
       setCurrentStep(4);
     }
   };
 
   const verifyPayment = async () => {
-    if (!paymentSessionId || isVerifyingPayment) return;
+    if (isVerifyingPayment) return;
+    if (Date.now() < verifyCooldownUntil) {
+      toast({
+        title: "Please wait",
+        description: `Try again in ${Math.ceil((verifyCooldownUntil - Date.now()) / 1000)}s.`,
+      });
+      return;
+    }
+    if (!paymentSessionId) {
+      toast({
+        title: "Payment not yet confirmed",
+        description: "Use \"Already paid? Click here to verify\" to verify by email.",
+        variant: "destructive",
+      });
+      return;
+    }
     setIsVerifyingPayment(true);
     try {
-      let { data } = await supabase
-        .from("intake_submissions")
-        .select("deposit_paid")
-        .eq("stripe_session_id", paymentSessionId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (!data) {
-        const fallback = await supabase
-          .from("intake_submissions")
-          .select("deposit_paid")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        data = fallback.data;
-      }
-      if (data?.deposit_paid) {
+      const { data, error } = await supabase.functions.invoke("verify-payment", {
+        body: { mode: "session", session_id: paymentSessionId },
+      });
+      if (error) throw error;
+      if (data?.paid && data.row) {
+        applyRestoredRow(data.row);
         setPaymentVerified(true);
         setPaymentBannerVisible(false);
         toast({ title: "Payment confirmed", description: "You can now submit your application." });
@@ -410,9 +353,11 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
           description: "Please wait a few moments and try again.",
           variant: "destructive",
         });
+        setVerifyCooldownUntil(Date.now() + 3000);
       }
     } catch (e: any) {
       toast({ title: "Verification failed", description: e?.message || "Try again shortly.", variant: "destructive" });
+      setVerifyCooldownUntil(Date.now() + 3000);
     } finally {
       setIsVerifyingPayment(false);
     }
@@ -427,6 +372,21 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Countdown ticker for the verify cooldown (drives UI re-renders).
+  useEffect(() => {
+    if (verifyCooldownUntil <= Date.now()) {
+      setVerifyCooldownRemaining(0);
+      return;
+    }
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((verifyCooldownUntil - Date.now()) / 1000));
+      setVerifyCooldownRemaining(remaining);
+    };
+    tick();
+    const id = window.setInterval(tick, 250);
+    return () => window.clearInterval(id);
+  }, [verifyCooldownUntil]);
 
   const validatePhoneNumber = (): string | null => {
     const digits = phoneLocal.replace(/[^\d]/g, "");
@@ -1308,10 +1268,14 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                     variant="outline"
                                     size="sm"
                                     onClick={verifyPayment}
-                                    disabled={isVerifyingPayment}
+                                    disabled={isVerifyingPayment || verifyCooldownRemaining > 0}
                                     className="border-yellow-400 text-yellow-900 hover:bg-yellow-100 shrink-0"
                                   >
-                                    {isVerifyingPayment ? "Verifying…" : "Verify payment"}
+                                    {isVerifyingPayment
+                                      ? "Verifying…"
+                                      : verifyCooldownRemaining > 0
+                                      ? `Wait ${verifyCooldownRemaining}s`
+                                      : "Verify payment"}
                                   </Button>
                                 </div>
                               )}
@@ -1460,6 +1424,42 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                     setIsActivating(true);
                                     try {
                                       const values = form.getValues();
+                                      // Block reuse of the Stripe Payment Link by the same email.
+                                      const emailLower = (values.email || "").trim().toLowerCase();
+                                      if (emailLower) {
+                                        const { data: existing } = await supabase.functions.invoke(
+                                          "verify-payment",
+                                          { body: { mode: "check_existing", email: emailLower } },
+                                        );
+                                        if (existing?.exists) {
+                                          if (existing.deposit_paid) {
+                                            toast({
+                                              title: "Payment already on file",
+                                              description:
+                                                "We already have a confirmed payment for this email. Use \"Already paid? Click here to verify\" below to restore your application.",
+                                            });
+                                          } else {
+                                            toast({
+                                              title: "Application already in progress",
+                                              description:
+                                                "An application for this email is already awaiting payment. Please complete the existing one or contact contact@uni-key.ch.",
+                                            });
+                                          }
+                                          setIsActivating(false);
+                                          return;
+                                        }
+                                      }
+                                      // Compute a tamper-evident hash of the signature payload.
+                                      const sigPayload = JSON.stringify({
+                                        image: preSubmitContractData?.signature_image || "",
+                                        full_name: preSubmitContractData?.client_full_name || values.name || "",
+                                        dob: preSubmitContractData?.client_date_of_birth || "",
+                                        nationality: preSubmitContractData?.client_nationality || "",
+                                        timestamp: preSubmitContractData?.timestamp || new Date().toISOString(),
+                                      });
+                                      const signatureHash = preSubmitContractData?.signature_image
+                                        ? await sha256Hex(sigPayload)
+                                        : null;
                                       const { error } = await supabase
                                         .from("intake_submissions")
                                         .insert({
@@ -1489,6 +1489,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                           date_of_birth: preSubmitContractData?.client_date_of_birth || null,
                                           nationality: preSubmitContractData?.client_nationality || null,
                                           signature_image: preSubmitContractData?.signature_image || null,
+                                          signature_hash: signatureHash,
                                           contract_signed: true,
                                           status: "awaiting_payment",
                                         });
@@ -1636,8 +1637,16 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
             <Button type="button" variant="ghost" onClick={() => setVerifyEmailOpen(false)} disabled={isVerifyingEmail}>
               Cancel
             </Button>
-            <Button type="button" onClick={verifyByEmail} disabled={isVerifyingEmail}>
-              {isVerifyingEmail ? "Checking…" : "Verify"}
+            <Button
+              type="button"
+              onClick={verifyByEmail}
+              disabled={isVerifyingEmail || verifyCooldownRemaining > 0}
+            >
+              {isVerifyingEmail
+                ? "Checking…"
+                : verifyCooldownRemaining > 0
+                ? `Wait ${verifyCooldownRemaining}s`
+                : "Verify"}
             </Button>
           </DialogFooter>
         </DialogContent>
