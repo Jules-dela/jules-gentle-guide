@@ -1,6 +1,7 @@
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 const AnimatedSlogan = () => {
   const words = ["We", "find", "it.", "You", "live", "it."];
   const container = {
@@ -31,12 +32,7 @@ const AnimatedSlogan = () => {
     </motion.p>;
 };
 export const Hero = () => {
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    element?.scrollIntoView({
-      behavior: 'smooth'
-    });
-  };
+  const navigate = useNavigate();
   return <AuroraBackground className="flex items-center justify-center">
       {/* Main content */}
       <div className="relative z-10 px-5 md:px-20 w-full flex flex-col items-center text-center">
@@ -48,8 +44,8 @@ export const Hero = () => {
 
         {/* CTA Button */}
         <div className="flex justify-center mb-5">
-          <Button onClick={() => scrollToSection('apply')} variant="outline" className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-navy font-medium text-[14px] md:text-[16px] px-8 md:px-10 py-3 md:py-4 h-auto rounded-lg backdrop-blur-sm">
-            Find my home
+          <Button onClick={() => navigate('/apply')} variant="outline" className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-navy font-medium text-[14px] md:text-[16px] px-8 md:px-10 py-3 md:py-4 h-auto rounded-lg backdrop-blur-sm">
+            Apply now
           </Button>
         </div>
       </div>
