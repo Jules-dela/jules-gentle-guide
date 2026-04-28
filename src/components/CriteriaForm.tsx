@@ -17,7 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { ChevronRight, ChevronLeft, CheckCircle2, User, Home, Settings, Send, CalendarIcon, FileText, ChevronDown } from "lucide-react";
+import { ChevronRight, ChevronLeft, CheckCircle2, User, Home, Settings, Send, CalendarIcon, FileText, ChevronDown, CreditCard } from "lucide-react";
 import { ServiceAgreement } from "@/components/portal/ServiceAgreement";
 
 const COUNTRY_CODES = [
@@ -126,8 +126,7 @@ const steps = [
   { id: 1, title: "About You", icon: User },
   { id: 2, title: "Property", icon: Home },
   { id: 3, title: "Preferences", icon: Settings },
-  { id: 4, title: "Documents", icon: FileText },
-  { id: 5, title: "Submit", icon: Send },
+  { id: 4, title: "Sign & Pay", icon: CreditCard },
 ];
 
 interface CriteriaFormProps {
