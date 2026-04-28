@@ -1041,7 +1041,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                             </motion.div>
                           )}
 
-                          {/* Step 4: Documents */}
+                          {/* Step 4: Sign & Pay */}
                           {currentStep === 4 && (
                             <motion.div
                               key="step4"
@@ -1049,127 +1049,112 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                               animate={{ opacity: 1, x: 0 }}
                               exit={{ opacity: 0, x: -20 }}
                               transition={{ duration: 0.3 }}
-                              className="space-y-6"
+                              className="space-y-8"
                             >
-                              <div className="text-center space-y-2 mb-2">
-                                <h3 className="text-xl font-semibold text-foreground">Prepare your documents</h3>
-                                <p className="text-muted-foreground text-sm">
-                                  To move fast on the best listings, have these ready before your viewing.
+                              <div className="text-center space-y-2">
+                                <h3 className="text-xl sm:text-2xl font-semibold text-foreground">Sign & Pay</h3>
+                                <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                                  Three quick steps to activate your housing search.
                                 </p>
                               </div>
 
-                              <div className="space-y-3">
-                                {[
-                                  { emoji: "📄", title: "ID / Passport", desc: "A valid government-issued photo ID" },
-                                  { emoji: "💼", title: "Work contract or proof of enrollment", desc: "Employment contract or student enrollment certificate" },
-                                  { emoji: "💰", title: "Last 3 payslips or proof of income", desc: "Or last tax return if self-employed" },
-                                  { emoji: "🏦", title: "Bank statements (last 3 months)", desc: "To confirm financial stability" },
-                                  { emoji: "📋", title: "Debt collection register extract", desc: "Extrait du registre des poursuites — obtainable at your local office, valid within 3 months" },
-                                  { emoji: "🏠", title: "Last rental reference or landlord contact", desc: "Previous landlord's name and contact info if applicable" },
-                                ].map((doc, i) => (
-                                  <div
-                                    key={i}
-                                    className="flex items-start gap-4 p-4 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 transition-all"
-                                  >
-                                    <span className="text-2xl mt-0.5 shrink-0">{doc.emoji}</span>
-                                    <div>
-                                      <p className="font-medium text-sm text-foreground">{doc.title}</p>
-                                      <p className="text-xs text-muted-foreground mt-0.5">{doc.desc}</p>
+                              {/* ─── Section 1: Documents to prepare ─── */}
+                              <section className="rounded-3xl bg-white border border-slate-200 p-5 sm:p-6 shadow-sm">
+                                <header className="flex items-start gap-3 mb-4">
+                                  <div className="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center font-semibold text-sm shrink-0">
+                                    1
+                                  </div>
+                                  <div>
+                                    <h4 className="font-semibold text-base sm:text-lg text-foreground">Documents to prepare</h4>
+                                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                                      Have these ready before your viewing to move fast on the best listings.
+                                    </p>
+                                  </div>
+                                </header>
+
+                                <div className="space-y-3">
+                                  {[
+                                    { emoji: "📄", title: "ID / Passport", desc: "A valid government-issued photo ID" },
+                                    { emoji: "💼", title: "Work contract or proof of enrollment", desc: "Employment contract or student enrollment certificate" },
+                                    { emoji: "💰", title: "Last 3 payslips or proof of income", desc: "Or last tax return if self-employed" },
+                                    { emoji: "🏦", title: "Bank statements (last 3 months)", desc: "To confirm financial stability" },
+                                    { emoji: "📋", title: "Debt collection register extract", desc: "Extrait du registre des poursuites — obtainable at your local office, valid within 3 months" },
+                                    { emoji: "🏠", title: "Last rental reference or landlord contact", desc: "Previous landlord's name and contact info if applicable" },
+                                  ].map((doc, i) => (
+                                    <div
+                                      key={i}
+                                      className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all"
+                                    >
+                                      <span className="text-xl sm:text-2xl mt-0.5 shrink-0">{doc.emoji}</span>
+                                      <div className="min-w-0">
+                                        <p className="font-medium text-sm text-foreground">{doc.title}</p>
+                                        <p className="text-xs text-muted-foreground mt-0.5">{doc.desc}</p>
+                                      </div>
                                     </div>
-                                  </div>
-                                ))}
-                              </div>
-
-                              <div className="pt-2">
-                                <label className="flex items-start gap-3 cursor-pointer rounded-2xl bg-white border border-slate-200 p-4">
-                                  <Checkbox
-                                    checked={documentsAcknowledged}
-                                    onCheckedChange={(checked) => {
-                                      setDocumentsAcknowledged(checked === true);
-                                      if (checked) setShowDocWarning(false);
-                                    }}
-                                    className="mt-0.5"
-                                  />
-                                  <span className="text-sm text-foreground leading-relaxed">
-                                    I have read and understood the required documents. I commit to having them ready before my viewing appointment.
-                                  </span>
-                                </label>
-                                {showDocWarning && (
-                                  <p className="text-xs text-destructive mt-2 ml-1">
-                                    Please confirm you've read the document requirements to continue.
-                                  </p>
-                                )}
-                              </div>
-                            </motion.div>
-                          )}
-
-                          {/* Step 5: Submit */}
-                          {currentStep === 5 && (
-                            <motion.div
-                              key="step4"
-                              initial={{ opacity: 0, x: 20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              exit={{ opacity: 0, x: -20 }}
-                              transition={{ duration: 0.3 }}
-                              className="space-y-6"
-                            >
-                              <div className="bg-white/50 backdrop-blur-sm rounded-2xl border border-white/30 p-6">
-                                <h3 className="font-semibold text-lg mb-4">Review your criteria</h3>
-                                <div className="grid gap-3 text-sm">
-                                  <div className="flex justify-between py-2 border-b border-border/30">
-                                    <span className="text-muted-foreground">Name</span>
-                                    <span className="font-medium">{form.watch("name") || "—"}</span>
-                                  </div>
-                                  <div className="flex justify-between py-2 border-b border-border/30">
-                                    <span className="text-muted-foreground">Email</span>
-                                    <span className="font-medium">{form.watch("email") || "—"}</span>
-                                  </div>
-                                  <div className="flex justify-between py-2 border-b border-border/30">
-                                    <span className="text-muted-foreground">Budget</span>
-                                    <span className="font-medium">{form.watch("budget") ? `${form.watch("budget")} CHF` : "—"}</span>
-                                  </div>
-                                  <div className="flex justify-between py-2 border-b border-border/30">
-                                    <span className="text-muted-foreground">Property Type</span>
-                                    <span className="font-medium capitalize">{form.watch("type") || "—"}</span>
-                                  </div>
-                                  <div className="flex justify-between py-2">
-                                    <span className="text-muted-foreground">Duration</span>
-                                    <span className="font-medium">{form.watch("duration") ? `${form.watch("duration")} months` : "—"}</span>
-                                  </div>
+                                  ))}
                                 </div>
-                              </div>
 
-                              <FormField
-                                control={form.control}
-                                name="privacyAccepted"
-                                render={({ field }) => (
-                                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl bg-white border border-slate-200 p-4">
-                                    <FormControl>
-                                      <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                      />
-                                    </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                      <FormLabel className="text-sm font-normal">
-                                        I have read and accept the{" "}
-                                        <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
-                                          Privacy Policy
-                                        </a>
-                                        . I consent to the processing of my personal data in accordance with Swiss Federal Act on Data Protection (FADP) and GDPR.
-                                      </FormLabel>
-                                      <FormMessage />
-                                    </div>
-                                  </FormItem>
-                                )}
-                              />
+                                <div className="pt-4">
+                                  <label className="flex items-start gap-3 cursor-pointer rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                                    <Checkbox
+                                      checked={documentsAcknowledged}
+                                      onCheckedChange={(checked) => {
+                                        setDocumentsAcknowledged(checked === true);
+                                        if (checked) setShowDocWarning(false);
+                                      }}
+                                      className="mt-0.5"
+                                    />
+                                    <span className="text-sm text-foreground leading-relaxed">
+                                      I have read and understood the required documents. I commit to having them ready before my viewing appointment.
+                                    </span>
+                                  </label>
+                                  {showDocWarning && (
+                                    <p className="text-xs text-destructive mt-2 ml-1">
+                                      Please confirm you've read the document requirements to continue.
+                                    </p>
+                                  )}
+                                </div>
+                              </section>
 
-                              {/* Service Agreement — must be signed before submitting */}
-                              <div className="mt-6">
-                                <h3 className="font-semibold text-lg mb-3">Service Agreement</h3>
-                                <p className="text-muted-foreground text-sm mb-4">
-                                  Please read and sign the service agreement below to activate your housing search.
-                                </p>
+                              {/* ─── Section 2: Service Agreement ─── */}
+                              <section className="rounded-3xl bg-white border border-slate-200 p-5 sm:p-6 shadow-sm">
+                                <header className="flex items-start gap-3 mb-4">
+                                  <div className="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center font-semibold text-sm shrink-0">
+                                    2
+                                  </div>
+                                  <div>
+                                    <h4 className="font-semibold text-base sm:text-lg text-foreground">Service Agreement</h4>
+                                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                                      Read the agreement, fill in your details and sign to activate your housing search.
+                                    </p>
+                                  </div>
+                                </header>
+
+                                <FormField
+                                  control={form.control}
+                                  name="privacyAccepted"
+                                  render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl bg-slate-50 border border-slate-200 p-4 mb-4">
+                                      <FormControl>
+                                        <Checkbox
+                                          checked={field.value}
+                                          onCheckedChange={field.onChange}
+                                        />
+                                      </FormControl>
+                                      <div className="space-y-1 leading-none">
+                                        <FormLabel className="text-sm font-normal">
+                                          I have read and accept the{" "}
+                                          <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
+                                            Privacy Policy
+                                          </a>
+                                          . I consent to the processing of my personal data in accordance with Swiss Federal Act on Data Protection (FADP) and GDPR.
+                                        </FormLabel>
+                                        <FormMessage />
+                                      </div>
+                                    </FormItem>
+                                  )}
+                                />
+
                                 <ServiceAgreement
                                   clientName={form.watch("name") || ""}
                                   onSign={async (contractData) => {
@@ -1184,7 +1169,37 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                   }}
                                   isSigned={preSubmitContractSigned}
                                 />
-                              </div>
+                              </section>
+
+                              {/* ─── Section 3: Activate your search (Stripe) ─── */}
+                              <section className="rounded-3xl bg-white border border-slate-200 p-5 sm:p-6 shadow-sm">
+                                <header className="flex items-start gap-3 mb-4">
+                                  <div className="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center font-semibold text-sm shrink-0">
+                                    3
+                                  </div>
+                                  <div>
+                                    <h4 className="font-semibold text-base sm:text-lg text-foreground">Activate your search</h4>
+                                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                                      Securely confirm your application to unlock your personal housing search.
+                                    </p>
+                                  </div>
+                                </header>
+
+                                <Button
+                                  type="button"
+                                  onClick={() => {
+                                    // TODO: wire up Stripe checkout
+                                    console.log("Stripe checkout TBD");
+                                  }}
+                                  className="w-full h-12 sm:h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm sm:text-base gap-2"
+                                >
+                                  <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
+                                  Activate your search
+                                </Button>
+                                <p className="text-xs text-muted-foreground text-center mt-3">
+                                  Secure payment powered by Stripe.
+                                </p>
+                              </section>
 
                               {/* Honeypot */}
                               <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
