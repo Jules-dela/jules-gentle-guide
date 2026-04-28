@@ -160,6 +160,8 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
   const [verifyEmailInput, setVerifyEmailInput] = useState("");
   const [verifyEmailError, setVerifyEmailError] = useState<string | null>(null);
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
+  const [verifyCooldownUntil, setVerifyCooldownUntil] = useState(0);
+  const [verifyCooldownRemaining, setVerifyCooldownRemaining] = useState(0);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
