@@ -1637,8 +1637,16 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
             <Button type="button" variant="ghost" onClick={() => setVerifyEmailOpen(false)} disabled={isVerifyingEmail}>
               Cancel
             </Button>
-            <Button type="button" onClick={verifyByEmail} disabled={isVerifyingEmail}>
-              {isVerifyingEmail ? "Checking…" : "Verify"}
+            <Button
+              type="button"
+              onClick={verifyByEmail}
+              disabled={isVerifyingEmail || verifyCooldownRemaining > 0}
+            >
+              {isVerifyingEmail
+                ? "Checking…"
+                : verifyCooldownRemaining > 0
+                ? `Wait ${verifyCooldownRemaining}s`
+                : "Verify"}
             </Button>
           </DialogFooter>
         </DialogContent>
