@@ -1268,10 +1268,14 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                     variant="outline"
                                     size="sm"
                                     onClick={verifyPayment}
-                                    disabled={isVerifyingPayment}
+                                    disabled={isVerifyingPayment || verifyCooldownRemaining > 0}
                                     className="border-yellow-400 text-yellow-900 hover:bg-yellow-100 shrink-0"
                                   >
-                                    {isVerifyingPayment ? "Verifying…" : "Verify payment"}
+                                    {isVerifyingPayment
+                                      ? "Verifying…"
+                                      : verifyCooldownRemaining > 0
+                                      ? `Wait ${verifyCooldownRemaining}s`
+                                      : "Verify payment"}
                                   </Button>
                                 </div>
                               )}
