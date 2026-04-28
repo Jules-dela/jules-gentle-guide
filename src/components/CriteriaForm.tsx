@@ -1180,7 +1180,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                   <div>
                                     <h4 className="font-semibold text-base sm:text-lg text-foreground">Activate your search</h4>
                                     <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                                      Securely confirm your application to unlock your personal housing search.
+                                      Secure payment via Stripe. Your €50 deposit will be fully deducted from your final invoice — refunded if we don't find your home.
                                     </p>
                                   </div>
                                 </header>
@@ -1207,9 +1207,6 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                     Please complete and sign the Service Agreement above to enable payment.
                                   </p>
                                 )}
-                                <p className="text-xs text-muted-foreground text-center mt-3">
-                                  Secure payment via Stripe. Your €50 deposit will be fully deducted from your final invoice — refunded if we don't find your home.
-                                </p>
                               </section>
 
                               {/* Honeypot */}
