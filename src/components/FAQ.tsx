@@ -13,7 +13,7 @@ const faqItems = [
   },
   {
     question: "How much does your service cost?",
-    answer: "Our service is strictly success-based. We believe in results, which is why we require zero upfront payments or prepayments. Our fee is equivalent to one month's rent and is only due once you have successfully signed the lease for your new home. If we don't find your perfect match, you don't pay a cent."
+    answer: "Our service is success-based: you only pay when you've signed your lease. Our fee is one month's rent, due at signing. A 50€ commitment fee is required upfront to secure your spot and cover the initial work on your search. This amount is deducted from your final fee once you move in. If we are unable to find you the right home, the 50€ may be refunded depending on the terms of your service agreement."
   },
   {
     question: "What documents will I need to apply for an apartment?",
