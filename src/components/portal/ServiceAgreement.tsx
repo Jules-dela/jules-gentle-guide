@@ -447,21 +447,25 @@ export function ServiceAgreement({
             {/* 5. FEES */}
             <ContractSection>
               <SectionTitle>5. Fees, Invoicing, and Payment Conditions</SectionTitle>
-              <SectionText>5.1 Service Fee — The Client agrees to pay Unikey a service fee equal to one month rent of the selected property, as stated in the signed rental agreement or confirmed reservation document.</SectionText>
-              <SectionText>5.2 When the Fee Becomes Due — The service fee becomes immediately and fully due once BOTH of the following conditions are met:</SectionText>
+              <SectionText>5.1 Engagement Fee (Frais d'engagement) — Upon completion of the online sign-up on Unikey's website and signature of this Agreement, the Client shall pay a one-time engagement fee of CHF 50 (fifty Swiss Francs), inclusive of any applicable Swiss VAT (TVA). This fee confirms the Client's serious intention to engage Unikey's services and enables Unikey to allocate resources to the Client's housing search.</SectionText>
+              <SectionText>(a) Credit against the Service Fee. If the Client signs a rental agreement for a property identified, proposed, or facilitated by Unikey under Clause 5.3 below, the engagement fee shall be credited in full against the Service Fee due under Clause 5.2.</SectionText>
+              <SectionText>(b) Right of Revocation. The Client may revoke this Agreement at any time prior to the Service Fee becoming due under Clause 5.3, without giving any reason. This contractual right is more generous than, and includes, the statutory fourteen (14) day revocation right under Art. 40a ff. of the Swiss Code of Obligations, which applies because this Agreement is concluded online and the engagement fee equals or exceeds CHF 40. To exercise this right, the Client shall send a written notice to Unikey by email to contact@uni-key.ch or by WhatsApp message to the number published on Unikey's website. No specific form is required (Art. 40e al. 3 CO); it is sufficient that the Client can demonstrate that the revocation was sent in time. Upon valid revocation, Unikey shall refund the engagement fee in full within thirty (30) days, without deduction. The Client confirms having been informed of this right at the time of signature.</SectionText>
+              <SectionText>(c) Outcome When No Lease is Signed. This clause applies when (i) the service period defined in clause (d) below ends without a rental agreement being signed through Unikey's services, or (ii) either Party terminates this Agreement earlier without a rental agreement being signed. In such cases, the engagement fee shall be treated as follows: (1) If, at the time the Agreement ends, Unikey has proposed to the Client at least three (3) accommodation options matching the criteria the Client provided in the application process, and the Client has neither validated any of those options nor any other property facilitated by Unikey, the engagement fee shall be retained by Unikey as compensation for the services actually rendered, and the dossier shall be closed. Proposed options shall be deemed delivered when sent to the Client by email or other written means, regardless of whether the Client responds. (2) In all other cases — including where Unikey has proposed fewer than three (3) matching accommodation options, where the Client validly revokes this Agreement under clause (b) above, or where Unikey terminates the Agreement — the engagement fee shall be fully refunded to the Client within fourteen (14) calendar days of the Agreement ending, by bank transfer to the Client's designated account, without deduction.</SectionText>
+              <SectionText>(d) Service Period. Unless the Parties agree otherwise in writing, the maximum service period under this Agreement is six (6) months from the date of signature, after which this Agreement shall automatically terminate, subject to clause (c) above. Either Party may terminate this Agreement at any time in accordance with mandatory Swiss law (notably Art. 404 of the Swiss Code of Obligations).</SectionText>
+              <SectionText>(e) Payment Method and Receipt. The engagement fee is paid at the time of online sign-up exclusively by bank transfer processed through Stripe. A receipt or invoice in accordance with Swiss law shall be issued to the Client.</SectionText>
+              <SectionText>5.2 Service Fee — The Client agrees to pay Unikey a service fee equal to one month rent of the selected property, as stated in the signed rental agreement or confirmed reservation document.</SectionText>
+              <SectionText>5.3 When the Fee Becomes Due — The service fee becomes immediately and fully due once BOTH of the following conditions are met:</SectionText>
               <BulletList items={[
                 '(a) The Client has signed a rental agreement (lease or sublease) for a property identified, proposed, or facilitated by Unikey; and',
                 '(b) The keys to the property are either handed over to the Client or confirmed in writing (including by email) by the landlord or agency as available for the Client on the agreed move-in date.',
               ]} />
-              <SectionText>5.3 Invoice and Payment Deadline — Upon confirmation of events (a) and (b) above, Unikey will issue an invoice to the Client. The Client shall pay the invoice in full within seven (7) calendar days of the invoice date by one of the accepted payment methods.</SectionText>
-              <SectionText>5.4 Accepted Payment Methods:</SectionText>
+              <SectionText>5.4 Invoice and Payment Deadline — Upon confirmation of events (a) and (b) above, Unikey will issue an invoice to the Client. The Client shall pay the invoice in full within seven (7) calendar days of the invoice date by one of the accepted payment methods.</SectionText>
+              <SectionText>5.5 Accepted Payment Methods — Payment can be made by:</SectionText>
               <BulletList items={[
-                'Bank transfer to the account indicated on the invoice',
-                'Approved digital payment solutions (e.g. Twint, Revolut, or others specified by Unikey)',
-                'Any other method only if expressly agreed in writing by Unikey',
+                'Bank transfer to the Unikey SNC Stripe account indicated on the invoice',
               ]} />
-              <SectionText>5.5 Non-Refundable Nature of the Fee — Once conditions (a) and (b) of Clause 5.2 have been fulfilled, the service fee is strictly non-refundable, except where mandatory Swiss law requires otherwise and only under the limited situations set out in Clause 6.</SectionText>
-              <SectionText>5.6 No Link to Future Use or Length of Rental — The service fee is due and remains payable regardless of:</SectionText>
+              <SectionText>5.6 Non-Refundable Nature of the Service Fee — Once conditions (a) and (b) of Clause 5.3 have been fulfilled, the service fee is strictly non-refundable, except where mandatory Swiss law requires otherwise and only under the limited situations set out in Clause 6.</SectionText>
+              <SectionText>5.7 No Link to Future Use or Length of Rental — The service fee is due and remains payable regardless of:</SectionText>
               <BulletList items={[
                 'Early termination, cancellation, or non-renewal of the rental agreement by the Client or the landlord',
                 'Any dispute, rent reduction, or change in rental terms after the lease is signed',
@@ -474,11 +478,15 @@ export function ServiceAgreement({
             {/* 6. REFUND */}
             <ContractSection>
               <SectionTitle>6. Refund and Guarantee Policy</SectionTitle>
-              <SectionText>6.1 Refund Policy — Under all circumstances, fees paid to Unikey are non-refundable, except where required by mandatory Swiss consumer protection law and only in the following limited scenarios:</SectionText>
+              <SectionText>6.1 Refund Policy — The engagement fee under Clause 5.1 is treated in accordance with that clause. All other fees paid to Unikey, including the service fee, are non-refundable, except where mandatory Swiss consumer protection law requires otherwise or in the limited scenario set out below.</SectionText>
+              <SectionText>No refund applies in particular where:</SectionText>
               <BulletList items={[
-                'Visa refusal, financial difficulties, or personal change of plans by the Client: No refund.',
-                'Landlord cancels or withdraws after lease signature or confirmed reservation for reasons not caused by Unikey: No refund. The Client must seek recourse directly with the landlord/agency or through appropriate legal channels.',
-                'Fraud or gross misconduct proven and directly caused by Unikey or its employees that leads to the Client being unable to occupy the property: Full refund of the service fee, plus internal case review by Unikey.',
+                'The Client is affected by visa refusal, financial difficulties, or a personal change of plans;',
+                'The landlord cancels or withdraws after lease signature or confirmed reservation, for reasons not caused by Unikey. In such cases the Client must seek recourse directly with the landlord, the agency, or through appropriate legal channels.',
+              ]} />
+              <SectionText>A full refund of the service fee applies where:</SectionText>
+              <BulletList items={[
+                'Fraud or gross misconduct proven and directly caused by Unikey or its employees that prevents the Client from occupying the property: Full refund of the service fee, plus internal case review by Unikey. For the avoidance of doubt, this remedy is without prejudice to any further claims the Client may have under mandatory Swiss law (in particular Art. 100 al. 1 CO).',
               ]} />
               <SectionText>6.2 No Service Guarantee — Unikey does not guarantee that:</SectionText>
               <BulletList items={[
@@ -564,9 +572,11 @@ export function ServiceAgreement({
               <BulletList items={[
                 'Landlords, real estate agencies, property platforms and managers',
                 'Guarantor companies or insurance partners, only if requested or expressly authorized by the Client',
+                'Payment processors, in particular Stripe Payments Europe Ltd., for the secure handling of the engagement fee and the service fee, and for the issuance of payment receipts',
               ]} />
               <SectionText>Unikey will never sell, rent, or otherwise monetize the Client's personal data.</SectionText>
-              <SectionText>9.5 Retention and Data Subject Rights — Personal data may be retained for up to two (2) years after the end of the service relationship for administrative, legal, or audit purposes, unless a longer period is required by law. The Client has the right to request access, correction, export, or deletion of their personal data, to the extent permitted by law.</SectionText>
+              <SectionText>Some service providers used by Unikey, including the payment processor Stripe, may process personal data outside Switzerland or the European Economic Area. Such transfers shall only occur where the destination country provides an adequate level of data protection as recognized by the Swiss Federal Council, or where appropriate safeguards are in place (in particular Standard Contractual Clauses approved by the Swiss Federal Data Protection and Information Commissioner (FDPIC) or the European Commission).</SectionText>
+              <SectionText>9.5 Retention and Data Subject Rights — Personal data may be retained for up to two (2) years after the end of the service relationship for administrative, legal, or audit purposes, unless a longer period is required by law. The Client has the right to request access, correction, export, or deletion of their personal data, to the extent permitted by law. If the Client requests deletion before the end of any legally required retention period, Unikey will delete or anonymize what is not legally required to be kept.</SectionText>
               
               {/* 9.6 Consent with initials field */}
               <div className="bg-primary/5 rounded-xl p-4 mt-3 border border-primary/10">
