@@ -493,9 +493,11 @@ Deno.serve(async (req) => {
       const authHeader = req.headers.get("Authorization") || "";
       const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
       let isAdmin = false;
+      console.log("provision auth check: hasHeader=", !!authHeader, "tokenLen=", token.length);
       if (token) {
         const { data: userData } = await supabase.auth.getUser(token);
         const uid = userData?.user?.id;
+        console.log("provision auth check: uid=", uid);
         if (uid) {
           const { data: roleRow } = await supabase
             .from("user_roles")
@@ -504,6 +506,7 @@ Deno.serve(async (req) => {
             .eq("role", "admin")
             .maybeSingle();
           isAdmin = !!roleRow;
+          console.log("provision auth check: isAdmin=", isAdmin);
         }
       }
       if (!isAdmin) {
