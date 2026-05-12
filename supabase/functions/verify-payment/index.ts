@@ -98,7 +98,7 @@ async function sendPortalAccessEmail(toEmail: string, name: string | null, magic
  * Idempotently creates auth user, profile, case, and signs the contract from
  * an intake_submissions row. Safe to call multiple times for the same row.
  */
-async function provisionPortal(row: any, opts: { sendEmail?: boolean } = {}) {
+async function provisionPortal(row: any, opts: { sendEmail?: boolean; forceEmail?: boolean } = {}) {
   if (!row?.email) {
     console.log('provisionPortal: missing email, skipping');
     return;
@@ -259,8 +259,8 @@ async function provisionPortal(row: any, opts: { sendEmail?: boolean } = {}) {
     if (updErr) console.error('provisionPortal: case update failed:', updErr.message);
   }
 
-  // 5. Magic link + portal access email (only first time)
-  if (isNew && opts.sendEmail) {
+  // 5. Magic link + portal access email (only first time, unless forced).
+  if ((isNew && opts.sendEmail) || opts.forceEmail) {
     let magicLink: string | null = null;
     try {
       const { data: linkData } = await supabase.auth.admin.generateLink({
