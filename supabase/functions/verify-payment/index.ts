@@ -327,6 +327,11 @@ const BodySchema = z.discriminatedUnion("mode", [
     mode: z.literal("check_existing"),
     email: z.string().trim().toLowerCase().email().max(255),
   }),
+  z.object({
+    mode: z.literal("provision"),
+    email: z.string().trim().toLowerCase().email().max(255),
+    admin_secret: z.string().min(8).max(200),
+  }),
 ]);
 
 async function fetchStripeSession(sessionId: string) {
@@ -446,6 +451,11 @@ Deno.serve(async (req) => {
         }
       }
 
+      // Auto-provision portal account on confirmed payment (idempotent).
+      if (isPaid && row?.deposit_paid) {
+        await provisionPortal(row, { sendEmail: true });
+      }
+
       return new Response(
         JSON.stringify({ paid: isPaid, row: isPaid ? safeRow(row) : null }),
         { status: 200, headers: { ...cors, "Content-Type": "application/json" } },
@@ -470,10 +480,43 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Auto-provision portal account on lookup (idempotent backfill).
+      await provisionPortal(row, { sendEmail: false });
+
       return new Response(
         JSON.stringify({ found: true, row: safeRow(row) }),
         { status: 200, headers: { ...cors, "Content-Type": "application/json" } },
       );
+    }
+
+    if (parsed.data.mode === "provision") {
+      const adminSecret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+      if (!adminSecret || parsed.data.admin_secret !== adminSecret) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...cors, "Content-Type": "application/json" },
+        });
+      }
+      const email = parsed.data.email;
+      const { data: row } = await supabase
+        .from("intake_submissions")
+        .select("*")
+        .ilike("email", email)
+        .eq("deposit_paid", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!row) {
+        return new Response(JSON.stringify({ provisioned: false, reason: "no_paid_row" }), {
+          status: 200,
+          headers: { ...cors, "Content-Type": "application/json" },
+        });
+      }
+      await provisionPortal(row, { sendEmail: true });
+      return new Response(JSON.stringify({ provisioned: true }), {
+        status: 200,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
     }
 
     // mode: check_existing
