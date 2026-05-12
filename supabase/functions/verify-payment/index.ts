@@ -98,7 +98,7 @@ async function sendPortalAccessEmail(toEmail: string, name: string | null, magic
  * Idempotently creates auth user, profile, case, and signs the contract from
  * an intake_submissions row. Safe to call multiple times for the same row.
  */
-async function provisionPortal(row: any, opts: { sendEmail?: boolean } = {}) {
+async function provisionPortal(row: any, opts: { sendEmail?: boolean; forceEmail?: boolean } = {}) {
   if (!row?.email) {
     console.log('provisionPortal: missing email, skipping');
     return;
@@ -259,8 +259,8 @@ async function provisionPortal(row: any, opts: { sendEmail?: boolean } = {}) {
     if (updErr) console.error('provisionPortal: case update failed:', updErr.message);
   }
 
-  // 5. Magic link + portal access email (only first time)
-  if (isNew && opts.sendEmail) {
+  // 5. Magic link + portal access email (only first time, unless forced).
+  if ((isNew && opts.sendEmail) || opts.forceEmail) {
     let magicLink: string | null = null;
     try {
       const { data: linkData } = await supabase.auth.admin.generateLink({
@@ -330,7 +330,6 @@ const BodySchema = z.discriminatedUnion("mode", [
   z.object({
     mode: z.literal("provision"),
     email: z.string().trim().toLowerCase().email().max(255),
-    admin_secret: z.string().min(8).max(200),
   }),
 ]);
 
@@ -490,8 +489,27 @@ Deno.serve(async (req) => {
     }
 
     if (parsed.data.mode === "provision") {
-      const adminSecret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-      if (!adminSecret || parsed.data.admin_secret !== adminSecret) {
+      // Admin-only: verify caller is an authenticated admin user.
+      const authHeader = req.headers.get("Authorization") || "";
+      const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+      let isAdmin = false;
+      console.log("provision auth check: hasHeader=", !!authHeader, "tokenLen=", token.length);
+      if (token) {
+        const { data: userData } = await supabase.auth.getUser(token);
+        const uid = userData?.user?.id;
+        console.log("provision auth check: uid=", uid);
+        if (uid) {
+          const { data: roleRow } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", uid)
+            .eq("role", "admin")
+            .maybeSingle();
+          isAdmin = !!roleRow;
+          console.log("provision auth check: isAdmin=", isAdmin);
+        }
+      }
+      if (!isAdmin) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
           headers: { ...cors, "Content-Type": "application/json" },
@@ -512,7 +530,7 @@ Deno.serve(async (req) => {
           headers: { ...cors, "Content-Type": "application/json" },
         });
       }
-      await provisionPortal(row, { sendEmail: true });
+      await provisionPortal(row, { sendEmail: true, forceEmail: true });
       return new Response(JSON.stringify({ provisioned: true }), {
         status: 200,
         headers: { ...cors, "Content-Type": "application/json" },
