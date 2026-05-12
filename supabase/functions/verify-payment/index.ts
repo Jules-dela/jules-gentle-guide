@@ -527,7 +527,7 @@ Deno.serve(async (req) => {
           headers: { ...cors, "Content-Type": "application/json" },
         });
       }
-      await provisionPortal(row, { sendEmail: true });
+      await provisionPortal(row, { sendEmail: true, forceEmail: true });
       return new Response(JSON.stringify({ provisioned: true }), {
         status: 200,
         headers: { ...cors, "Content-Type": "application/json" },
