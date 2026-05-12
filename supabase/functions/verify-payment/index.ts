@@ -330,7 +330,6 @@ const BodySchema = z.discriminatedUnion("mode", [
   z.object({
     mode: z.literal("provision"),
     email: z.string().trim().toLowerCase().email().max(255),
-    admin_secret: z.string().min(8).max(200),
   }),
 ]);
 
@@ -490,8 +489,24 @@ Deno.serve(async (req) => {
     }
 
     if (parsed.data.mode === "provision") {
-      const adminSecret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-      if (!adminSecret || parsed.data.admin_secret !== adminSecret) {
+      // Admin-only: verify caller is an authenticated admin user.
+      const authHeader = req.headers.get("Authorization") || "";
+      const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+      let isAdmin = false;
+      if (token) {
+        const { data: userData } = await supabase.auth.getUser(token);
+        const uid = userData?.user?.id;
+        if (uid) {
+          const { data: roleRow } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", uid)
+            .eq("role", "admin")
+            .maybeSingle();
+          isAdmin = !!roleRow;
+        }
+      }
+      if (!isAdmin) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
           headers: { ...cors, "Content-Type": "application/json" },
