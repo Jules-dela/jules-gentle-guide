@@ -30,6 +30,252 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
+function determineClientType(university: string | null | undefined): 'student' | 'employee' | 'other' {
+  if (!university) return 'other';
+  const u = university.toLowerCase();
+  if (/(ehl|epfl|unil|university|école|school|student|college|campus)/.test(u)) return 'student';
+  if (/(company|corp|inc|ltd|gmbh|sa|employee|employer|office|work)/.test(u)) return 'employee';
+  return 'other';
+}
+
+function generateSecurePassword(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%&*';
+  const arr = new Uint8Array(20);
+  crypto.getRandomValues(arr);
+  let pw = '';
+  for (let i = 0; i < arr.length; i++) pw += chars[arr[i] % chars.length];
+  return pw;
+}
+
+async function findUserByEmail(email: string) {
+  const norm = email.trim().toLowerCase();
+  let page = 1;
+  const perPage = 200;
+  while (true) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
+    if (error) {
+      console.error('listUsers failed:', error.message);
+      return null;
+    }
+    const users = data?.users ?? [];
+    const found = users.find((u) => (u.email ?? '').toLowerCase() === norm);
+    if (found) return found;
+    if (users.length < perPage) return null;
+    page += 1;
+  }
+}
+
+async function sendPortalAccessEmail(toEmail: string, name: string | null, magicLink: string | null) {
+  if (!RESEND_API_KEY) return;
+  const firstName = (name || "").trim().split(/\s+/)[0] || "there";
+  const cta = magicLink
+    ? `<p style="margin:24px 0"><a href="${magicLink}" style="background:#0f172a;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">Access your portal</a></p>`
+    : `<p>You can access your portal anytime at <a href="https://uni-key.ch/portal">uni-key.ch/portal</a>.</p>`;
+  const html = `<div style="font-family:-apple-system,Segoe UI,Arial,sans-serif;font-size:15px;line-height:1.6;color:#0f172a;max-width:560px">
+    <p>Hi ${firstName},</p>
+    <p>Your UniKey client portal is ready. You can now track your housing search, review proposals, and upload your documents.</p>
+    ${cta}
+    <p>Questions? Reply to this email or contact us at <a href="mailto:contact@uni-key.ch">contact@uni-key.ch</a>.</p>
+    <p>— The UniKey Team</p>
+  </div>`;
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "UniKey <contact@uni-key.ch>",
+        to: [toEmail],
+        subject: "Your UniKey portal is ready 🔑",
+        html,
+      }),
+    });
+  } catch (e) {
+    console.error('Portal access email failed:', (e as Error).message);
+  }
+}
+
+/**
+ * Idempotently creates auth user, profile, case, and signs the contract from
+ * an intake_submissions row. Safe to call multiple times for the same row.
+ */
+async function provisionPortal(row: any, opts: { sendEmail?: boolean } = {}) {
+  if (!row?.email) {
+    console.log('provisionPortal: missing email, skipping');
+    return;
+  }
+  const email = String(row.email).trim().toLowerCase();
+  const name = (row.name || email.split('@')[0] || 'Client').trim();
+
+  // 1. Create or find auth user
+  let userId: string | null = null;
+  let isNew = false;
+  const { data: created, error: createErr } = await supabase.auth.admin.createUser({
+    email,
+    password: generateSecurePassword(),
+    email_confirm: true,
+    user_metadata: { name, phone: row.phone || null },
+  });
+  if (createErr) {
+    const msg = (createErr.message || '').toLowerCase();
+    if (msg.includes('already') || msg.includes('exists') || msg.includes('duplicate')) {
+      const existing = await findUserByEmail(email);
+      if (!existing) {
+        console.error('provisionPortal: user reportedly exists but not found:', email);
+        return;
+      }
+      userId = existing.id;
+    } else {
+      console.error('provisionPortal: createUser failed:', createErr.message);
+      return;
+    }
+  } else {
+    userId = created.user.id;
+    isNew = true;
+  }
+  if (!userId) return;
+
+  // 2. Profile
+  const prefs = (row.preferences || {}) as Record<string, any>;
+  let profileId: string | null = null;
+  {
+    const { data: existing } = await supabase
+      .from('profiles').select('id').eq('user_id', userId).maybeSingle();
+    if (existing) {
+      profileId = existing.id;
+    } else {
+      const { data: inserted, error: pErr } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: userId,
+          name,
+          email,
+          phone: row.phone || null,
+          client_type: determineClientType(prefs.university),
+          company_school: prefs.university || null,
+        })
+        .select('id')
+        .single();
+      if (pErr) {
+        console.error('provisionPortal: profile insert failed:', pErr.message);
+        const { data: rec } = await supabase
+          .from('profiles').select('id').eq('user_id', userId).maybeSingle();
+        if (!rec) return;
+        profileId = rec.id;
+      } else {
+        profileId = inserted.id;
+      }
+    }
+  }
+  if (!profileId) return;
+
+  // 3. Case
+  const initialCriteria = {
+    neighbourhood: prefs.neighbourhood ?? null,
+    budget: row.budget ?? null,
+    rooms: prefs.rooms ?? null,
+    duration: row.duration ?? null,
+    property_type: row.property_type ?? null,
+    propertyType: row.property_type ?? null,
+    roommate_preference: prefs.roommates === 'yes'
+      ? `Yes - ${prefs.roommate_detail || 'not specified'} (${prefs.roommate_count || '?'} roommates)`
+      : 'No',
+    furnished: prefs.furnished ?? null,
+    near_transport: prefs.near_transport ?? null,
+    pets_allowed: prefs.pets ?? null,
+    smoking_allowed: prefs.no_smoking ?? null,
+    notes: prefs.notes ?? null,
+    moving_date: prefs.moving_date ?? null,
+    university: prefs.university ?? null,
+  };
+
+  let caseId: string | null = null;
+  let caseAlreadySigned = false;
+  {
+    const { data: existingCases } = await supabase
+      .from('cases')
+      .select('id, contract_data')
+      .eq('client_id', profileId)
+      .neq('status', 'closed')
+      .order('created_at', { ascending: false });
+    const preferred = existingCases?.find((c) => c.contract_data != null) ?? existingCases?.[0];
+    if (preferred) {
+      caseId = preferred.id;
+      caseAlreadySigned = !!preferred.contract_data;
+    } else {
+      const { data: createdCase, error: cErr } = await supabase
+        .from('cases')
+        .insert({
+          client_id: profileId,
+          status: 'request_received',
+          initial_criteria: initialCriteria,
+        })
+        .select('id, contract_data')
+        .single();
+      if (cErr) {
+        console.error('provisionPortal: case insert failed:', cErr.message);
+        return;
+      }
+      caseId = createdCase.id;
+    }
+  }
+  if (!caseId) return;
+
+  // 4. Sign contract from intake data (if not already signed and we have a signature)
+  if (!caseAlreadySigned && row.signature_image) {
+    const signedAt = row.payment_confirmed_at || row.updated_at || new Date().toISOString();
+    const fullName = name;
+    const dob = row.date_of_birth || null;
+    const nationality = row.nationality || null;
+    const initials = fullName
+      .split(/\s+/).map((p: string) => p[0]).filter(Boolean).join('').toUpperCase().slice(0, 4);
+
+    const { error: sigErr } = await supabase.from('contract_signatures').insert({
+      case_id: caseId,
+      signature_image: row.signature_image,
+      ip_address: null,
+      user_agent: null,
+      device_info: null,
+      signed_at: signedAt,
+      client_full_name: fullName,
+      client_date_of_birth: dob,
+      client_nationality: nationality,
+      client_initials: initials,
+      signature_hash: row.signature_hash || null,
+    });
+    if (sigErr) console.error('provisionPortal: signature insert failed:', sigErr.message);
+
+    const { error: updErr } = await supabase.from('cases').update({
+      contract_data: {
+        signed: true,
+        timestamp: signedAt,
+        client_full_name: fullName,
+        client_date_of_birth: dob,
+        client_nationality: nationality,
+        client_initials: initials,
+        signature_hash: row.signature_hash || null,
+      },
+      status: 'search_in_progress',
+    }).eq('id', caseId);
+    if (updErr) console.error('provisionPortal: case update failed:', updErr.message);
+  }
+
+  // 5. Magic link + portal access email (only first time)
+  if (isNew && opts.sendEmail) {
+    let magicLink: string | null = null;
+    try {
+      const { data: linkData } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email,
+        options: { redirectTo: 'https://uni-key.ch/portal' },
+      });
+      magicLink = linkData?.properties?.action_link ?? null;
+    } catch (e) {
+      console.error('provisionPortal: magic link failed:', (e as Error).message);
+    }
+    await sendPortalAccessEmail(email, name, magicLink);
+  }
+}
+
 async function sendActivationEmail(toEmail: string, name: string | null) {
   if (!RESEND_API_KEY) {
     console.warn("RESEND_API_KEY not set; skipping activation email");
