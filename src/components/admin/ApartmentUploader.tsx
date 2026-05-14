@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail, Eye, Video, ArrowLeft, ArrowRight, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail, Eye, Video, ArrowLeft, ArrowRight, ChevronUp, ChevronDown, Star, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -121,6 +121,34 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
       return { ...apt, images: newImages, imagePreviewUrls: newPreviews };
     }));
   }, [apartments]);
+
+  const reorderImage = useCallback((apartmentId: string, fromIndex: number, toIndex: number) => {
+    setApartments(prev => prev.map(apt => {
+      if (apt.id !== apartmentId) return apt;
+      if (fromIndex === toIndex || toIndex < 0 || toIndex >= apt.images.length) return apt;
+      const newImages = [...apt.images];
+      const newPreviews = [...apt.imagePreviewUrls];
+      const [movedImg] = newImages.splice(fromIndex, 1);
+      const [movedPrev] = newPreviews.splice(fromIndex, 1);
+      newImages.splice(toIndex, 0, movedImg);
+      newPreviews.splice(toIndex, 0, movedPrev);
+      // Remap positions to follow images
+      const oldPositions = apt.imagePositions;
+      const order = apt.imagePreviewUrls.map((_, i) => i);
+      const [movedIdx] = order.splice(fromIndex, 1);
+      order.splice(toIndex, 0, movedIdx);
+      const newPositions: Record<number, number> = {};
+      order.forEach((origIdx, newIdx) => {
+        if (oldPositions[origIdx] !== undefined) newPositions[newIdx] = oldPositions[origIdx];
+      });
+      return { ...apt, images: newImages, imagePreviewUrls: newPreviews, imagePositions: newPositions };
+    }));
+  }, []);
+
+  const setAsCover = useCallback((apartmentId: string, imageIndex: number) => {
+    if (imageIndex === 0) return;
+    reorderImage(apartmentId, imageIndex, 0);
+  }, [reorderImage]);
 
   const setImagePosition = useCallback((apartmentId: string, imageIndex: number, nextPosition: number) => {
     setApartments(prev => prev.map(apt => {
@@ -391,7 +419,7 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                         </Label>
                         {apt.imagePreviewUrls.length > 0 && (
                           <p className="mb-2 text-xs text-muted-foreground">
-                            Use the arrows on each photo or the slider below to adjust the crop.
+                            Drag photos to reorder. Photo #1 is the cover the client sees first.
                           </p>
                         )}
                         
@@ -400,14 +428,41 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                             const imagePosition = Math.round(apt.imagePositions[imgIndex] ?? 50);
 
                             return (
-                              <div key={imgIndex} className="space-y-2">
-                                <div className="relative aspect-square rounded-lg overflow-hidden border border-border bg-muted">
+                              <div
+                                key={imgIndex}
+                                className="space-y-2"
+                                draggable
+                                onDragStart={(e) => {
+                                  e.dataTransfer.setData('text/plain', String(imgIndex));
+                                  e.dataTransfer.effectAllowed = 'move';
+                                }}
+                                onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  const from = parseInt(e.dataTransfer.getData('text/plain'), 10);
+                                  if (!isNaN(from)) reorderImage(apt.id, from, imgIndex);
+                                }}
+                              >
+                                <div className={`relative aspect-square rounded-lg overflow-hidden border-2 bg-muted cursor-move ${imgIndex === 0 ? 'border-primary ring-2 ring-primary/30' : 'border-border'}`}>
                                   <img
                                     src={url}
                                     alt={`Preview ${imgIndex + 1}`}
                                     className="w-full h-full object-cover"
                                     style={{ objectPosition: `center ${imagePosition}%` }}
                                   />
+                                  {/* Large position badge */}
+                                  <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5">
+                                    <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full shadow-lg backdrop-blur-sm ${imgIndex === 0 ? 'bg-primary text-primary-foreground' : 'bg-background/95 text-foreground border border-border'}`}>
+                                      <GripVertical className="h-3.5 w-3.5 opacity-70" />
+                                      <span className="text-sm font-bold">#{imgIndex + 1}</span>
+                                      {imgIndex === 0 && (
+                                        <>
+                                          <Star className="h-3 w-3 fill-current" />
+                                          <span className="text-[10px] font-semibold uppercase tracking-wide">Cover</span>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
                                   <div className="absolute bottom-2 right-2 z-10 flex flex-col items-center gap-1.5">
                                     <Button
                                       type="button"
@@ -441,9 +496,6 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                                   >
                                     <X className="h-4 w-4" />
                                   </button>
-                                  {imgIndex === 0 && (
-                                    <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary text-primary-foreground">Cover</span>
-                                  )}
                                 </div>
 
                                 <div className="rounded-lg border border-border bg-muted/30 p-2.5 space-y-2">
@@ -463,27 +515,36 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                                 </div>
 
                                 {apt.imagePreviewUrls.length > 1 && (
-                                  <div className="flex items-center justify-center gap-2">
-                                    {imgIndex > 0 && (
+                                  <div className="flex items-center justify-between gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => moveImage(apt.id, imgIndex, 'left')}
+                                      disabled={imgIndex === 0}
+                                      className="flex-1 h-8 rounded-md bg-background text-foreground border border-border shadow-sm flex items-center justify-center gap-1 text-xs font-medium disabled:opacity-30 disabled:cursor-not-allowed hover:bg-muted"
+                                      aria-label="Move image left"
+                                    >
+                                      <ArrowLeft className="h-3.5 w-3.5" />
+                                    </button>
+                                    {imgIndex !== 0 && (
                                       <button
                                         type="button"
-                                        onClick={() => moveImage(apt.id, imgIndex, 'left')}
-                                        className="w-8 h-8 rounded-full bg-background text-foreground border border-border shadow-sm flex items-center justify-center"
-                                        aria-label="Move image left"
+                                        onClick={() => setAsCover(apt.id, imgIndex)}
+                                        className="flex-[2] h-8 rounded-md bg-primary/10 text-primary border border-primary/30 shadow-sm flex items-center justify-center gap-1 text-xs font-semibold hover:bg-primary/20"
+                                        title="Make this the cover photo"
                                       >
-                                        <ArrowLeft className="h-4 w-4" />
+                                        <Star className="h-3.5 w-3.5" />
+                                        Set as cover
                                       </button>
                                     )}
-                                    {imgIndex < apt.imagePreviewUrls.length - 1 && (
-                                      <button
-                                        type="button"
-                                        onClick={() => moveImage(apt.id, imgIndex, 'right')}
-                                        className="w-8 h-8 rounded-full bg-background text-foreground border border-border shadow-sm flex items-center justify-center"
-                                        aria-label="Move image right"
-                                      >
-                                        <ArrowRight className="h-4 w-4" />
-                                      </button>
-                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => moveImage(apt.id, imgIndex, 'right')}
+                                      disabled={imgIndex === apt.imagePreviewUrls.length - 1}
+                                      className="flex-1 h-8 rounded-md bg-background text-foreground border border-border shadow-sm flex items-center justify-center gap-1 text-xs font-medium disabled:opacity-30 disabled:cursor-not-allowed hover:bg-muted"
+                                      aria-label="Move image right"
+                                    >
+                                      <ArrowRight className="h-3.5 w-3.5" />
+                                    </button>
                                   </div>
                                 )}
                               </div>
