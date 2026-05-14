@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail, Eye, Video, ArrowLeft, ArrowRight, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, X, Upload, Image, Home, MapPin, DollarSign, FileText, Loader2, Check, Mail, Eye, Video, ArrowLeft, ArrowRight, ChevronUp, ChevronDown, Star, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -121,6 +121,34 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
       return { ...apt, images: newImages, imagePreviewUrls: newPreviews };
     }));
   }, [apartments]);
+
+  const reorderImage = useCallback((apartmentId: string, fromIndex: number, toIndex: number) => {
+    setApartments(prev => prev.map(apt => {
+      if (apt.id !== apartmentId) return apt;
+      if (fromIndex === toIndex || toIndex < 0 || toIndex >= apt.images.length) return apt;
+      const newImages = [...apt.images];
+      const newPreviews = [...apt.imagePreviewUrls];
+      const [movedImg] = newImages.splice(fromIndex, 1);
+      const [movedPrev] = newPreviews.splice(fromIndex, 1);
+      newImages.splice(toIndex, 0, movedImg);
+      newPreviews.splice(toIndex, 0, movedPrev);
+      // Remap positions to follow images
+      const oldPositions = apt.imagePositions;
+      const order = apt.imagePreviewUrls.map((_, i) => i);
+      const [movedIdx] = order.splice(fromIndex, 1);
+      order.splice(toIndex, 0, movedIdx);
+      const newPositions: Record<number, number> = {};
+      order.forEach((origIdx, newIdx) => {
+        if (oldPositions[origIdx] !== undefined) newPositions[newIdx] = oldPositions[origIdx];
+      });
+      return { ...apt, images: newImages, imagePreviewUrls: newPreviews, imagePositions: newPositions };
+    }));
+  }, []);
+
+  const setAsCover = useCallback((apartmentId: string, imageIndex: number) => {
+    if (imageIndex === 0) return;
+    reorderImage(apartmentId, imageIndex, 0);
+  }, [reorderImage]);
 
   const setImagePosition = useCallback((apartmentId: string, imageIndex: number, nextPosition: number) => {
     setApartments(prev => prev.map(apt => {
