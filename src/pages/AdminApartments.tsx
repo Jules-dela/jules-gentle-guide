@@ -275,7 +275,7 @@ export default function AdminApartments() {
                         <ExternalLink className="h-3 w-3 shrink-0" />
                       </a>
                       {apt.description && (
-                        <p className="text-sm text-muted-foreground">{apt.description}</p>
+                        <p className="text-sm text-muted-foreground whitespace-pre-line">{apt.description}</p>
                       )}
                       <div className="flex flex-wrap gap-1.5">
                         {apt.assigned_client_ids.map(cid => (
