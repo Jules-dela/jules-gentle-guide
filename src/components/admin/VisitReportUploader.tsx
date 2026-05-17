@@ -93,7 +93,6 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
         .from('property_proposals')
         .select('*')
         .eq('case_id', caseId)
-        .eq('client_status', 'liked')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -373,8 +372,8 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
     return (
       <div className="py-6 text-center border border-dashed rounded-lg">
         <Eye className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-        <p className="text-sm text-muted-foreground">No visit scheduled yet</p>
-        <p className="text-xs text-muted-foreground mt-1">A client must like a property first before you can add a visit report</p>
+        <p className="text-sm text-muted-foreground">No proposals yet</p>
+        <p className="text-xs text-muted-foreground mt-1">Add a property proposal first, then you can upload a visit report (no need to wait for the client to like it).</p>
       </div>
     );
   }
@@ -386,7 +385,7 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
       {/* Proposal Selector — only show if multiple liked */}
       {likedProposals.length > 1 && (
         <div className="space-y-2">
-          <Label className="text-xs text-muted-foreground">Select a liked property ({likedProposals.length} total)</Label>
+          <Label className="text-xs text-muted-foreground">Select a property ({likedProposals.length} total)</Label>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {likedProposals.map((p) => (
               <button
