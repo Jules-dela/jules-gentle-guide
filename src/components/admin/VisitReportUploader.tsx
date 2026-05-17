@@ -385,7 +385,7 @@ export function VisitReportUploader({ caseId, onResetToResearch, clientEmail, cl
       {/* Proposal Selector — only show if multiple liked */}
       {likedProposals.length > 1 && (
         <div className="space-y-2">
-          <Label className="text-xs text-muted-foreground">Select a liked property ({likedProposals.length} total)</Label>
+          <Label className="text-xs text-muted-foreground">Select a property ({likedProposals.length} total)</Label>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {likedProposals.map((p) => (
               <button
