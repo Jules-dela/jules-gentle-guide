@@ -672,10 +672,8 @@ export function ServiceAgreement({
                 </div>
               </div>
 
-              <p className="text-xs text-muted-foreground text-center mt-4">
-                ═══════════════════════════════════════════════════════════
-              </p>
-              <p className="text-xs text-muted-foreground text-center mt-1 mb-2">
+              <div className="border-t-2 border-dashed border-muted-foreground/30 mt-4" />
+              <p className="text-xs text-muted-foreground text-center mt-2 mb-2 tracking-widest">
                 END OF DOCUMENT
               </p>
             </ContractSection>
