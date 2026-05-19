@@ -467,8 +467,24 @@ Deno.serve(async (req) => {
         row = fallback.data;
       }
 
+      await logPaymentEvent({
+        event_type: "session_checked",
+        source: "session",
+        email: customerEmail ?? row?.email ?? null,
+        intake_submission_id: row?.id ?? null,
+        previous_status: row?.status ?? null,
+        new_status: row?.status ?? null,
+        deposit_paid: row?.deposit_paid ?? null,
+        stripe_session_id: sessionId,
+        message: row
+          ? `Stripe session ${isPaid ? "paid" : session.payment_status}; matched submission.`
+          : `Stripe session ${isPaid ? "paid" : session.payment_status}; no matching intake submission found.`,
+        metadata: { payment_status: session.payment_status },
+      });
+
       // If paid and we have a row, flip the deposit flag (idempotent).
       if (isPaid && row && !row.deposit_paid) {
+        const previousStatus = row.status ?? null;
         await supabase
           .from("intake_submissions")
           .update({
@@ -479,6 +495,17 @@ Deno.serve(async (req) => {
           })
           .eq("id", row.id);
         row = { ...row, deposit_paid: true, payment_confirmed_at: new Date().toISOString() };
+        await logPaymentEvent({
+          event_type: "deposit_confirmed",
+          source: "session",
+          email: row.email ?? null,
+          intake_submission_id: row.id,
+          previous_status: previousStatus,
+          new_status: "payment_confirmed",
+          deposit_paid: true,
+          stripe_session_id: sessionId,
+          message: "Deposit marked as paid via Stripe session check.",
+        });
         if (row.email) {
           await sendActivationEmail(row.email, row.name ?? null);
         }
@@ -507,6 +534,12 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       if (!row) {
+        await logPaymentEvent({
+          event_type: "email_lookup_not_found",
+          source: "email",
+          email,
+          message: "Client tried to restore by email but no paid submission was found.",
+        });
         return new Response(JSON.stringify({ found: false }), {
           status: 200,
           headers: { ...cors, "Content-Type": "application/json" },
@@ -515,6 +548,17 @@ Deno.serve(async (req) => {
 
       // Auto-provision portal account on lookup (idempotent backfill).
       await provisionPortal(row, { sendEmail: false });
+      await logPaymentEvent({
+        event_type: "email_lookup_restored",
+        source: "email",
+        email,
+        intake_submission_id: row.id,
+        previous_status: row.status ?? null,
+        new_status: row.status ?? null,
+        deposit_paid: row.deposit_paid ?? null,
+        stripe_session_id: row.stripe_session_id ?? null,
+        message: "Client restored application via email verification.",
+      });
 
       return new Response(
         JSON.stringify({ found: true, row: safeRow(row) }),
@@ -559,12 +603,29 @@ Deno.serve(async (req) => {
         .limit(1)
         .maybeSingle();
       if (!row) {
+        await logPaymentEvent({
+          event_type: "admin_provision_no_paid_row",
+          source: "provision",
+          email,
+          message: "Admin tried to provision portal but no paid submission was found.",
+        });
         return new Response(JSON.stringify({ provisioned: false, reason: "no_paid_row" }), {
           status: 200,
           headers: { ...cors, "Content-Type": "application/json" },
         });
       }
       await provisionPortal(row, { sendEmail: true, forceEmail: true });
+      await logPaymentEvent({
+        event_type: "admin_provision_completed",
+        source: "provision",
+        email,
+        intake_submission_id: row.id,
+        previous_status: row.status ?? null,
+        new_status: row.status ?? null,
+        deposit_paid: row.deposit_paid ?? null,
+        stripe_session_id: row.stripe_session_id ?? null,
+        message: "Admin manually re-provisioned portal access.",
+      });
       return new Response(JSON.stringify({ provisioned: true }), {
         status: 200,
         headers: { ...cors, "Content-Type": "application/json" },
@@ -581,6 +642,18 @@ Deno.serve(async (req) => {
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
+
+    await logPaymentEvent({
+      event_type: "check_existing",
+      source: "check_existing",
+      email,
+      previous_status: row?.status ?? null,
+      new_status: row?.status ?? null,
+      deposit_paid: row?.deposit_paid ?? null,
+      message: row
+        ? `Pre-payment check found existing submission (deposit_paid=${row.deposit_paid}).`
+        : "Pre-payment check: no existing submission for this email.",
+    });
 
     return new Response(
       JSON.stringify({
