@@ -772,19 +772,19 @@ export function ServiceAgreement({
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Submitting...
+                    Signing...
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="w-5 h-5" />
-                    Sign & Submit
+                    Sign Agreement
                   </>
                 )}
               </Button>
 
               {/* Legal footer */}
               <p className="text-xs text-muted-foreground text-center pt-1">
-                By clicking "Sign & Submit", you confirm that you have read, understood, and accepted all the terms of the UniKey Service Agreement and authorize the digital processing of your signature.
+                By clicking "Sign Agreement", you confirm that you have read, understood, and accepted all the terms of the UniKey Service Agreement and authorize the digital processing of your signature. This does not submit your application — you'll still need to complete the payment step below.
               </p>
             </motion.div>
           ) : (

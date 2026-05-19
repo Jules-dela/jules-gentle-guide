@@ -1394,7 +1394,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                     setShowContractWarning(false);
                                     toast({
                                       title: "✅ Contract signed!",
-                                      description: "You can now submit your application.",
+                                      description: "Next step: complete the payment below to activate your search.",
                                     });
                                     return { error: null };
                                   }}
