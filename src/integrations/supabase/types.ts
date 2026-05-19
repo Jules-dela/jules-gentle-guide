@@ -502,6 +502,51 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_events: {
+        Row: {
+          created_at: string
+          deposit_paid: boolean | null
+          email: string | null
+          event_type: string
+          id: string
+          intake_submission_id: string | null
+          message: string | null
+          metadata: Json
+          new_status: string | null
+          previous_status: string | null
+          source: string | null
+          stripe_session_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          deposit_paid?: boolean | null
+          email?: string | null
+          event_type: string
+          id?: string
+          intake_submission_id?: string | null
+          message?: string | null
+          metadata?: Json
+          new_status?: string | null
+          previous_status?: string | null
+          source?: string | null
+          stripe_session_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          deposit_paid?: boolean | null
+          email?: string | null
+          event_type?: string
+          id?: string
+          intake_submission_id?: string | null
+          message?: string | null
+          metadata?: Json
+          new_status?: string | null
+          previous_status?: string | null
+          source?: string | null
+          stripe_session_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           client_type: Database["public"]["Enums"]["client_type"] | null
