@@ -30,6 +30,40 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
+/**
+ * Append a payment-verification audit log row that admins can view in the
+ * back office. Failures here must never break the main flow.
+ */
+async function logPaymentEvent(opts: {
+  event_type: string;
+  source: string;
+  email?: string | null;
+  intake_submission_id?: string | null;
+  previous_status?: string | null;
+  new_status?: string | null;
+  deposit_paid?: boolean | null;
+  stripe_session_id?: string | null;
+  message?: string | null;
+  metadata?: Record<string, unknown>;
+}) {
+  try {
+    await supabase.from("payment_events").insert({
+      event_type: opts.event_type,
+      source: opts.source,
+      email: opts.email ?? null,
+      intake_submission_id: opts.intake_submission_id ?? null,
+      previous_status: opts.previous_status ?? null,
+      new_status: opts.new_status ?? null,
+      deposit_paid: opts.deposit_paid ?? null,
+      stripe_session_id: opts.stripe_session_id ?? null,
+      message: opts.message ?? null,
+      metadata: opts.metadata ?? {},
+    });
+  } catch (e) {
+    console.error("logPaymentEvent failed:", (e as Error).message);
+  }
+}
+
 function determineClientType(university: string | null | undefined): 'student' | 'employee' | 'other' {
   if (!university) return 'other';
   const u = university.toLowerCase();
