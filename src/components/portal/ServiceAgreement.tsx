@@ -128,6 +128,7 @@ export function ServiceAgreement({
   const [signatureEmpty, setSignatureEmpty] = useState(true);
   const sigCanvas = useRef<SignatureCanvas | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const sigWrapperRef = useRef<HTMLDivElement | null>(null);
 
   // Interactive field states
   const [fullName, setFullName] = useState(clientName !== 'Guest' ? clientName : '');
@@ -166,6 +167,40 @@ export function ServiceAgreement({
       return () => viewport.removeEventListener('scroll', handleScroll);
     }
   }, [handleScroll]);
+
+  // Resize the signature canvas buffer to match its container width so
+  // strokes are not clipped on mobile (default canvas width is 300px).
+  useEffect(() => {
+    const wrapper = sigWrapperRef.current;
+    if (!wrapper) return;
+    const resize = () => {
+      const canvas = (sigCanvas.current as any)?.getCanvas?.() as HTMLCanvasElement | undefined;
+      if (!canvas) return;
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      const width = wrapper.clientWidth;
+      const height = wrapper.clientHeight;
+      if (!width || !height) return;
+      // Preserve existing drawing
+      const data = (sigCanvas.current as any)?.toData?.();
+      canvas.width = width * ratio;
+      canvas.height = height * ratio;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      const ctx = canvas.getContext('2d');
+      ctx?.scale(ratio, ratio);
+      if (data && data.length) {
+        (sigCanvas.current as any)?.fromData?.(data);
+      }
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(wrapper);
+    window.addEventListener('orientationchange', resize);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('orientationchange', resize);
+    };
+  }, []);
 
   const clearSignature = () => {
     if (sigCanvas.current) {
@@ -640,13 +675,16 @@ export function ServiceAgreement({
                 </div>
 
                 {/* Signature Canvas */}
-                <div className="relative border-2 border-dashed border-muted-foreground/30 rounded-xl bg-background overflow-hidden">
+                <div
+                  ref={sigWrapperRef}
+                  className="relative border-2 border-dashed border-muted-foreground/30 rounded-xl bg-background overflow-hidden h-40 md:h-36 w-full"
+                >
                   <SignatureCanvas
                     ref={sigCanvas}
                     penColor="#1e3a8a"
                     canvasProps={{
-                      className: 'w-full h-40 md:h-36 cursor-crosshair',
-                      style: { touchAction: 'none' },
+                      className: 'block w-full h-full cursor-crosshair',
+                      style: { touchAction: 'none', display: 'block' },
                     }}
                     onEnd={checkSignatureEmpty}
                   />
