@@ -1,34 +1,26 @@
-
+# Auto-like proposals on visit publish
 
 ## Problem
+Today a proposal only moves from Research (Stage 2) to Viewing (Stage 3) when the client taps **Like** in the gallery. If we publish a visit report (photos/video) before they like it, they stay stuck in Research and don't see the viewing — exactly what happened to Eva Andreycheva.
 
-Videos uploaded by admins in the Visit Report section are stored in the `visit_videos` table but **never fetched or displayed** in the client portal's `VisitReport.tsx` component. Clients cannot see visit videos at all.
+## Fix
+Treat publishing a viewing as implicit consent: the moment a proposal becomes `visit_published = true`, automatically mark `client_status = 'liked'` (only if it's still `pending`, so we never overwrite a genuine rejection).
 
-The screenshot also shows the admin's own video player rendering as a black box — that may be a browser/codec issue with the uploaded file, but the client-side gap is the core problem.
+## How
 
-## Plan
+**1. Database trigger** on `property_proposals`
+- Fires on INSERT or UPDATE when `visit_published` becomes `true`
+- If `client_status = 'pending'`, set it to `'liked'`
+- Leaves `'rejected'` proposals untouched (admin shouldn't be publishing visits for those anyway)
 
-### 1. Add video fetching to the client VisitReport component
-**File:** `src/components/portal/VisitReport.tsx`
+**2. Backfill existing rows**
+- One-time UPDATE: any proposal where `visit_published = true` AND `client_status = 'pending'` → `'liked'`
+- This immediately unblocks Eva and anyone else in the same state
 
-- Add `visit_video_url` to the `VisitData` interface
-- In `fetchVisitData()`, query `visit_videos` table for the proposal's video URL alongside the existing photo/pros/cons query
-- Store the video URL in state
+**3. No frontend changes needed**
+- The portal already gates Stage 3 visibility on `client_status = 'liked' AND visit_published = true`
+- Once the data is corrected, the viewing card with the video appears on the client's next portal load
 
-### 2. Display the video in the client portal
-**File:** `src/components/portal/VisitReport.tsx`
-
-- Add a "Visit Video" section between the photo gallery and the agent notes card
-- Render a `<video>` element with `controls`, `playsInline`, and `preload="metadata"` attributes
-- Only show this section when a video URL exists
-- Style consistently with the existing rounded card design
-
-### 3. Ensure RLS allows clients to read visit_videos
-- Check if the `visit_videos` table has a SELECT RLS policy for authenticated users whose case matches. If not, add one via migration.
-
-### Technical details
-
-- The `visit_videos` table has columns: `id`, `proposal_id`, `video_url`, `created_at`
-- Videos are stored in public Supabase storage, so the URL should be directly playable
-- The query joins through `proposal_id` which is already available in the component via `apartment.id`
-
+## Out of scope
+- No change to the swipe gallery UX for proposals without a published visit — those still require an explicit Like.
+- No change to admin UI; publishing a visit report continues to work the same way, just with the new side effect.
