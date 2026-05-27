@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ApartmentCard } from './ApartmentCard';
 import { FeedbackPopup } from './FeedbackPopup';
 import { LandlordQuestionsModal } from './LandlordQuestionsModal';
-import { Check, Search, Heart, Sparkles } from 'lucide-react';
+import { Check, Search, Heart, Sparkles, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,6 +24,7 @@ export interface SelectedApartment {
   neighborhood: string;
   description: string;
   amenities: string[];
+  status?: 'pending' | 'liked' | 'rejected';
 }
 
 interface ResearchGalleryProps {
@@ -37,46 +38,44 @@ interface ResearchGalleryProps {
 }
 
 export function ResearchGallery({ proposals, allProposals, onLike, onReject, onAllReviewed, readOnly = false, likedCount = 0 }: ResearchGalleryProps) {
-  // If all proposals have been reviewed (none pending), show completed state
-  const hasRealProposals = allProposals && allProposals.length > 0;
-  const allAlreadyReviewed = hasRealProposals && (!proposals || proposals.length === 0);
-  
-  const apartments = proposals && proposals.length > 0 ? proposals : [];
-  
+  // Use the full list as the source of truth so the client can browse all
+  // proposals freely (including ones already liked or rejected) and change
+  // their mind.
+  const apartments = useMemo<SelectedApartment[]>(() => {
+    if (allProposals && allProposals.length > 0) return allProposals;
+    return proposals && proposals.length > 0 ? proposals : [];
+  }, [allProposals, proposals]);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showFeedback, setShowFeedback] = useState(false);
   const [showQuestionsModal, setShowQuestionsModal] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
-  const [localLikedIds, setLocalLikedIds] = useState<Set<string>>(new Set());
   const [showRefinementDialog, setShowRefinementDialog] = useState(false);
 
-  // Apartments that haven't been reviewed yet
-  const unreviewedApartments = useMemo(() => 
-    apartments.filter(apt => !reviewedIds.has(apt.id)),
-    [apartments, reviewedIds]
-  );
-
-  const currentApartment = unreviewedApartments[currentIndex];
+  const safeIndex = apartments.length > 0
+    ? Math.min(currentIndex, apartments.length - 1)
+    : 0;
+  const currentApartment = apartments[safeIndex];
   const totalCount = apartments.length;
-  const reviewedCount = reviewedIds.size;
-  const totalLiked = likedCount + localLikedIds.size;
-  const allReviewed = reviewedCount >= totalCount && totalCount > 0;
+  const decidedCount = useMemo(
+    () => apartments.filter(a => a.status && a.status !== 'pending').length,
+    [apartments]
+  );
+  const derivedLikedCount = useMemo(
+    () => apartments.filter(a => a.status === 'liked').length,
+    [apartments]
+  );
+  const totalLiked = derivedLikedCount > 0 ? derivedLikedCount : likedCount;
+  const allDecided = totalCount > 0 && decidedCount >= totalCount;
 
-  // Check if all reviewed and trigger appropriate action
-  const handleAllReviewedCheck = useCallback((newLikedCount: number) => {
-    if (newLikedCount > 0) {
-      // At least one liked → advance to visits
-      if (onAllReviewed) {
-        setTimeout(() => onAllReviewed(newLikedCount), 1500);
-      }
-    } else {
-      // None liked → show refinement popup
-      setShowRefinementDialog(true);
-    }
-  }, [onAllReviewed]);
+  const goPrev = useCallback(() => {
+    setCurrentIndex(i => (i <= 0 ? Math.max(totalCount - 1, 0) : i - 1));
+  }, [totalCount]);
 
-  const handleLike = useCallback(() => {
+  const goNext = useCallback(() => {
+    setCurrentIndex(i => (i >= totalCount - 1 ? 0 : i + 1));
+  }, [totalCount]);
+
+  const handleLikeClick = useCallback(() => {
     if (!currentApartment) return;
     setShowQuestionsModal(true);
   }, [currentApartment]);
@@ -84,245 +83,41 @@ export function ResearchGallery({ proposals, allProposals, onLike, onReject, onA
   const handleQuestionsSubmit = useCallback(async (questions: string) => {
     if (!currentApartment) return;
     setShowQuestionsModal(false);
-    setShowSuccess(true);
-    
-    // Record the like via parent (DB update)
     onLike(currentApartment, questions);
-
-    const newLocalLiked = new Set([...localLikedIds, currentApartment.id]);
-    setLocalLikedIds(newLocalLiked);
-    const newReviewed = new Set([...reviewedIds, currentApartment.id]);
-    setReviewedIds(newReviewed);
-    
-    setTimeout(() => {
-      setShowSuccess(false);
-      // Adjust index if needed
-      const remaining = apartments.filter(apt => !newReviewed.has(apt.id));
-      if (remaining.length === 0) {
-        // All reviewed
-        handleAllReviewedCheck(likedCount + newLocalLiked.size);
-      } else if (currentIndex >= remaining.length) {
-        setCurrentIndex(0);
-      }
-    }, 2000);
-  }, [onLike, currentApartment, apartments, reviewedIds, localLikedIds, currentIndex, likedCount, handleAllReviewedCheck]);
+  }, [onLike, currentApartment]);
 
   const handleQuestionsClose = useCallback(() => {
     setShowQuestionsModal(false);
   }, []);
 
-  const handleDislike = useCallback(() => {
+  const handleDislikeClick = useCallback(() => {
+    if (!currentApartment) return;
     setShowFeedback(true);
-  }, []);
+  }, [currentApartment]);
 
   const handleFeedbackSubmit = useCallback(async (reasons: string[], notes?: string) => {
     if (!currentApartment) return;
-    
     if (onReject) {
       await onReject(currentApartment.id, reasons, notes);
     }
-    
-    const newReviewed = new Set([...reviewedIds, currentApartment.id]);
-    setReviewedIds(newReviewed);
     setShowFeedback(false);
-    
-    const remaining = apartments.filter(apt => !newReviewed.has(apt.id));
-    if (remaining.length === 0) {
-      // All reviewed
-      handleAllReviewedCheck(likedCount + localLikedIds.size);
-    } else if (currentIndex >= remaining.length) {
-      setCurrentIndex(0);
-    }
-  }, [currentApartment, currentIndex, apartments, reviewedIds, localLikedIds, likedCount, onReject, handleAllReviewedCheck]);
+  }, [currentApartment, onReject]);
 
   const handleFeedbackClose = useCallback(() => {
     setShowFeedback(false);
   }, []);
 
+  const handleDoneReviewing = useCallback(() => {
+    if (totalLiked > 0) {
+      if (onAllReviewed) onAllReviewed(totalLiked);
+    } else {
+      setShowRefinementDialog(true);
+    }
+  }, [totalLiked, onAllReviewed]);
+
   const handleRefinementClose = useCallback(() => {
     setShowRefinementDialog(false);
   }, []);
-
-  // Already reviewed all proposals (returning to stage 2 after completing)
-  if (allAlreadyReviewed) {
-    return (
-      <div className="relative min-h-[600px] py-8 flex flex-col items-center justify-center">
-        {likedCount > 0 ? (
-          <>
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', damping: 12, stiffness: 200 }}
-              className="w-24 h-24 rounded-full bg-primary flex items-center justify-center mb-6 shadow-2xl shadow-primary/40"
-            >
-              <Check className="w-12 h-12 text-primary-foreground" strokeWidth={3} />
-            </motion.div>
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="mb-4 flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10"
-            >
-              <Heart className="w-4 h-4 text-primary fill-primary" />
-              <span className="text-sm font-medium text-primary">{likedCount} liked</span>
-            </motion.div>
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-2xl font-bold text-foreground mb-2 text-center"
-            >
-              All Properties Reviewed!
-            </motion.h2>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="text-muted-foreground text-center max-w-sm"
-            >
-              We'll now arrange viewings for your favourite properties. Stay tuned!
-            </motion.p>
-          </>
-        ) : (
-          <>
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', damping: 12, stiffness: 200 }}
-              className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6"
-            >
-              <Search className="w-10 h-10 text-primary" />
-            </motion.div>
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-2xl font-bold text-foreground mb-2 text-center"
-            >
-              Refining Your Search
-            </motion.h2>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="text-muted-foreground text-center max-w-sm"
-            >
-              We're fine-tuning our search based on your feedback. New proposals coming soon!
-            </motion.p>
-          </>
-        )}
-      </div>
-    );
-  }
-
-  // All reviewed end state
-  if (allReviewed && !showSuccess) {
-    return (
-      <>
-        <div className="relative min-h-[600px] py-8 flex flex-col items-center justify-center">
-          {totalLiked > 0 ? (
-            <>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', damping: 12, stiffness: 200 }}
-                className="w-24 h-24 rounded-full bg-primary flex items-center justify-center mb-6 shadow-2xl shadow-primary/40"
-              >
-                <Check className="w-12 h-12 text-primary-foreground" strokeWidth={3} />
-              </motion.div>
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="mb-4 flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10"
-              >
-                <Heart className="w-4 h-4 text-primary fill-primary" />
-                <span className="text-sm font-medium text-primary">{totalLiked} liked</span>
-              </motion.div>
-              <motion.h2 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-2xl font-bold text-foreground mb-2 text-center"
-              >
-                All Properties Reviewed!
-              </motion.h2>
-              <motion.p 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-muted-foreground text-center max-w-sm"
-              >
-                We'll now arrange viewings for your favourite properties. Stay tuned!
-              </motion.p>
-              <motion.div 
-                className="flex gap-1.5 mt-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-              >
-                {[0, 1, 2].map((i) => (
-                  <motion.div
-                    key={i}
-                    className="w-2 h-2 rounded-full bg-primary"
-                    animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
-                  />
-                ))}
-              </motion.div>
-            </>
-          ) : (
-            <>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', damping: 12, stiffness: 200 }}
-                className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6"
-              >
-                <Search className="w-10 h-10 text-primary" />
-              </motion.div>
-              <motion.h2 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="text-2xl font-bold text-foreground mb-2 text-center"
-              >
-                All Properties Reviewed
-              </motion.h2>
-              <motion.p 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-muted-foreground text-center max-w-sm"
-              >
-                We're refining our search to better match your preferences. New proposals will appear here soon.
-              </motion.p>
-            </>
-          )}
-        </div>
-
-        {/* Refinement Dialog — shown when 0 liked */}
-        <Dialog open={showRefinementDialog} onOpenChange={setShowRefinementDialog}>
-          <DialogContent className="sm:max-w-sm data-[state=open]:animate-[fade-in_0.4s_ease-out,scale-in_0.3s_ease-out] data-[state=closed]:animate-[fade-out_0.3s_ease-out,scale-out_0.2s_ease-out]">
-            <DialogHeader className="text-center">
-              <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <Sparkles className="w-6 h-6 text-primary" />
-              </div>
-              <DialogTitle className="text-lg">We're On It!</DialogTitle>
-              <DialogDescription className="text-sm mt-1.5">
-                Thank you for reviewing all the properties. Based on your feedback, we'll fine-tune our search to find options that better match what you're looking for. New proposals will be available soon.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="mt-3">
-              <Button onClick={handleRefinementClose} className="w-full rounded-full h-10 text-sm">
-                Sounds Good
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </>
-    );
-  }
 
   // No proposals at all
   if (apartments.length === 0) {
@@ -354,7 +149,7 @@ export function ResearchGallery({ proposals, allProposals, onLike, onReject, onA
           Curated For You
         </h2>
         <p className="text-muted-foreground">
-          Review each property we've hand-picked based on your criteria
+          Browse all properties freely — like or dislike whenever you're ready
         </p>
         {/* Review progress */}
         <motion.div 
@@ -363,7 +158,7 @@ export function ResearchGallery({ proposals, allProposals, onLike, onReject, onA
           className="inline-flex items-center gap-3 mt-3 px-4 py-2 rounded-full bg-muted"
         >
           <span className="text-sm font-medium text-muted-foreground">
-            {reviewedCount} / {totalCount} reviewed
+            {safeIndex + 1} / {totalCount}
           </span>
           {totalLiked > 0 && (
             <>
@@ -377,15 +172,17 @@ export function ResearchGallery({ proposals, allProposals, onLike, onReject, onA
         </motion.div>
       </motion.div>
 
-      {/* Progress indicator dots */}
+      {/* Progress indicator dots — click to jump */}
       <div className="flex justify-center gap-2 mb-8">
         {apartments.map((apt, index) => {
-          const isReviewed = reviewedIds.has(apt.id);
-          const isLiked = localLikedIds.has(apt.id);
-          const isCurrent = unreviewedApartments[currentIndex]?.id === apt.id;
+          const isLiked = apt.status === 'liked';
+          const isRejected = apt.status === 'rejected';
+          const isCurrent = index === safeIndex;
           return (
-            <motion.div
+            <motion.button
               key={apt.id}
+              onClick={() => setCurrentIndex(index)}
+              aria-label={`Go to property ${index + 1}`}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: index * 0.05, duration: 0.3 }}
@@ -394,7 +191,7 @@ export function ResearchGallery({ proposals, allProposals, onLike, onReject, onA
                   ? 'w-10 bg-primary'
                   : isLiked
                   ? 'w-2 bg-primary'
-                  : isReviewed
+                  : isRejected
                   ? 'w-2 bg-muted-foreground/40'
                   : 'w-2 bg-muted-foreground/20'
               }`}
@@ -403,73 +200,101 @@ export function ResearchGallery({ proposals, allProposals, onLike, onReject, onA
         })}
       </div>
 
-      {/* Apartment Cards */}
-      <AnimatePresence mode="wait">
-        {currentApartment && !showSuccess && (
-          <ApartmentCard
-            key={currentApartment.id}
-            apartment={currentApartment}
-            onLike={handleLike}
-            onDislike={handleDislike}
-            readOnly={readOnly}
-          />
+      {/* Apartment Card + carousel navigation */}
+      <div className="relative">
+        {totalCount > 1 && (
+          <>
+            <button
+              onClick={goPrev}
+              aria-label="Previous property"
+              className="hidden md:flex absolute -left-2 lg:-left-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white shadow-lg items-center justify-center hover:scale-105 transition-transform border border-border"
+            >
+              <ChevronLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <button
+              onClick={goNext}
+              aria-label="Next property"
+              className="hidden md:flex absolute -right-2 lg:-right-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white shadow-lg items-center justify-center hover:scale-105 transition-transform border border-border"
+            >
+              <ChevronRight className="w-5 h-5 text-foreground" />
+            </button>
+          </>
         )}
-      </AnimatePresence>
 
-      {/* Success Animation */}
-      <AnimatePresence>
-        {showSuccess && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50"
-          >
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', damping: 12, stiffness: 200, delay: 0.1 }}
-              className="w-24 h-24 rounded-full bg-primary flex items-center justify-center mb-6 shadow-2xl shadow-primary/40"
-            >
-              <Check className="w-12 h-12 text-primary-foreground" strokeWidth={3} />
-            </motion.div>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-2xl md:text-3xl font-bold text-foreground mb-2"
-            >
-              Noted!
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="text-muted-foreground text-center max-w-sm"
-            >
-              {unreviewedApartments.length > 1 
-                ? 'Keep reviewing the remaining properties.'
-                : "That's the last one! Let's see your results."}
-            </motion.p>
-            
-            <motion.div 
-              className="flex gap-1.5 mt-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-            >
-              {[0, 1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  className="w-2 h-2 rounded-full bg-primary"
-                  animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
-                />
-              ))}
-            </motion.div>
-          </motion.div>
+        <AnimatePresence mode="wait">
+          {currentApartment && (
+            <ApartmentCard
+              key={currentApartment.id}
+              apartment={currentApartment}
+              status={currentApartment.status ?? 'pending'}
+              onLike={handleLikeClick}
+              onDislike={handleDislikeClick}
+              readOnly={readOnly}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Mobile prev/next under the card */}
+        {totalCount > 1 && (
+          <div className="flex md:hidden justify-between items-center mt-4 px-2">
+            <Button variant="outline" size="sm" onClick={goPrev} className="rounded-full">
+              <ChevronLeft className="w-4 h-4 mr-1" /> Previous
+            </Button>
+            <span className="text-xs text-muted-foreground">{safeIndex + 1} of {totalCount}</span>
+            <Button variant="outline" size="sm" onClick={goNext} className="rounded-full">
+              Next <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
+
+      {/* Done reviewing CTA */}
+      {!readOnly && onAllReviewed && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mt-8 flex flex-col items-center gap-2"
+        >
+          <Button
+            onClick={handleDoneReviewing}
+            disabled={decidedCount === 0}
+            className="rounded-full h-12 px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 disabled:opacity-50"
+          >
+            <Check className="w-4 h-4 mr-2" />
+            {totalLiked > 0
+              ? `I'm done — send my ${totalLiked} pick${totalLiked > 1 ? 's' : ''}`
+              : allDecided
+              ? "I'm done reviewing"
+              : 'Like at least one to continue'}
+          </Button>
+          {!allDecided && decidedCount > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {totalCount - decidedCount} property{totalCount - decidedCount > 1 ? 'ies' : ''} still undecided — you can decide later.
+            </p>
+          )}
+        </motion.div>
+      )}
+
+      {/* Refinement Dialog — shown when client clicks Done with 0 liked */}
+      <Dialog open={showRefinementDialog} onOpenChange={setShowRefinementDialog}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader className="text-center">
+            <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+              <Sparkles className="w-6 h-6 text-primary" />
+            </div>
+            <DialogTitle className="text-lg">We're On It!</DialogTitle>
+            <DialogDescription className="text-sm mt-1.5">
+              Thank you for the feedback. We'll fine-tune our search to find options that better match what you're looking for. New proposals will appear here soon.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-3">
+            <Button onClick={handleRefinementClose} className="w-full rounded-full h-10 text-sm">
+              Sounds Good
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <FeedbackPopup
         isOpen={showFeedback}
