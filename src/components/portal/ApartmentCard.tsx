@@ -23,9 +23,10 @@ interface ApartmentCardProps {
   onDislike: () => void;
   readOnly?: boolean;
   onImagePositionChange?: (index: number, position: number) => void;
+  status?: 'pending' | 'liked' | 'rejected';
 }
 
-export function ApartmentCard({ apartment, onLike, onDislike, readOnly = false, onImagePositionChange }: ApartmentCardProps) {
+export function ApartmentCard({ apartment, onLike, onDislike, readOnly = false, onImagePositionChange, status = 'pending' }: ApartmentCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -205,15 +206,25 @@ export function ApartmentCard({ apartment, onLike, onDislike, readOnly = false, 
             <Button
               variant="outline"
               onClick={onDislike}
-              className="flex-1 h-12 rounded-full border-2 border-muted-foreground/30 text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all"
+              className={cn(
+                'flex-1 h-12 rounded-full border-2 transition-all',
+                status === 'rejected'
+                  ? 'border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15'
+                  : 'border-muted-foreground/30 text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+              )}
             >
-              I Don't Like
+              {status === 'rejected' ? '✓ Not for me' : "I Don't Like"}
             </Button>
             <Button
               onClick={onLike}
-              className="flex-1 h-12 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 transition-all"
+              className={cn(
+                'flex-1 h-12 rounded-full transition-all',
+                status === 'liked'
+                  ? 'bg-primary/90 text-primary-foreground shadow-lg shadow-primary/30 ring-2 ring-primary/40'
+                  : 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25'
+              )}
             >
-              I Like
+              {status === 'liked' ? '♥ Liked' : 'I Like'}
             </Button>
           </div>
         )}
