@@ -557,8 +557,8 @@ export default function PortalDashboard() {
           {currentStage === 2 && (
             <ResearchGallery 
               key="stage-2" 
-              proposals={showcaseProposals || pendingProposals}
-              allProposals={isShowcaseMode ? undefined : proposals.map(proposalToApartment)}
+              proposals={showcaseProposals || galleryProposals}
+              allProposals={isShowcaseMode ? undefined : galleryProposals}
               onLike={resolvedOnLike}
               onReject={resolvedOnReject}
               onAllReviewed={isShowcaseMode ? undefined : handleAllReviewed}
