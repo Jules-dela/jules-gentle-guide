@@ -193,6 +193,7 @@ function proposalToApartment(proposal: PropertyProposal): SelectedApartment {
     neighborhood: proposal.neighbourhood || 'Centre',
     description: proposal.description || '',
     amenities: proposal.tags || [],
+    status: proposal.client_status,
   };
 }
 
@@ -383,9 +384,10 @@ export default function PortalDashboard() {
     scrollToContent();
   }, []);
 
-  // All proposals mapped for the research gallery (pending ones for swiping)
-  const pendingProposals = useMemo(() => 
-    proposals.filter(p => p.client_status === 'pending').map(proposalToApartment),
+  // Full list mapped for the research gallery — clients can browse all
+  // proposals (including liked/rejected) and change their mind any time.
+  const galleryProposals = useMemo(() =>
+    proposals.map(proposalToApartment),
     [proposals]
   );
 
