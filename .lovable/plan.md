@@ -1,49 +1,57 @@
-## Goal
+# Fix: videos uploaded via the new apartment uploader don't show in the client portal
 
-Let Sayan (and every client) browse all pending proposals freely — flip back and forth between them — and only commit to Like / Dislike whenever they want, in any order. This also solves the "I can't see the other 3" problem: even with one already liked, the remaining pending proposals stay reachable.
+## Diagnosis
 
-## How the gallery works today
+Two admin code paths upload to the private `visit-videos` bucket using different storage path conventions:
 
-`ResearchGallery.tsx` is a one-way swipe deck:
-- Internal state `reviewedIds` tracks which apartments have been acted on.
-- `unreviewedApartments = apartments.filter(apt => !reviewedIds.has(apt.id))` — once you Like or Dislike, the card disappears from the stack.
-- `currentIndex` only moves forward (after a decision).
-- No "previous" / "next" navigation; no way to skip a card.
+- `src/components/admin/VisitReportUploader.tsx` → `visits/{caseId}/{timestamp}-{filename}`
+- `src/components/admin/ApartmentUploader.tsx` → `{caseId}/{proposalId}/{timestamp}-{filename}` (newer flow you've been using)
 
-## Proposed change (frontend only)
+The storage RLS policy `"Clients can view their visit videos"` on `storage.objects` checks:
 
-Turn the gallery into a **browseable carousel of pending proposals** with optional decisions.
+```
+(storage.foldername(name))[2] IN (SELECT c.id::text ... WHERE p.user_id = auth.uid())
+```
 
-1. **Navigation controls** on the `ApartmentCard` area:
-   - Left / Right chevron buttons (and swipe gestures on mobile) to move between *all* pending proposals freely, regardless of whether they've been liked or disliked already.
-   - A counter ("2 of 3") and the existing progress dots become clickable to jump directly to any proposal.
+That hardcoded `[2]` matches only the old `visits/{caseId}/...` pattern. For the new pattern, position `[2]` is the proposal ID, so the client is denied. `VisitReport.tsx` then calls `supabase.storage.from('visit-videos').createSignedUrl(...)`, gets null back, and the `<video>` element never renders.
 
-2. **Decoupled decisions**:
-   - Like and Dislike no longer auto-advance or remove the card from the deck.
-   - Each card shows its current state (Liked ❤️ / Disliked / Undecided) with the action buttons reflecting it. Tapping Like on a disliked card flips it to Liked, etc.
-   - A client can review all proposals first, then go back and like the ones they want.
+Admins see the upload succeed (admin RLS allows everything), and the DB row in `visit_videos` is correctly created — that's why "it appears to succeed but the video isn't there" for clients.
 
-3. **"Done reviewing" affordance**:
-   - Replace the implicit auto-advance with an explicit **"I'm done — send my picks"** button that becomes prominent once at least one decision is made.
-   - Clicking it runs the existing `handleAllReviewed` logic: if ≥1 liked → advance to Stage 3; if 0 liked → show the refinement dialog.
-   - Until the client clicks Done, the stage stays at 2 so newly-added proposals keep appearing.
+Confirmed: the most recent `visit_videos` row (just uploaded, Epalinges proposal) has URL `…/visit-videos/{caseId}/{proposalId}/…WhatsApp Video….mp4` — exactly the broken path shape.
 
-4. **State source of truth**:
-   - Drop local `reviewedIds` / `localLikedIds` state. Drive everything from the `client_status` on the `PropertyProposal` rows already in `proposals` (pending / liked / rejected), so refreshes and multi-device sessions stay consistent.
-   - Pass the full list of non-trashed proposals (pending + liked + rejected) into the gallery, not only pending ones, so the client can revisit and change their mind.
+## Fix
 
-5. **Dashboard glue** (`PortalDashboard.tsx`):
-   - Stop auto-jumping to Stage 3 the moment one proposal is liked. Only advance when the client clicks "Done" (or when admin publishes a visit, which is already auto-handled by the DB trigger).
-   - Keep Stage 3 accessible via the timeline tracker for the already-liked proposals so nothing is lost.
+Update the storage RLS policy so it grants access whenever **any** path segment of the object name matches one of the caller's case IDs. This covers both old (`visits/{caseId}/…`) and new (`{caseId}/{proposalId}/…`) layouts and any future variation, with no data migration needed.
+
+New migration replacing the existing policy on `storage.objects`:
+
+```sql
+DROP POLICY IF EXISTS "Clients can view their visit videos" ON storage.objects;
+
+CREATE POLICY "Clients can view their visit videos"
+ON storage.objects
+FOR SELECT
+TO authenticated
+USING (
+  bucket_id = 'visit-videos'
+  AND EXISTS (
+    SELECT 1
+    FROM public.cases c
+    JOIN public.profiles p ON p.id = c.client_id
+    WHERE p.user_id = auth.uid()
+      AND c.id::text = ANY (storage.foldername(name))
+  )
+);
+```
+
+No changes to the admin "manage" policy, no changes to the `visit_videos` table RLS, no client-side code changes, no re-upload required. After this migration the existing Epalinges video (and any other recent uploads via `ApartmentUploader`) will immediately render in the client portal.
 
 ## Out of scope
 
-- No DB / RPC changes. `client_update_proposal_feedback` already supports flipping status both ways.
-- No change to multi-listing switcher, Stage 3 visit report, or admin tooling.
-- No change to the auto-like-on-visit-publish trigger.
+- Refactoring the two uploader components to share one path convention (worth doing later, but not required to unblock the client now).
+- Any change to `VisitReportUploader.tsx`, `ApartmentUploader.tsx`, or `VisitReport.tsx`.
+- Bucket size/MIME settings.
 
 ## Files touched
 
-- `src/components/portal/ResearchGallery.tsx` — carousel UX, drop one-way logic, add Done button.
-- `src/components/portal/ApartmentCard.tsx` — show current decision state, add prev/next chevrons, keep Like/Dislike toggleable.
-- `src/pages/PortalDashboard.tsx` — pass full proposal list, remove forced stage-advance on first like.
+- One new migration under `supabase/migrations/` recreating the `"Clients can view their visit videos"` policy on `storage.objects`.
