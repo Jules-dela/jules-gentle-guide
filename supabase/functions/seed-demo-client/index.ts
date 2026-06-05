@@ -71,10 +71,17 @@ serve(async (req) => {
       });
     }
 
-    const DEMO_EMAIL = "demo.showcase@unikey.ch";
-    const DEMO_PASSWORD = "Showcase2026!";
+    const DEMO_EMAIL = Deno.env.get("DEMO_CLIENT_EMAIL") || "demo.showcase@unikey.ch";
+    const DEMO_PASSWORD = Deno.env.get("DEMO_CLIENT_PASSWORD");
     const DEMO_NAME = "Emma Laurent";
     const DEMO_PHONE = "+41 78 456 12 89";
+
+    if (!DEMO_PASSWORD) {
+      return new Response(
+        JSON.stringify({ error: "Demo client password not configured. Set DEMO_CLIENT_PASSWORD secret." }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
     // 1. Check if demo user already exists
     const { data: existingUsers } = await supabase.auth.admin.listUsers();
@@ -295,7 +302,6 @@ serve(async (req) => {
         success: true,
         credentials: {
           email: DEMO_EMAIL,
-          password: DEMO_PASSWORD,
         },
         message: `Demo client "${DEMO_NAME}" seeded with FULL journey: signed contract, 2 proposals (1 liked, 1 rejected), visit report, 5 validated documents, key handover scheduled for June 1st 2026.`,
       }),
