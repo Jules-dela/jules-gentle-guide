@@ -386,18 +386,15 @@ async function fetchStripeSession(sessionId: string) {
 
 function safeRow(row: any) {
   if (!row) return null;
-  // Only return what the form needs to restore — never expose admin/internal fields.
+  // Only return what the form needs to restore — never expose sensitive PII
+  // (signature_image, date_of_birth, nationality, phone) on unauthenticated endpoints.
   return {
     name: row.name,
     email: row.email,
-    phone: row.phone,
     budget: row.budget,
     property_type: row.property_type,
     duration: row.duration,
     preferences: row.preferences,
-    date_of_birth: row.date_of_birth,
-    nationality: row.nationality,
-    signature_image: row.signature_image,
     contract_signed: row.contract_signed,
     deposit_paid: row.deposit_paid,
     payment_confirmed_at: row.payment_confirmed_at,
