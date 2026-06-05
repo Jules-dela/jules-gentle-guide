@@ -205,13 +205,34 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const { clientName, clientEmail, signedAt }: ContractReceiptRequest = await req.json();
+    const body: Partial<ContractReceiptRequest> = await req.json().catch(() => ({}));
+    const { signedAt } = body;
 
-    // Validate required fields
-    if (!clientName || !clientEmail || !signedAt) {
-      console.error("Missing required fields:", { clientName, clientEmail, signedAt });
-      throw new Error("Missing required fields: clientName, clientEmail, signedAt");
+    if (!signedAt) {
+      return new Response(JSON.stringify({ error: "Missing signedAt" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
+
+    // Always send to the authenticated user's own email — never trust the
+    // client-supplied recipient (prevents using this endpoint to send
+    // official UniKey emails to arbitrary addresses for phishing).
+    const clientEmail = user.email;
+    if (!clientEmail) {
+      return new Response(JSON.stringify({ error: "User has no email" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    // Fetch client name from profiles instead of trusting request body.
+    const { data: profile } = await supabaseClient
+      .from("profiles")
+      .select("name")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const clientName = profile?.name || (user.user_metadata as any)?.name || clientEmail;
 
     const formattedDate = new Date(signedAt).toLocaleDateString('en-GB', {
       day: 'numeric',
