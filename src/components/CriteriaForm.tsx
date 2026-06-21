@@ -466,9 +466,6 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
     
     try {
 
-      // Pull invitation token from the URL (gates the /apply flow)
-      const urlToken = new URLSearchParams(window.location.search).get("token") || "";
-
       const { data: result, error: emailError } = await supabase.functions.invoke("send-application-emails", {
         body: {
           name: data.name,
@@ -488,7 +485,6 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
           smokingAllowed: data.noSmoking,
           notes: data.notes,
           privacyAccepted: data.privacyAccepted,
-          token: urlToken,
           // Pass contract data for server-side signing (no auth race condition)
           contractData: preSubmitContractData || null,
         },

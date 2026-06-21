@@ -163,7 +163,6 @@ const applicationSchema = z.object({
   website: z.string().max(0).optional().nullable(),
   skipEmails: z.boolean().optional(),
   contractData: contractDataSchema,
-  token: z.string().min(1, "Invitation token is required"),
   privacyAccepted: z.boolean().optional().nullable(),
 });
 
@@ -488,22 +487,6 @@ const handler = async (req: Request): Promise<Response> => {
     await recordSubmission(clientIP);
     console.log("Processing application submission with portal creation");
 
-    // ---- Validate waitlist invitation token ----
-    const { data: tokenRow, error: tokenError } = await supabase
-      .from('waitlist_tokens')
-      .select('id, used')
-      .eq('token', data.token)
-      .eq('used', false)
-      .maybeSingle();
-
-    if (tokenError || !tokenRow) {
-      console.log('Token validation failed:', tokenError?.message ?? 'not found or used');
-      return new Response(
-        JSON.stringify({ error: "Invalid or used invitation" }),
-        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
-
     // Try to create the user first — this is the most reliable way to detect new vs existing
     let userId: string;
     let actionLink: string | null = null;
@@ -623,15 +606,6 @@ const handler = async (req: Request): Promise<Response> => {
       if (appErr) console.error('housing_applications insert error:', appErr.message);
     } catch (insertErr) {
       console.error('Lead/application insert step failed:', insertErr);
-    }
-
-    // Mark the invitation token as used
-    {
-      const { error: tokenUpdErr } = await supabase
-        .from('waitlist_tokens')
-        .update({ used: true })
-        .eq('id', tokenRow.id);
-      if (tokenUpdErr) console.error('Failed to mark token used:', tokenUpdErr.message);
     }
 
     // Sign contract server-side if contract data was provided
