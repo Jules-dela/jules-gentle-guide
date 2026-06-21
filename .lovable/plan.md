@@ -1,57 +1,29 @@
-# Fix: videos uploaded via the new apartment uploader don't show in the client portal
+# Open the application form to everyone
 
-## Diagnosis
+## Problem
 
-Two admin code paths upload to the private `visit-videos` bucket using different storage path conventions:
+The `/apply` form is silently rejecting submissions that don't carry a `?token=...` URL parameter. The `send-application-emails` edge function requires an unused row in `waitlist_tokens` and returns `403 "Invalid or used invitation"` otherwise. That's almost certainly why "Matteo" filled the form on Wednesday and nothing reached the admin — he landed on `/apply` without a token, so the function rejected him before anything was persisted.
 
-- `src/components/admin/VisitReportUploader.tsx` → `visits/{caseId}/{timestamp}-{filename}`
-- `src/components/admin/ApartmentUploader.tsx` → `{caseId}/{proposalId}/{timestamp}-{filename}` (newer flow you've been using)
+The deposit/payment flow itself is independent and stays exactly as it is.
 
-The storage RLS policy `"Clients can view their visit videos"` on `storage.objects` checks:
+## Changes
 
-```
-(storage.foldername(name))[2] IN (SELECT c.id::text ... WHERE p.user_id = auth.uid())
-```
+1. **`supabase/functions/send-application-emails/index.ts`**
+   - Remove the `token` field from the Zod schema (make it optional or drop entirely).
+   - Delete the `waitlist_tokens` lookup block (the `403 "Invalid or used invitation"` early-return).
+   - Delete the "mark token as used" update block near the end.
+   - Keep everything else: rate limiting, honeypot, user/profile/case creation, leads + housing_applications inserts, magic link, server-side contract signing.
 
-That hardcoded `[2]` matches only the old `visits/{caseId}/...` pattern. For the new pattern, position `[2]` is the proposal ID, so the client is denied. `VisitReport.tsx` then calls `supabase.storage.from('visit-videos').createSignedUrl(...)`, gets null back, and the `<video>` element never renders.
+2. **`src/components/CriteriaForm.tsx`**
+   - Stop reading `?token=` from the URL and stop sending it in the `invoke` body.
 
-Admins see the upload succeed (admin RLS allows everything), and the DB row in `visit_videos` is correctly created — that's why "it appears to succeed but the video isn't there" for clients.
+3. **Leave alone**
+   - Stripe deposit / `verify-payment` flow.
+   - `waitlist_tokens` table and any admin UI that still uses it — just no longer enforced at submission time. (We can clean that up later if you confirm it's fully dead.)
 
-Confirmed: the most recent `visit_videos` row (just uploaded, Epalinges proposal) has URL `…/visit-videos/{caseId}/{proposalId}/…WhatsApp Video….mp4` — exactly the broken path shape.
+## Verification
 
-## Fix
-
-Update the storage RLS policy so it grants access whenever **any** path segment of the object name matches one of the caller's case IDs. This covers both old (`visits/{caseId}/…`) and new (`{caseId}/{proposalId}/…`) layouts and any future variation, with no data migration needed.
-
-New migration replacing the existing policy on `storage.objects`:
-
-```sql
-DROP POLICY IF EXISTS "Clients can view their visit videos" ON storage.objects;
-
-CREATE POLICY "Clients can view their visit videos"
-ON storage.objects
-FOR SELECT
-TO authenticated
-USING (
-  bucket_id = 'visit-videos'
-  AND EXISTS (
-    SELECT 1
-    FROM public.cases c
-    JOIN public.profiles p ON p.id = c.client_id
-    WHERE p.user_id = auth.uid()
-      AND c.id::text = ANY (storage.foldername(name))
-  )
-);
-```
-
-No changes to the admin "manage" policy, no changes to the `visit_videos` table RLS, no client-side code changes, no re-upload required. After this migration the existing Epalinges video (and any other recent uploads via `ApartmentUploader`) will immediately render in the client portal.
-
-## Out of scope
-
-- Refactoring the two uploader components to share one path convention (worth doing later, but not required to unblock the client now).
-- Any change to `VisitReportUploader.tsx`, `ApartmentUploader.tsx`, or `VisitReport.tsx`.
-- Bucket size/MIME settings.
-
-## Files touched
-
-- One new migration under `supabase/migrations/` recreating the `"Clients can view their visit videos"` policy on `storage.objects`.
+After deploy, submit the form at `/apply` from a fresh browser with no query string, then check that:
+- A new row appears in `intake_submissions` (or the expected target table for that step) and in `leads` / `housing_applications`.
+- The submitter receives the magic-link email and lands in the portal.
+- No `403` in the edge-function logs.
