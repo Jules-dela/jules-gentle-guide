@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { Fragment, useEffect, useState, useCallback } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -170,9 +170,8 @@ export default function AdminApplicationRejections() {
                   rows.map((r) => {
                     const isOpen = expanded.has(r.id);
                     return (
-                      <>
+                      <Fragment key={r.id}>
                         <tr
-                          key={r.id}
                           className="border-t hover:bg-muted/20 align-top cursor-pointer"
                           onClick={() => toggle(r.id)}
                         >
@@ -200,7 +199,7 @@ export default function AdminApplicationRejections() {
                           </td>
                         </tr>
                         {isOpen && (
-                          <tr key={`${r.id}-d`} className="bg-muted/10 border-t">
+                          <tr className="bg-muted/10 border-t">
                             <td></td>
                             <td colSpan={6} className="px-4 py-3">
                               <div className="space-y-2 text-xs">
@@ -232,7 +231,7 @@ export default function AdminApplicationRejections() {
                             </td>
                           </tr>
                         )}
-                      </>
+                      </Fragment>
                     );
                   })
                 )}
