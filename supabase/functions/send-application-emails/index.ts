@@ -68,6 +68,39 @@ function getClientIP(req: Request): string {
          'unknown';
 }
 
+// Log a rejected /apply submission for admin diagnostics.
+// Never throws — failure to log must not affect the user response.
+async function logRejection(opts: {
+  reason: string;
+  req: Request;
+  payload?: unknown;
+  errorDetail?: string;
+}) {
+  try {
+    const p = (opts.payload ?? {}) as Record<string, unknown>;
+    const email = typeof p.email === 'string' ? normalizeEmail(p.email) : null;
+    const phone = typeof p.phone === 'string' ? normalizePhone(p.phone) : null;
+    // Strip sensitive contract signature image from stored payload (still huge + private)
+    const safePayload: Record<string, unknown> = { ...p };
+    if (safePayload.contractData && typeof safePayload.contractData === 'object') {
+      const cd = { ...(safePayload.contractData as Record<string, unknown>) };
+      if (cd.signature_image) cd.signature_image = '[redacted]';
+      safePayload.contractData = cd;
+    }
+    await supabase.from('application_rejections').insert({
+      reason: opts.reason,
+      email,
+      phone,
+      ip_address: getClientIP(opts.req),
+      user_agent: opts.req.headers.get('user-agent'),
+      payload: safePayload,
+      error_detail: opts.errorDetail ?? null,
+    });
+  } catch (logErr) {
+    console.error('Failed to log rejection:', logErr);
+  }
+}
+
 // Check and enforce rate limiting
 async function checkRateLimit(ip: string): Promise<{ allowed: boolean; error?: string }> {
   try {
