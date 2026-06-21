@@ -68,6 +68,39 @@ function getClientIP(req: Request): string {
          'unknown';
 }
 
+// Log a rejected /apply submission for admin diagnostics.
+// Never throws — failure to log must not affect the user response.
+async function logRejection(opts: {
+  reason: string;
+  req: Request;
+  payload?: unknown;
+  errorDetail?: string;
+}) {
+  try {
+    const p = (opts.payload ?? {}) as Record<string, unknown>;
+    const email = typeof p.email === 'string' ? normalizeEmail(p.email) : null;
+    const phone = typeof p.phone === 'string' ? normalizePhone(p.phone) : null;
+    // Strip sensitive contract signature image from stored payload (still huge + private)
+    const safePayload: Record<string, unknown> = { ...p };
+    if (safePayload.contractData && typeof safePayload.contractData === 'object') {
+      const cd = { ...(safePayload.contractData as Record<string, unknown>) };
+      if (cd.signature_image) cd.signature_image = '[redacted]';
+      safePayload.contractData = cd;
+    }
+    await supabase.from('application_rejections').insert({
+      reason: opts.reason,
+      email,
+      phone,
+      ip_address: getClientIP(opts.req),
+      user_agent: opts.req.headers.get('user-agent'),
+      payload: safePayload,
+      error_detail: opts.errorDetail ?? null,
+    });
+  } catch (logErr) {
+    console.error('Failed to log rejection:', logErr);
+  }
+}
+
 // Check and enforce rate limiting
 async function checkRateLimit(ip: string): Promise<{ allowed: boolean; error?: string }> {
   try {
@@ -446,6 +479,7 @@ const handler = async (req: Request): Promise<Response> => {
     const rateLimitResult = await checkRateLimit(clientIP);
     
     if (!rateLimitResult.allowed) {
+      await logRejection({ reason: 'rate_limit', req, errorDetail: rateLimitResult.error });
       return new Response(
         JSON.stringify({ error: rateLimitResult.error }),
         { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -458,6 +492,12 @@ const handler = async (req: Request): Promise<Response> => {
     const validationResult = applicationSchema.safeParse(rawData);
     if (!validationResult.success) {
       console.log("Validation failed:", validationResult.error.issues.length, "issues");
+      await logRejection({
+        reason: 'validation_failed',
+        req,
+        payload: rawData,
+        errorDetail: JSON.stringify(validationResult.error.flatten().fieldErrors),
+      });
       return new Response(
         JSON.stringify({ error: "Invalid input data. Please check your form and try again." }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -469,6 +509,11 @@ const handler = async (req: Request): Promise<Response> => {
     // Enforce mandatory contract signature
     if (!data.contractData || !data.contractData.signature_image) {
       console.log("Submission rejected: missing contract signature");
+      await logRejection({
+        reason: 'missing_contract_signature',
+        req,
+        payload: data,
+      });
       return new Response(
         JSON.stringify({ error: "A signed service agreement is required to submit your application." }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -478,6 +523,12 @@ const handler = async (req: Request): Promise<Response> => {
     // Honeypot check
     if (rawData.website && rawData.website.length > 0) {
       console.log("Honeypot triggered - bot detected");
+      await logRejection({
+        reason: 'honeypot',
+        req,
+        payload: rawData,
+        errorDetail: `website field length=${rawData.website.length}`,
+      });
       return new Response(
         JSON.stringify({ success: true }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -807,7 +858,11 @@ const handler = async (req: Request): Promise<Response> => {
     );
   } catch (error: any) {
     console.error("Function error:", error);
-    
+    await logRejection({
+      reason: 'internal_error',
+      req,
+      errorDetail: error?.message || String(error),
+    });
     return new Response(
       JSON.stringify({ 
         error: "Failed to process application. Please try again or contact support." 

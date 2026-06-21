@@ -38,6 +38,42 @@ export type Database = {
         }
         Relationships: []
       }
+      application_rejections: {
+        Row: {
+          created_at: string
+          email: string | null
+          error_detail: string | null
+          id: string
+          ip_address: string | null
+          payload: Json | null
+          phone: string | null
+          reason: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          error_detail?: string | null
+          id?: string
+          ip_address?: string | null
+          payload?: Json | null
+          phone?: string | null
+          reason: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          error_detail?: string | null
+          id?: string
+          ip_address?: string | null
+          payload?: Json | null
+          phone?: string | null
+          reason?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       case_documents: {
         Row: {
           case_id: string

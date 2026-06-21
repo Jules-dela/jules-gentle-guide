@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   CreditCard,
+  AlertTriangle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -25,6 +26,7 @@ const navItems = [
   { to: '/admin/apartments', icon: Building2, label: 'Apartments', end: false },
   { to: '/admin/waitlist', icon: Bell, label: 'Waitlist', end: false },
   { to: '/admin/payment-logs', icon: CreditCard, label: 'Payment Logs', end: false },
+  { to: '/admin/rejections', icon: AlertTriangle, label: 'Rejections', end: false },
 ];
 
 function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
