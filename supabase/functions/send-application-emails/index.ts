@@ -858,7 +858,11 @@ const handler = async (req: Request): Promise<Response> => {
     );
   } catch (error: any) {
     console.error("Function error:", error);
-    
+    await logRejection({
+      reason: 'internal_error',
+      req,
+      errorDetail: error?.message || String(error),
+    });
     return new Response(
       JSON.stringify({ 
         error: "Failed to process application. Please try again or contact support." 
