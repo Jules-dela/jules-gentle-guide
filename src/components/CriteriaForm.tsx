@@ -462,6 +462,39 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
       return;
     }
 
+    // Hard guard: never submit without contract + payment, even if the button
+    // was bypassed (Enter key, devtools, race condition). Show a clear, specific
+    // message and scroll to the missing block so the user knows what to do.
+    if (!preSubmitContractSigned || !preSubmitContractData) {
+      setShowContractWarning(true);
+      toast({
+        title: "Service Agreement not signed",
+        description:
+          "Please scroll up, read the Service Agreement and sign it before submitting.",
+        variant: "destructive",
+      });
+      requestAnimationFrame(() => {
+        document
+          .getElementById("pre-submit-contract")
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      return;
+    }
+    if (!paymentVerified) {
+      toast({
+        title: "Payment required",
+        description:
+          "Please click 'Activate your search' to pay the activation fee before submitting.",
+        variant: "destructive",
+      });
+      requestAnimationFrame(() => {
+        document
+          .getElementById("pre-submit-payment")
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -540,9 +573,13 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
       });
     } catch (error) {
       console.error("Submission error:", error);
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : "Failed to submit application. Please try again.";
       toast({
         title: "Error",
-        description: "Failed to submit application. Please try again.",
+        description: message,
         variant: "destructive",
       });
     } finally {
