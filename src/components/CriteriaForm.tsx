@@ -817,7 +817,21 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                 <div className="max-w-3xl mx-auto">
                   <div className="bg-white rounded-3xl border border-slate-200 shadow-lg p-6 md:p-8 lg:p-10">
                     <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)}>
+                      <form
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        onKeyDown={(e) => {
+                          // Block accidental Enter-submit. The only way to submit
+                          // is the "Find my home" button after contract + payment.
+                          const target = e.target as HTMLElement;
+                          if (
+                            e.key === "Enter" &&
+                            target.tagName !== "TEXTAREA" &&
+                            target.tagName !== "BUTTON"
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                      >
                         <AnimatePresence mode="wait">
                           {/* Step 1: About You */}
                           {currentStep === 1 && (
@@ -1381,7 +1395,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                               </section>
 
                               {/* ─── Section 2: Service Agreement ─── */}
-                              <section className="rounded-3xl bg-white border border-slate-200 p-5 sm:p-6 shadow-sm">
+                              <section id="pre-submit-contract" className="rounded-3xl bg-white border border-slate-200 p-5 sm:p-6 shadow-sm scroll-mt-24">
                                 <header className="flex items-start gap-3 mb-4">
                                   <div className="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center font-semibold text-sm shrink-0">
                                     2
@@ -1436,7 +1450,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                               </section>
 
                               {/* ─── Section 3: Activate your search (Stripe) ─── */}
-                              <section className="rounded-3xl bg-white border border-slate-200 p-5 sm:p-6 shadow-sm">
+                              <section id="pre-submit-payment" className="rounded-3xl bg-white border border-slate-200 p-5 sm:p-6 shadow-sm scroll-mt-24">
                                 <header className="flex items-start gap-3 mb-4">
                                   <div className="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center font-semibold text-sm shrink-0">
                                     3
