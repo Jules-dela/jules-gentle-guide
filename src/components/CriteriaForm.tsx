@@ -462,6 +462,39 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
       return;
     }
 
+    // Hard guard: never submit without contract + payment, even if the button
+    // was bypassed (Enter key, devtools, race condition). Show a clear, specific
+    // message and scroll to the missing block so the user knows what to do.
+    if (!preSubmitContractSigned || !preSubmitContractData) {
+      setShowContractWarning(true);
+      toast({
+        title: "Service Agreement not signed",
+        description:
+          "Please scroll up, read the Service Agreement and sign it before submitting.",
+        variant: "destructive",
+      });
+      requestAnimationFrame(() => {
+        document
+          .getElementById("pre-submit-contract")
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      return;
+    }
+    if (!paymentVerified) {
+      toast({
+        title: "Payment required",
+        description:
+          "Please click 'Activate your search' to pay the activation fee before submitting.",
+        variant: "destructive",
+      });
+      requestAnimationFrame(() => {
+        document
+          .getElementById("pre-submit-payment")
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -492,13 +525,28 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
 
       if (emailError) {
         console.error("Portal creation error:", emailError);
-        // If edge function failed, still show success but warn about portal
+        // Surface the real server message so the user knows what to fix
+        // (e.g. "A signed service agreement is required..."). Never claim
+        // success when the server actually rejected the submission.
+        let serverMessage = "We couldn't submit your application. Please try again.";
+        try {
+          const ctx = (emailError as { context?: Response }).context;
+          if (ctx && typeof ctx.json === "function") {
+            const body = await ctx.json();
+            if (body?.error && typeof body.error === "string") {
+              serverMessage = body.error;
+            }
+          } else if ((emailError as Error).message) {
+            serverMessage = (emailError as Error).message;
+          }
+        } catch {
+          // ignore body-parse errors, keep default
+        }
         toast({
-          title: "✅ Application submitted!",
-          description: "Your application was saved. You'll receive portal access details by email shortly.",
+          title: "Submission rejected",
+          description: serverMessage,
+          variant: "destructive",
         });
-        setIsSuccess(true);
-        onSubmitSuccess?.();
         return;
       }
 
@@ -540,9 +588,13 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
       });
     } catch (error) {
       console.error("Submission error:", error);
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : "Failed to submit application. Please try again.";
       toast({
         title: "Error",
-        description: "Failed to submit application. Please try again.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -780,7 +832,21 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                 <div className="max-w-3xl mx-auto">
                   <div className="bg-white rounded-3xl border border-slate-200 shadow-lg p-6 md:p-8 lg:p-10">
                     <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)}>
+                      <form
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        onKeyDown={(e) => {
+                          // Block accidental Enter-submit. The only way to submit
+                          // is the "Find my home" button after contract + payment.
+                          const target = e.target as HTMLElement;
+                          if (
+                            e.key === "Enter" &&
+                            target.tagName !== "TEXTAREA" &&
+                            target.tagName !== "BUTTON"
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                      >
                         <AnimatePresence mode="wait">
                           {/* Step 1: About You */}
                           {currentStep === 1 && (
@@ -1344,7 +1410,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                               </section>
 
                               {/* ─── Section 2: Service Agreement ─── */}
-                              <section className="rounded-3xl bg-white border border-slate-200 p-5 sm:p-6 shadow-sm">
+                              <section id="pre-submit-contract" className="rounded-3xl bg-white border border-slate-200 p-5 sm:p-6 shadow-sm scroll-mt-24">
                                 <header className="flex items-start gap-3 mb-4">
                                   <div className="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center font-semibold text-sm shrink-0">
                                     2
@@ -1399,7 +1465,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                               </section>
 
                               {/* ─── Section 3: Activate your search (Stripe) ─── */}
-                              <section className="rounded-3xl bg-white border border-slate-200 p-5 sm:p-6 shadow-sm">
+                              <section id="pre-submit-payment" className="rounded-3xl bg-white border border-slate-200 p-5 sm:p-6 shadow-sm scroll-mt-24">
                                 <header className="flex items-start gap-3 mb-4">
                                   <div className="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center font-semibold text-sm shrink-0">
                                     3
