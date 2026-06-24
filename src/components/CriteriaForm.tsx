@@ -525,13 +525,28 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
 
       if (emailError) {
         console.error("Portal creation error:", emailError);
-        // If edge function failed, still show success but warn about portal
+        // Surface the real server message so the user knows what to fix
+        // (e.g. "A signed service agreement is required..."). Never claim
+        // success when the server actually rejected the submission.
+        let serverMessage = "We couldn't submit your application. Please try again.";
+        try {
+          const ctx = (emailError as { context?: Response }).context;
+          if (ctx && typeof ctx.json === "function") {
+            const body = await ctx.json();
+            if (body?.error && typeof body.error === "string") {
+              serverMessage = body.error;
+            }
+          } else if ((emailError as Error).message) {
+            serverMessage = (emailError as Error).message;
+          }
+        } catch {
+          // ignore body-parse errors, keep default
+        }
         toast({
-          title: "✅ Application submitted!",
-          description: "Your application was saved. You'll receive portal access details by email shortly.",
+          title: "Submission rejected",
+          description: serverMessage,
+          variant: "destructive",
         });
-        setIsSuccess(true);
-        onSubmitSuccess?.();
         return;
       }
 
