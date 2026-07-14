@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from "react";
+import { useState, useEffect, useRef, createContext, useContext, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,6 +19,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const initialSessionClearInProgress = useRef(false);
 
   const checkAdminStatus = async (userId: string) => {
     const { data, error } = await supabase
@@ -56,6 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setLoading(false);
             });
           }, 0);
+        } else if (initialSessionClearInProgress.current) {
+          setIsAdmin(false);
         } else {
           setIsAdmin(false);
           setLoading(false);
@@ -67,8 +70,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const sessionFlag = sessionStorage.getItem('unikey_session_active');
     if (!sessionFlag) {
       // New session — sign out any persisted auth, then mark session active
-      supabase.auth.signOut().then(() => {
-        sessionStorage.setItem('unikey_session_active', 'true');
+      initialSessionClearInProgress.current = true;
+      sessionStorage.setItem('unikey_session_active', 'true');
+      supabase.auth.signOut().finally(() => {
+        initialSessionClearInProgress.current = false;
+        setSession(null);
+        setUser(null);
+        setIsAdmin(false);
+        setLoading(false);
       });
     } else {
       // Check for existing session
@@ -91,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    sessionStorage.setItem('unikey_session_active', 'true');
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,

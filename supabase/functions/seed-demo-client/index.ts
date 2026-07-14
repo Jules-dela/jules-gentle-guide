@@ -25,10 +25,8 @@ function getCorsHeaders(origin: string | null) {
   };
 }
 
-function createTemporaryDemoPassword() {
-  const randomPart = crypto.randomUUID().replaceAll('-', '') + crypto.randomUUID().replaceAll('-', '');
-  return `${randomPart.slice(0, 32)}Aa1!`;
-}
+const PUBLIC_DEMO_EMAIL = "fake.client@uni-key.ch";
+const PUBLIC_DEMO_PASSWORD = "UniKeyDemo2026!";
 
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req.headers.get('origin'));
@@ -86,9 +84,11 @@ serve(async (req) => {
       }
     }
 
-    const DEMO_EMAIL = Deno.env.get("DEMO_CLIENT_EMAIL") || "demo.showcase@unikey.ch";
+    const DEMO_EMAIL = publicDemoAccess
+      ? PUBLIC_DEMO_EMAIL
+      : Deno.env.get("DEMO_CLIENT_EMAIL") || "demo.showcase@unikey.ch";
     const demoPassword = publicDemoAccess
-      ? createTemporaryDemoPassword()
+      ? PUBLIC_DEMO_PASSWORD
       : Deno.env.get("DEMO_CLIENT_PASSWORD");
     const DEMO_NAME = "Emma Laurent";
     const DEMO_PHONE = "+41 78 456 12 89";
