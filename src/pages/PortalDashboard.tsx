@@ -219,8 +219,13 @@ export default function PortalDashboard() {
   const caseStage = useMemo(() => getStageFromStatus(activeCase?.status, proposals), [activeCase?.status, proposals]);
   
   // Showcase-specific state
-  const [showcaseContractData, setShowcaseContractData] = useState<ContractData | null>(null);
-  const [showcaseStatus, setShowcaseStatus] = useState<CaseStatus>('request_received');
+  // (also used in demo mode — pre-signed so all stages are navigable)
+  const [showcaseContractData, setShowcaseContractData] = useState<ContractData | null>(
+    isDemoMode ? { signed: true, timestamp: new Date().toISOString() } : null
+  );
+  const [showcaseStatus, setShowcaseStatus] = useState<CaseStatus>(
+    isDemoMode ? 'key_handover_scheduled' : 'request_received'
+  );
   
   const [highestStage, setHighestStage] = useState(isDemoMode && demoStage ? demoStage : 1);
   const [currentStage, setCurrentStage] = useState(isDemoMode && demoStage ? demoStage : 1);
@@ -469,28 +474,28 @@ export default function PortalDashboard() {
 
   // ─── Resolve display data ──────────────────────────────────────────────
 
-  const displayProfile = isShowcaseMode ? SHOWCASE_PROFILE : isDemoMode ? DEMO_PROFILE : profile;
-  const displayCase = isShowcaseMode 
-    ? makeDemoCase(showcaseStatus, showcaseContractData) 
-    : isDemoMode 
-      ? makeDemoCase('request_received', { signed: true, timestamp: new Date().toISOString() }) 
-      : activeCase;
+  const displayProfile = isOfflineMode ? (isDemoMode ? DEMO_PROFILE : SHOWCASE_PROFILE) : profile;
+  const displayCase = isOfflineMode
+    ? makeDemoCase(showcaseStatus, showcaseContractData)
+    : activeCase;
   const displayKeyHandover = isOfflineMode ? DEMO_KEY_HANDOVER : keyHandover;
   const displayUserName = isShowcaseMode ? 'Sarah Mitchell' : isDemoMode ? 'Demo User' : profile?.name;
-  const displayDocuments = isShowcaseMode ? SHOWCASE_DOCUMENTS : documents;
+  const displayDocuments = isOfflineMode ? SHOWCASE_DOCUMENTS : documents;
 
-  // Showcase-specific: determine which proposals to show and handlers to use
-  const showcaseProposals = isShowcaseMode ? SHOWCASE_PROPOSALS : undefined;
-  const resolvedOnLike = isShowcaseMode ? handleShowcaseLike : handleResearchLike;
-  const resolvedOnReject = isShowcaseMode ? handleShowcaseReject : handleRejectProposal;
-  const resolvedOnSign = isShowcaseMode ? handleShowcaseSign : signContract;
-  const resolvedOnVisitComplete = isShowcaseMode ? handleShowcaseVisitComplete : handleNextStep;
-  const resolvedOnDocsComplete = isShowcaseMode ? handleShowcaseDocsComplete : handleNextStep;
-  const resolvedSelectedApartment = isShowcaseMode ? (selectedApartment || SHOWCASE_PROPOSALS[1]) : (isDemoMode ? DEMO_APARTMENT : selectedApartment);
+  // Offline (demo + showcase): use rich mock proposals and dummy handlers
+  const showcaseProposals = isOfflineMode ? SHOWCASE_PROPOSALS : undefined;
+  const resolvedOnLike = isOfflineMode ? handleShowcaseLike : handleResearchLike;
+  const resolvedOnReject = isOfflineMode ? handleShowcaseReject : handleRejectProposal;
+  const resolvedOnSign = isOfflineMode ? handleShowcaseSign : signContract;
+  const resolvedOnVisitComplete = isOfflineMode ? handleShowcaseVisitComplete : handleNextStep;
+  const resolvedOnDocsComplete = isOfflineMode ? handleShowcaseDocsComplete : handleNextStep;
+  const resolvedSelectedApartment = isOfflineMode
+    ? (selectedApartment || SHOWCASE_PROPOSALS[1])
+    : selectedApartment;
 
   // Showcase: advance stage after contract signing
   const handleShowcaseNextStep = () => {
-    if (isShowcaseMode) {
+    if (isOfflineMode) {
       const nextStage = Math.min(currentStage + 1, 5);
       setCurrentStage(nextStage);
       setHighestStage(prev => Math.max(prev, nextStage));
@@ -504,6 +509,39 @@ export default function PortalDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
       <Header />
       <div className="h-[72px]" />
+
+      {isOfflineMode && (
+        <>
+          <div className="fixed top-[76px] right-3 z-40 bg-amber-500 text-white text-[11px] font-semibold px-2.5 py-1 rounded-full shadow-md tracking-wider uppercase">
+            {isDemoMode ? 'Demo Mode' : 'Showcase'}
+          </div>
+          <div className="fixed bottom-4 right-4 z-40 bg-white/95 backdrop-blur border border-slate-200 rounded-xl shadow-lg p-3 flex flex-col gap-2 max-w-[180px]">
+            <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold px-1">Jump to stage</div>
+            <div className="grid grid-cols-5 gap-1">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => {
+                    setCurrentStage(s);
+                    setHighestStage((prev) => Math.max(prev, s));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className={`h-8 rounded-md text-xs font-semibold transition-colors ${
+                    currentStage === s
+                      ? 'bg-primary text-white'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+            <div className="text-[10px] text-slate-400 px-1 leading-tight">
+              1·Criteria 2·Research 3·Visit 4·Docs 5·Keys
+            </div>
+          </div>
+        </>
+      )}
       
       <TrackerProgressBar 
         currentStage={currentStage}
