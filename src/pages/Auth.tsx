@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,11 +22,14 @@ type AuthFormData = z.infer<typeof authSchema>;
 export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCreatingDemo, setIsCreatingDemo] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const { signIn, user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const wantsDemo = searchParams.get("demo") === "true";
 
   const form = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
@@ -115,6 +118,42 @@ export default function Auth() {
     }
   };
 
+  const handleDemoAccess = async () => {
+    setIsCreatingDemo(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("seed-demo-client", {
+        body: { publicDemoAccess: true },
+      });
+
+      if (error) throw error;
+      if (!data?.session?.access_token || !data?.session?.refresh_token) {
+        throw new Error("Demo session was not created.");
+      }
+
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      });
+
+      if (sessionError) throw sessionError;
+
+      toast({
+        title: "Demo portal ready",
+        description: "Opening the fake customer account now.",
+      });
+      navigate("/portal");
+    } catch (err) {
+      console.error("Error creating demo account:", err);
+      toast({
+        title: "Demo access failed",
+        description: "Please try again in a moment.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingDemo(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary">
@@ -183,10 +222,24 @@ export default function Auth() {
             Portal Login
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Sign in to access your portal
+            {wantsDemo ? "Open a fake customer portal or sign in" : "Sign in to access your portal"}
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {wantsDemo && (
+            <div className="mb-5 rounded-lg border border-primary/20 bg-primary/5 p-4">
+              <p className="text-sm font-medium text-foreground mb-3">Fake customer account</p>
+              <Button
+                type="button"
+                className="w-full"
+                onClick={handleDemoAccess}
+                disabled={isCreatingDemo || isSubmitting}
+              >
+                {isCreatingDemo ? "Creating demo..." : "Enter fake client portal"}
+              </Button>
+            </div>
+          )}
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               <FormField
