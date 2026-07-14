@@ -25,6 +25,11 @@ function getCorsHeaders(origin: string | null) {
   };
 }
 
+function createTemporaryDemoPassword() {
+  const randomPart = crypto.randomUUID().replaceAll('-', '') + crypto.randomUUID().replaceAll('-', '');
+  return `${randomPart.slice(0, 32)}Aa1!`;
+}
+
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req.headers.get('origin'));
 
@@ -33,50 +38,62 @@ serve(async (req) => {
   }
 
   try {
+    if (req.method !== "POST") {
+      return new Response(JSON.stringify({ error: "Method not allowed" }), {
+        status: 405,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const publicDemoAccess = body?.publicDemoAccess === true;
+
     // ---- Admin auth check ----
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (!publicDemoAccess) {
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: authHeader } },
       });
-    }
 
-    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
+      const token = authHeader.replace("Bearer ", "");
+      const { data: userData, error: userError } = await userClient.auth.getUser(token);
+      if (userError || !userData?.user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+      const { data: roleData } = await userClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userData.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
 
-    const callerId = claimsData.claims.sub as string;
-
-    const { data: roleData } = await userClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", callerId)
-      .eq("role", "admin")
-      .maybeSingle();
-
-    if (!roleData) {
-      return new Response(JSON.stringify({ error: "Admin access required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      if (!roleData) {
+        return new Response(JSON.stringify({ error: "Admin access required" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const DEMO_EMAIL = Deno.env.get("DEMO_CLIENT_EMAIL") || "demo.showcase@unikey.ch";
-    const DEMO_PASSWORD = Deno.env.get("DEMO_CLIENT_PASSWORD");
+    const demoPassword = publicDemoAccess
+      ? createTemporaryDemoPassword()
+      : Deno.env.get("DEMO_CLIENT_PASSWORD");
     const DEMO_NAME = "Emma Laurent";
     const DEMO_PHONE = "+41 78 456 12 89";
 
-    if (!DEMO_PASSWORD) {
+    if (!demoPassword) {
       return new Response(
         JSON.stringify({ error: "Demo client password not configured. Set DEMO_CLIENT_PASSWORD secret." }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -120,18 +137,21 @@ serve(async (req) => {
       }
 
       // Reset password to known value
-      await supabase.auth.admin.updateUserById(userId, { password: DEMO_PASSWORD });
+      await supabase.auth.admin.updateUserById(userId, { password: demoPassword });
     } else {
       // Create new user
       const { data: newUser, error } = await supabase.auth.admin.createUser({
         email: DEMO_EMAIL,
-        password: DEMO_PASSWORD,
+        password: demoPassword,
         email_confirm: true,
         user_metadata: { name: DEMO_NAME, phone: DEMO_PHONE },
       });
       if (error) throw error;
       userId = newUser.user.id;
     }
+
+    // The demo account must never inherit admin access.
+    await supabase.from("user_roles").delete().eq("user_id", userId);
 
     // 2. Create profile
     const { data: profile, error: profileErr } = await supabase
@@ -296,6 +316,29 @@ serve(async (req) => {
       case_id: demoCase.id,
       notes: "Demo client — EPFL student. Liked the Ecublens apartment near campus. All documents validated. Handover confirmed for June 1st.",
     });
+
+    if (publicDemoAccess) {
+      const demoAuthClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const { data: signInData, error: signInError } = await demoAuthClient.auth.signInWithPassword({
+        email: DEMO_EMAIL,
+        password: demoPassword,
+      });
+
+      if (signInError || !signInData.session) throw signInError || new Error("Unable to start demo session");
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          mode: "public_demo",
+          user: { email: DEMO_EMAIL, name: DEMO_NAME },
+          session: {
+            access_token: signInData.session.access_token,
+            refresh_token: signInData.session.refresh_token,
+          },
+        }),
+        { headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
     return new Response(
       JSON.stringify({
