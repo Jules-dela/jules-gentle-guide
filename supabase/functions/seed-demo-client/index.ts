@@ -25,11 +25,6 @@ function getCorsHeaders(origin: string | null) {
   };
 }
 
-function createTemporaryDemoPassword() {
-  const randomPart = crypto.randomUUID().replaceAll('-', '') + crypto.randomUUID().replaceAll('-', '');
-  return `${randomPart.slice(0, 32)}Aa1!`;
-}
-
 const PUBLIC_DEMO_EMAIL = "fake.client@uni-key.ch";
 const PUBLIC_DEMO_PASSWORD = "UniKeyDemo2026!";
 
