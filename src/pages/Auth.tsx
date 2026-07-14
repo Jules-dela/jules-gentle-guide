@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Lock, Mail, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, ArrowLeft, Copy } from "lucide-react";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -18,6 +18,9 @@ const authSchema = z.object({
 });
 
 type AuthFormData = z.infer<typeof authSchema>;
+
+const FAKE_CLIENT_EMAIL = "fake.client@uni-key.ch";
+const FAKE_CLIENT_PASSWORD = "UniKeyDemo2026!";
 
 export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
@@ -154,6 +157,12 @@ export default function Auth() {
     }
   };
 
+  const fillFakeCredentials = () => {
+    form.setValue("email", FAKE_CLIENT_EMAIL, { shouldValidate: true });
+    form.setValue("password", FAKE_CLIENT_PASSWORD, { shouldValidate: true });
+    setShowPassword(true);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary">
@@ -229,6 +238,26 @@ export default function Auth() {
           {wantsDemo && (
             <div className="mb-5 rounded-lg border border-primary/20 bg-primary/5 p-4">
               <p className="text-sm font-medium text-foreground mb-3">Fake customer account</p>
+              <div className="mb-3 space-y-2 rounded-md bg-background/70 p-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">Email</span>
+                  <span className="font-medium text-foreground">{FAKE_CLIENT_EMAIL}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">Password</span>
+                  <span className="font-medium text-foreground">{FAKE_CLIENT_PASSWORD}</span>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="mb-3 w-full"
+                onClick={fillFakeCredentials}
+                disabled={isCreatingDemo || isSubmitting}
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Fill fake login details
+              </Button>
               <Button
                 type="button"
                 className="w-full"
