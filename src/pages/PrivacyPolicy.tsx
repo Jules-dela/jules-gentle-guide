@@ -20,8 +20,8 @@ const PrivacyPolicy = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-screen bg-background pt-16">
+      <LandingNav />
       
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 py-12 md:py-20">
