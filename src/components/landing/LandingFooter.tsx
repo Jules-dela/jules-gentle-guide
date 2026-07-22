@@ -14,31 +14,15 @@ export function LandingFooter() {
       <div className="mx-auto max-w-6xl px-5 md:px-8 py-14 md:py-20">
         <div className="grid md:grid-cols-2 gap-10 md:gap-16">
           <div>
-            <h3 className="text-[12px] font-mono tracking-widest uppercase text-white/50 mb-5">
-              Quick links
-            </h3>
-            <nav className="grid grid-cols-2 gap-x-6 gap-y-3">
-              {quickLinks.map((l) => (
-                <a
-                  key={l.label}
-                  href={l.href}
-                  className="text-[14px] text-white/70 hover:text-white transition-colors"
-                >
-                  {l.label}
-                </a>
-              ))}
-            </nav>
-          </div>
-          <div className="md:text-right">
             <img
               src={logoAsset.url}
               alt="UniKey"
-              className="h-[40px] w-auto md:h-[48px] md:ml-auto"
+              className="h-[40px] w-auto md:h-[48px]"
             />
             <p className="mt-5 font-display text-[18px] md:text-[20px] text-white/90 leading-snug">
               Your trusted student housing partner in Lausanne, Switzerland.
             </p>
-            <div className="mt-4 flex flex-col gap-2 md:items-end">
+            <div className="mt-4 flex flex-col gap-2">
               <a
                 href="mailto:contact@uni-key.ch"
                 className="text-[14px] text-white/70 hover:text-white transition-colors"
@@ -55,6 +39,22 @@ export function LandingFooter() {
                 <span>@unikey.ch</span>
               </a>
             </div>
+          </div>
+          <div className="md:text-right">
+            <h3 className="text-[12px] font-mono tracking-widest uppercase text-white/50 mb-5">
+              Quick links
+            </h3>
+            <nav className="grid grid-cols-2 gap-x-6 gap-y-3 md:justify-end">
+              {quickLinks.map((l) => (
+                <a
+                  key={l.label}
+                  href={l.href}
+                  className="text-[14px] text-white/70 hover:text-white transition-colors"
+                >
+                  {l.label}
+                </a>
+              ))}
+            </nav>
           </div>
         </div>
         <div className="mt-12 pt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-[12px] text-white/50">
