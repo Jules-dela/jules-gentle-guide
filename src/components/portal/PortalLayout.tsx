@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import logoAsset from '@/assets/unikey-wordmark.png.asset.json';
 
 interface PortalLayoutProps {
   children: React.ReactNode;
@@ -39,13 +40,12 @@ export function PortalLayout({ children }: PortalLayoutProps) {
   return (
     <div className="min-h-screen bg-muted">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-primary text-primary-foreground shadow-lg">
+      <header className="sticky top-0 z-50 bg-white text-slate-900 shadow-sm border-b border-slate-200">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/portal" className="flex items-center gap-2 font-bold text-xl">
-              <Home className="w-6 h-6" />
-              UNIKEY Portal
+            <Link to="/portal" className="flex items-center">
+              <img src={logoAsset.url} alt="UniKey" className="h-[26px] w-auto" />
             </Link>
 
             {/* Desktop navigation */}
@@ -60,9 +60,9 @@ export function PortalLayout({ children }: PortalLayoutProps) {
                     to={item.href}
                     className={cn(
                       'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-                      isActive 
-                        ? 'bg-white/20 text-white' 
-                        : 'text-white/80 hover:text-white hover:bg-white/10'
+                      isActive
+                        ? 'bg-slate-100 text-slate-900'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                     )}
                   >
                     <Icon className="w-4 h-4" />
@@ -74,7 +74,7 @@ export function PortalLayout({ children }: PortalLayoutProps) {
 
             {/* User menu */}
             <div className="flex items-center gap-4">
-              <div className="hidden sm:flex items-center gap-2 text-sm text-white/80">
+              <div className="hidden sm:flex items-center gap-2 text-sm text-slate-600">
                 <User className="w-4 h-4" />
                 {user?.email}
               </div>
@@ -90,7 +90,7 @@ export function PortalLayout({ children }: PortalLayoutProps) {
 
               {/* Mobile menu button */}
               <button
-                className="md:hidden p-2 rounded-lg hover:bg-white/10"
+                className="md:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-700"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 {mobileMenuOpen ? (
@@ -105,7 +105,7 @@ export function PortalLayout({ children }: PortalLayoutProps) {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-white/10">
+          <div className="md:hidden border-t border-slate-200">
             <nav className="container mx-auto px-4 py-4 space-y-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -118,9 +118,9 @@ export function PortalLayout({ children }: PortalLayoutProps) {
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
                       'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
-                      isActive 
-                        ? 'bg-white/20 text-white' 
-                        : 'text-white/80 hover:text-white hover:bg-white/10'
+                      isActive
+                        ? 'bg-slate-100 text-slate-900'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                     )}
                   >
                     <Icon className="w-5 h-5" />
@@ -130,7 +130,7 @@ export function PortalLayout({ children }: PortalLayoutProps) {
               })}
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 w-full"
+                className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 w-full"
               >
                 <LogOut className="w-5 h-5" />
                 Sign Out
