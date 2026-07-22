@@ -533,32 +533,32 @@ function Referral() {
 function Proof() {
   const items = [
     {
-      name: "Mei L.",
+      name: "Antoine P.",
       time: "2d ago",
       msg:
         "Signed my lease from Hong Kong before I'd even landed. The video tours were so clear I felt like I'd already visited.",
       uni: "MSc student · EHL",
     },
     {
-      name: "Adrien R.",
+      name: "Sebastian P",
       time: "5d ago",
       msg:
         "The Swiss paperwork alone would've broken me. They handled the entire dossier and I just showed up to sign.",
-      uni: "Exchange student · EPFL",
+      uni: "Exchange student · EHL",
     },
     {
-      name: "Sofia B.",
+      name: "Jules D.",
       time: "1w ago",
       msg:
         "Felt like checking into a hotel, not fighting for an apartment. The keys were ready the day I arrived in Lausanne.",
-      uni: "Bachelor student · UNIL",
+      uni: "Bachelor student · EHL",
     },
     {
-      name: "Luca M.",
+      name: "Clara B.",
       time: "2w ago",
       msg:
-        "They found a studio near EPFL in my budget that never even hit the listing sites. I don't know how they do it.",
-      uni: "MSc student · EPFL",
+        "They found a studio near EHL in my budget. They saved me.",
+      uni: "MSc student · EHL",
     },
   ];
   return (
