@@ -1,6 +1,7 @@
-import { Header } from "@/components/Header";
+import { LandingNav } from "@/components/landing/LandingNav";
+import { LandingFooter } from "@/components/landing/LandingFooter";
 import { BackToTop } from "@/components/BackToTop";
-import { Footer } from "@/components/Footer";
+
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Download } from "lucide-react";
