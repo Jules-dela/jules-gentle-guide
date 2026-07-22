@@ -45,7 +45,7 @@ export function PortalLayout({ children }: PortalLayoutProps) {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/portal" className="flex items-center">
-              <img src={logoAsset.url} alt="UniKey" className="h-[32px] w-auto" />
+              <img src={logoAsset.url} alt="UniKey" className="h-[36px] w-auto md:h-[32px]" />
             </Link>
 
             {/* Desktop navigation */}
