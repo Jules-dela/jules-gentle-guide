@@ -581,7 +581,7 @@ function Proof() {
                 <img
                   src={keyMarkAsset.url}
                   alt="UniKey"
-                  className="h-5 w-5 object-contain"
+                  className="h-8 w-auto object-contain"
                 />
               </div>
               <div className="min-w-0 flex-1">
