@@ -514,7 +514,7 @@ function Referral() {
             Most of our students come from a friend who's been through it.
           </h2>
           <p className="mt-5 text-[15.5px] md:text-[17px] leading-relaxed text-white/70 max-w-2xl mx-auto">
-            UniKey grew by word of mouth on campus, because finding a flat here is
+            Unikey grew by word of mouth on campus, because finding a flat here is
             stressful, and a good handover is worth talking about.
           </p>
           <Link
