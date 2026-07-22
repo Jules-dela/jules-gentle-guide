@@ -511,7 +511,7 @@ const PrivacyPolicy = () => {
         </div>
       </main>
 
-      <Footer />
+      <LandingFooter />
       <BackToTop />
     </div>
   );
