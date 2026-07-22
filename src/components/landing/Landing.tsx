@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, Check, ArrowRight, Plus, Search, Video, FileCheck, Key } from "lucide-react";
-import logoAsset from "@/assets/UNIKEY_logo-simple_01.png.asset.json";
+import logoAsset from "@/assets/unikey-wordmark.png.asset.json";
 
 const applyHref = "/apply";
 
@@ -40,7 +40,7 @@ function Nav() {
           <img
             src={logoAsset.url}
             alt="UniKey"
-            className="h-9 w-auto"
+            className="h-[30px] w-auto"
           />
         </a>
         <nav className="hidden md:flex items-center gap-8">
@@ -669,9 +669,11 @@ function LandingFooter() {
   return (
     <footer className="bg-uk-navy-dark text-white">
       <div className="mx-auto max-w-6xl px-5 md:px-8 py-14 md:py-20">
-        <div className="font-display text-[28px] md:text-[32px] tracking-tight">
-          Uni<span className="text-uk-gold-soft">Key</span>
-        </div>
+        <img
+          src={logoAsset.url}
+          alt="UniKey"
+          className="h-[26px] w-auto"
+        />
         <p className="mt-6 font-display text-[22px] md:text-[26px] text-white/90">
           Student housing, handled.
         </p>
