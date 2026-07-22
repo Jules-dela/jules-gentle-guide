@@ -36,10 +36,12 @@ function Nav() {
       }`}
     >
       <div className="mx-auto max-w-6xl px-5 md:px-8 h-16 flex items-center justify-between">
-        <a href="#top" className="flex items-center gap-2">
-          <span className="font-display text-[22px] tracking-tight text-uk-navy-dark">
-            Uni<span className="text-uk-gold">Key</span>
-          </span>
+        <a href="#top" className="flex items-center">
+          <img
+            src={logoAsset.url}
+            alt="UniKey"
+            className="h-9 w-auto"
+          />
         </a>
         <nav className="hidden md:flex items-center gap-8">
           {links.map((l) => (
