@@ -686,9 +686,9 @@ function LandingFooter() {
             <img
               src={logoAsset.url}
               alt="UniKey"
-              className="h-[34px] w-auto md:h-[30px]"
+              className="h-[40px] w-auto md:h-[48px]"
             />
-            <p className="mt-6 font-display text-[22px] md:text-[26px] text-white/90">
+            <p className="mt-5 font-display text-[18px] md:text-[20px] text-white/90 leading-snug">
               Your trusted student housing partner in Lausanne, Switzerland.
             </p>
             <p className="mt-2 text-[14px] text-white/60">
@@ -709,18 +709,26 @@ function LandingFooter() {
               >
                 <Instagram className="h-5 w-5" />
               </a>
+              <a
+                href="https://www.instagram.com/unikey.ch"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[15px] text-white/70 hover:text-white transition-colors"
+              >
+                @unikey.ch
+              </a>
             </div>
           </div>
           <div className="md:text-right">
-            <h3 className="text-[12px] font-mono tracking-widest uppercase text-white/50 mb-4">
+            <h3 className="text-[12px] font-mono tracking-widest uppercase text-white/50 mb-5">
               Quick links
             </h3>
-            <nav className="flex flex-col gap-2">
+            <nav className="grid grid-cols-2 gap-x-6 gap-y-3">
               {quickLinks.map((l) => (
                 <a
                   key={l.label}
                   href={l.href}
-                  className="text-[15px] text-white/70 hover:text-white transition-colors"
+                  className="text-[14px] text-white/70 hover:text-white transition-colors"
                 >
                   {l.label}
                 </a>
