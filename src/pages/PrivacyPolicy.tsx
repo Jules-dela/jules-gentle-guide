@@ -1,6 +1,7 @@
-import { Header } from "@/components/Header";
+import { LandingNav } from "@/components/landing/LandingNav";
+import { LandingFooter } from "@/components/landing/LandingFooter";
 import { BackToTop } from "@/components/BackToTop";
-import { Footer } from "@/components/Footer";
+
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Download } from "lucide-react";
@@ -19,8 +20,8 @@ const PrivacyPolicy = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-screen bg-background pt-16">
+      <LandingNav />
       
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 py-12 md:py-20">
@@ -510,7 +511,7 @@ const PrivacyPolicy = () => {
         </div>
       </main>
 
-      <Footer />
+      <LandingFooter />
       <BackToTop />
     </div>
   );
