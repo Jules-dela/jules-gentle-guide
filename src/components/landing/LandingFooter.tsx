@@ -44,7 +44,7 @@ export function LandingFooter() {
             <h3 className="text-[12px] font-mono tracking-widest uppercase text-white/50 mb-5">
               Quick links
             </h3>
-            <nav className="grid grid-cols-2 gap-x-6 gap-y-3 md:justify-end">
+            <nav className="flex flex-col gap-3 md:items-end">
               {quickLinks.map((l) => (
                 <a
                   key={l.label}
