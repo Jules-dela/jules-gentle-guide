@@ -671,27 +671,64 @@ function FAQ() {
 
 /* ---------------- Footer ---------------- */
 function LandingFooter() {
+  const quickLinks = [
+    { href: "#how", label: "How it works" },
+    { href: "#pricing", label: "Pricing" },
+    { href: "#proof", label: "Students" },
+    { href: "#faq", label: "FAQ" },
+    { href: applyHref, label: "Apply" },
+  ];
   return (
     <footer className="bg-uk-navy-dark text-white">
       <div className="mx-auto max-w-6xl px-5 md:px-8 py-14 md:py-20">
-        <img
-          src={logoAsset.url}
-          alt="UniKey"
-          className="h-[34px] w-auto md:h-[30px]"
-        />
-        <p className="mt-6 font-display text-[22px] md:text-[26px] text-white/90">
-          Student housing, handled.
-        </p>
-        <p className="mt-2 text-[14px] text-white/60">
-          Lausanne, Switzerland ·{" "}
-          <a
-            href="mailto:contact@uni-key.ch"
-            className="hover:text-white transition-colors"
-          >
-            contact@uni-key.ch
-          </a>
-        </p>
-        <div className="mt-10 pt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-[12px] text-white/50">
+        <div className="grid md:grid-cols-2 gap-10 md:gap-16">
+          <div>
+            <img
+              src={logoAsset.url}
+              alt="UniKey"
+              className="h-[34px] w-auto md:h-[30px]"
+            />
+            <p className="mt-6 font-display text-[22px] md:text-[26px] text-white/90">
+              Your trusted student housing partner in Lausanne, Switzerland.
+            </p>
+            <p className="mt-2 text-[14px] text-white/60">
+              <a
+                href="mailto:contact@uni-key.ch"
+                className="hover:text-white transition-colors"
+              >
+                contact@uni-key.ch
+              </a>
+            </p>
+            <div className="mt-5 flex items-center gap-3">
+              <a
+                href="https://www.instagram.com/unikey.ch"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+              >
+                <Instagram className="h-5 w-5" />
+              </a>
+            </div>
+          </div>
+          <div className="md:text-right">
+            <h3 className="text-[12px] font-mono tracking-widest uppercase text-white/50 mb-4">
+              Quick links
+            </h3>
+            <nav className="flex flex-col gap-2">
+              {quickLinks.map((l) => (
+                <a
+                  key={l.label}
+                  href={l.href}
+                  className="text-[15px] text-white/70 hover:text-white transition-colors"
+                >
+                  {l.label}
+                </a>
+              ))}
+            </nav>
+          </div>
+        </div>
+        <div className="mt-12 pt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-[12px] text-white/50">
           <span>© {new Date().getFullYear()} UniKey. All rights reserved.</span>
           <Link to="/privacy-policy" className="hover:text-white transition-colors">
             Privacy Policy
