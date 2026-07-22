@@ -16,6 +16,9 @@ export default {
       fontFamily: {
         'montserrat': ['Montserrat', 'sans-serif'],
         'poppins': ['Poppins', 'sans-serif'],
+        'display': ['Newsreader', 'ui-serif', 'Georgia', 'serif'],
+        'sans': ['"Schibsted Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        'mono': ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -66,6 +69,20 @@ export default {
           light: "hsl(var(--navy-light))",
         },
         "grey-light": "hsl(var(--grey-light))",
+        uk: {
+          navy: "#263359",
+          "navy-dark": "#0C2461",
+          "navy-light": "#1B4D8C",
+          "navy-tint": "#F3F5FA",
+          gold: "#A98A45",
+          "gold-soft": "#B8A868",
+          "gold-light": "#C9B77E",
+          "gold-tint": "#F5F1E4",
+          ink: "#1A2136",
+          muted: "#5E657A",
+          hairline: "#E6E8EF",
+          "hairline-soft": "#F0F1F6",
+        },
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',
