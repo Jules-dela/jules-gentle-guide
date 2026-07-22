@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, Check, ArrowRight, Plus, Search, Video, FileCheck, Key } from "lucide-react";
 import logoAsset from "@/assets/unikey-wordmark.png.asset.json";
+import keyMarkAsset from "@/assets/unikey-key-2.png.asset.json";
 
 const applyHref = "/apply";
 
@@ -577,7 +578,11 @@ function Proof() {
               }}
             >
               <div className="h-[42px] w-[42px] shrink-0 rounded-[12px] bg-uk-navy-dark flex items-center justify-center">
-                <Key className="h-5 w-5 text-uk-gold-soft" strokeWidth={1.75} />
+                <img
+                  src={keyMarkAsset.url}
+                  alt="UniKey"
+                  className="h-5 w-5 object-contain"
+                />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-3">
