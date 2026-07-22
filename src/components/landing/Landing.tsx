@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, Check, ArrowRight, Plus, Search, Video, FileCheck, Key } from "lucide-react";
+import logoAsset from "@/assets/UNIKEY_logo-simple_01.png.asset.json";
 
 const applyHref = "/apply";
 
