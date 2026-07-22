@@ -40,7 +40,7 @@ function Nav() {
           <img
             src={logoAsset.url}
             alt="UniKey"
-            className="h-[38px] w-auto"
+            className="h-[40px] w-auto md:h-[38px]"
           />
         </a>
         <nav className="hidden md:flex items-center gap-8">
@@ -672,7 +672,7 @@ function LandingFooter() {
         <img
           src={logoAsset.url}
           alt="UniKey"
-          className="h-[30px] w-auto"
+          className="h-[34px] w-auto md:h-[30px]"
         />
         <p className="mt-6 font-display text-[22px] md:text-[26px] text-white/90">
           Student housing, handled.
