@@ -28,9 +28,11 @@ interface Proposal {
   rejection_notes: string | null;
   photos: string[] | null;
   photo_positions: any;
+  photo_titles: string[] | null;
   client_visit_questions: string | null;
   listing_status: string;
   created_at: string;
+  archived?: boolean;
 }
 
 const LISTING_STATUSES = [
@@ -47,9 +49,10 @@ interface FeedbackTrackerProps {
 
 export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps) {
   const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [showArchived, setShowArchived] = useState(false);
   const [loading, setLoading] = useState(true);
   const [clearing, setClearing] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [archivingId, setArchivingId] = useState<string | null>(null);
   const [galleryProposal, setGalleryProposal] = useState<Proposal | null>(null);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [questionsProposal, setQuestionsProposal] = useState<Proposal | null>(null);
@@ -97,13 +100,14 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
     try {
       const { error } = await supabase
         .from('property_proposals')
-        .delete()
-        .eq('case_id', caseId);
+        .update({ archived: true, archived_at: new Date().toISOString() } as any)
+        .eq('case_id', caseId)
+        .eq('archived', false);
 
       if (error) throw error;
 
-      toast({ title: "Search cleared", description: "All proposals have been removed." });
-      setProposals([]);
+      toast({ title: "Search cleared", description: "All active listings archived." });
+      await fetchProposals();
       onClearSearch();
     } catch (err) {
       console.error('Error clearing proposals:', err);
@@ -113,40 +117,42 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
     }
   };
 
-  const deleteProposal = async (proposal: Proposal) => {
-    setDeletingId(proposal.id);
+  const archiveProposal = async (proposal: Proposal) => {
+    setArchivingId(proposal.id);
     try {
-      // Delete photos from storage
-      if (proposal.photos && proposal.photos.length > 0) {
-        const filePaths = proposal.photos
-          .map(url => {
-            try {
-              const u = new URL(url);
-              const match = u.pathname.match(/\/object\/(?:public|sign)\/property-photos\/(.+)/);
-              return match ? decodeURIComponent(match[1]) : null;
-            } catch { return null; }
-          })
-          .filter(Boolean) as string[];
-        if (filePaths.length > 0) {
-          await supabase.storage.from('property-photos').remove(filePaths);
-        }
-      }
-
       const { error } = await supabase
         .from('property_proposals')
-        .delete()
+        .update({ archived: true, archived_at: new Date().toISOString() } as any)
         .eq('id', proposal.id);
 
       if (error) throw error;
 
-      toast({ title: "Listing removed", description: "The property listing has been deleted." });
-      setProposals(prev => prev.filter(p => p.id !== proposal.id));
+      toast({ title: "Listing archived", description: "Hidden from the client portal. You can restore it any time." });
+      setProposals(prev => prev.map(p => p.id === proposal.id ? { ...p, archived: true } : p));
       if (detailProposal?.id === proposal.id) setDetailProposal(null);
     } catch (err) {
-      console.error('Error deleting proposal:', err);
-      toast({ title: "Error", description: "Failed to delete listing.", variant: "destructive" });
+      console.error('Error archiving proposal:', err);
+      toast({ title: "Error", description: "Failed to archive listing.", variant: "destructive" });
     } finally {
-      setDeletingId(null);
+      setArchivingId(null);
+    }
+  };
+
+  const restoreProposal = async (proposal: Proposal) => {
+    setArchivingId(proposal.id);
+    try {
+      const { error } = await supabase
+        .from('property_proposals')
+        .update({ archived: false, archived_at: null } as any)
+        .eq('id', proposal.id);
+      if (error) throw error;
+      setProposals(prev => prev.map(p => p.id === proposal.id ? { ...p, archived: false } : p));
+      toast({ title: 'Listing restored', description: 'Visible in the active list again.' });
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Error', description: 'Failed to restore listing.', variant: 'destructive' });
+    } finally {
+      setArchivingId(null);
     }
   };
   const updateListingStatus = async (proposalId: string, newStatus: string) => {
@@ -236,8 +242,11 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
     }
   };
 
-  const feedbackProposals = proposals.filter(p => p.client_status === 'liked' || p.client_status === 'rejected');
-  const pendingProposals = proposals.filter(p => p.client_status === 'pending');
+  const activeProposals = proposals.filter(p => !p.archived);
+  const archivedProposals = proposals.filter(p => p.archived);
+  const viewProposals = showArchived ? archivedProposals : activeProposals;
+  const feedbackProposals = activeProposals.filter(p => p.client_status === 'liked' || p.client_status === 'rejected');
+  const pendingProposals = activeProposals.filter(p => p.client_status === 'pending');
   const pendingCount = pendingProposals.length;
   const allRejected = feedbackProposals.length > 0 && feedbackProposals.every(p => p.client_status === 'rejected');
   const hasLiked = feedbackProposals.some(p => p.client_status === 'liked');
@@ -263,14 +272,24 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h4 className="text-sm font-semibold text-foreground">Sent Listings</h4>
           <p className="text-xs text-muted-foreground">
-            {proposals.length} total · {feedbackProposals.length} responded · {likedCount} liked{pendingCount > 0 ? ` · ${pendingCount} pending` : ''}
+            {activeProposals.length} active · {archivedProposals.length} archived · {likedCount} liked{pendingCount > 0 ? ` · ${pendingCount} pending` : ''}
           </p>
         </div>
-        {allRejected && (
+        <div className="flex items-center gap-2">
+          <Button
+            variant={showArchived ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setShowArchived(v => !v)}
+            className="gap-1.5 text-xs"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            {showArchived ? `Viewing archived (${archivedProposals.length})` : `Archived (${archivedProposals.length})`}
+          </Button>
+          {allRejected && !showArchived && (
           <Button
             variant="outline"
             size="sm"
@@ -281,17 +300,19 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
             {clearing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             Clear & Restart
           </Button>
-        )}
+          )}
+        </div>
       </div>
 
       <AnimatePresence mode="popLayout">
-        {proposals.map((proposal, index) => (
+        {viewProposals.map((proposal, index) => (
           <motion.div
             key={proposal.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ delay: index * 0.05 }}
+            className={showArchived ? 'opacity-60' : ''}
           >
             <Card 
               className={`overflow-hidden cursor-pointer hover:shadow-md transition-all relative ${
@@ -305,14 +326,29 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
             >
               <CardContent className="p-3">
                 <div className="flex items-start gap-3">
-                  {/* Delete button */}
+                  {/* Archive / Restore button */}
+                  {showArchived ? (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); restoreProposal(proposal); }}
+                      className="absolute top-2 right-2 z-10 h-7 px-2 rounded-full bg-background/80 backdrop-blur-sm text-[11px] font-medium hover:bg-primary/10 hover:text-primary transition-colors flex items-center gap-1"
+                      title="Restore listing"
+                    >
+                      {archivingId === proposal.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-3 w-3" />
+                      )}
+                      Restore
+                    </button>
+                  ) : (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <button
                         onClick={(e) => e.stopPropagation()}
                         className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors"
+                        title="Archive listing"
                       >
-                        {deletingId === proposal.id ? (
+                        {archivingId === proposal.id ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
                         ) : (
                           <Trash2 className="h-3.5 w-3.5" />
@@ -321,22 +357,22 @@ export function FeedbackTracker({ caseId, onClearSearch }: FeedbackTrackerProps)
                     </AlertDialogTrigger>
                     <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Remove this listing?</AlertDialogTitle>
+                        <AlertDialogTitle>Archive this listing?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          This will permanently delete the property listing and its photos. This cannot be undone.
+                          The client will no longer see it in their portal, but you can restore it later from the "Archived" view. Photos are kept.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => deleteProposal(proposal)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          onClick={() => archiveProposal(proposal)}
                         >
-                          Delete
+                          Archive
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
+                  )}
                   {/* Thumbnail */}
                   <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0">
                     <button

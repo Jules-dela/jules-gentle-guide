@@ -9,6 +9,7 @@ interface Apartment {
   id: string;
   images: string[];
   imagePositions?: Record<number, number>;
+  imageTitles?: string[];
   rent: number;
   rooms: number;
   location: string;
@@ -68,6 +69,15 @@ export function ApartmentCard({ apartment, onLike, onDislike, readOnly = false, 
         
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+
+        {/* Photo caption */}
+        {apartment.imageTitles?.[currentImageIndex] && (
+          <div className="absolute top-4 left-4 max-w-[70%] px-3 py-1.5 rounded-full bg-black/55 backdrop-blur-sm">
+            <span className="text-white text-xs font-medium truncate block">
+              {apartment.imageTitles[currentImageIndex]}
+            </span>
+          </div>
+        )}
         
         {/* Navigation Arrows */}
         {apartment.images.length > 1 && (

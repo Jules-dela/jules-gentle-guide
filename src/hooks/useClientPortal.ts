@@ -123,6 +123,7 @@ export function useClientPortal(): UseClientPortalReturn {
             .from('property_proposals')
             .select('*')
             .eq('case_id', caseData.id)
+            .eq('archived', false)
             .order('created_at', { ascending: false }),
           supabase
             .from('case_documents')
