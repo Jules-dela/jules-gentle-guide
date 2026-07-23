@@ -13,12 +13,14 @@ import { ApartmentCard } from '@/components/portal/ApartmentCard';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAdminNotifications } from '@/hooks/useNotifications';
+import { processImages } from '@/lib/imageCompression';
 
 interface ApartmentDraft {
   id: string;
   images: File[];
   imagePreviewUrls: string[];
   imagePositions: Record<number, number>; // index -> vertical position % (0-100, default 50)
+  imageTitles: string[]; // per-index caption (parallel to images)
   video: File | null;
   videoPreviewUrl: string | null;
   rent: string;
@@ -60,6 +62,7 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
       images: [],
       imagePreviewUrls: [],
       imagePositions: {},
+      imageTitles: [],
       video: null,
       videoPreviewUrl: null,
       rent: '',
@@ -78,18 +81,8 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
     }
   }, [apartments, expandedId]);
 
-  const updateApartment = useCallback((id: string, field: keyof ApartmentDraft, value: string | File[]) => {
-    setApartments(apartments.map(apt => {
-      if (apt.id !== id) return apt;
-      
-      if (field === 'images' && Array.isArray(value)) {
-        const newImages = [...apt.images, ...(value as File[])];
-        const newPreviews = [...apt.imagePreviewUrls, ...(value as File[]).map(f => URL.createObjectURL(f))];
-        return { ...apt, images: newImages, imagePreviewUrls: newPreviews };
-      }
-      
-      return { ...apt, [field]: value };
-    }));
+  const updateApartment = useCallback((id: string, field: keyof ApartmentDraft, value: string) => {
+    setApartments(apartments.map(apt => (apt.id === id ? { ...apt, [field]: value } : apt)));
   }, [apartments]);
 
   const removeImage = useCallback((apartmentId: string, imageIndex: number) => {
@@ -98,14 +91,16 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
       
       const newImages = [...apt.images];
       const newPreviews = [...apt.imagePreviewUrls];
+      const newTitles = [...apt.imageTitles];
       
       // Revoke the object URL to prevent memory leaks
       URL.revokeObjectURL(newPreviews[imageIndex]);
       
       newImages.splice(imageIndex, 1);
       newPreviews.splice(imageIndex, 1);
+      newTitles.splice(imageIndex, 1);
       
-      return { ...apt, images: newImages, imagePreviewUrls: newPreviews };
+      return { ...apt, images: newImages, imagePreviewUrls: newPreviews, imageTitles: newTitles };
     }));
   }, [apartments]);
 
@@ -116,9 +111,11 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
       if (toIndex < 0 || toIndex >= apt.images.length) return apt;
       const newImages = [...apt.images];
       const newPreviews = [...apt.imagePreviewUrls];
+      const newTitles = [...apt.imageTitles];
       [newImages[fromIndex], newImages[toIndex]] = [newImages[toIndex], newImages[fromIndex]];
       [newPreviews[fromIndex], newPreviews[toIndex]] = [newPreviews[toIndex], newPreviews[fromIndex]];
-      return { ...apt, images: newImages, imagePreviewUrls: newPreviews };
+      [newTitles[fromIndex], newTitles[toIndex]] = [newTitles[toIndex] || '', newTitles[fromIndex] || ''];
+      return { ...apt, images: newImages, imagePreviewUrls: newPreviews, imageTitles: newTitles };
     }));
   }, [apartments]);
 
@@ -128,10 +125,13 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
       if (fromIndex === toIndex || toIndex < 0 || toIndex >= apt.images.length) return apt;
       const newImages = [...apt.images];
       const newPreviews = [...apt.imagePreviewUrls];
+      const newTitles = [...apt.imageTitles];
       const [movedImg] = newImages.splice(fromIndex, 1);
       const [movedPrev] = newPreviews.splice(fromIndex, 1);
+      const [movedTitle] = newTitles.splice(fromIndex, 1);
       newImages.splice(toIndex, 0, movedImg);
       newPreviews.splice(toIndex, 0, movedPrev);
+      newTitles.splice(toIndex, 0, movedTitle || '');
       // Remap positions to follow images
       const oldPositions = apt.imagePositions;
       const order = apt.imagePreviewUrls.map((_, i) => i);
@@ -141,7 +141,7 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
       order.forEach((origIdx, newIdx) => {
         if (oldPositions[origIdx] !== undefined) newPositions[newIdx] = oldPositions[origIdx];
       });
-      return { ...apt, images: newImages, imagePreviewUrls: newPreviews, imagePositions: newPositions };
+      return { ...apt, images: newImages, imagePreviewUrls: newPreviews, imageTitles: newTitles, imagePositions: newPositions };
     }));
   }, []);
 
@@ -178,11 +178,38 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
   }, []);
 
 
-  const handleFileChange = useCallback((apartmentId: string, files: FileList | null) => {
-    if (!files) return;
-    const filesArray = Array.from(files);
-    updateApartment(apartmentId, 'images', filesArray);
-  }, [updateApartment]);
+  const handleFileChange = useCallback(async (apartmentId: string, files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    try {
+      const processed = await processImages(Array.from(files));
+      setApartments(prev => prev.map(apt => {
+        if (apt.id !== apartmentId) return apt;
+        return {
+          ...apt,
+          images: [...apt.images, ...processed.map(p => p.uploadFile)],
+          imagePreviewUrls: [...apt.imagePreviewUrls, ...processed.map(p => p.previewUrl)],
+          imageTitles: [...apt.imageTitles, ...processed.map(() => '')],
+        };
+      }));
+    } catch (err) {
+      console.error('image compression failed', err);
+      toast({
+        title: 'Could not add photos',
+        description: 'One or more images failed to load. Try a different file.',
+        variant: 'destructive',
+      });
+    }
+  }, []);
+
+  const setImageTitle = useCallback((apartmentId: string, imageIndex: number, title: string) => {
+    setApartments(prev => prev.map(apt => {
+      if (apt.id !== apartmentId) return apt;
+      const next = [...apt.imageTitles];
+      while (next.length <= imageIndex) next.push('');
+      next[imageIndex] = title;
+      return { ...apt, imageTitles: next };
+    }));
+  }, []);
 
   const handleVideoChange = useCallback((apartmentId: string, files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -261,6 +288,7 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
             description: apt.description,
             photos: uploadedUrls,
             photo_positions: apt.imagePositions,
+            photo_titles: (apt.imageTitles || []).slice(0, uploadedUrls.length) as any,
             client_status: 'pending',
           })
           .select('id')
