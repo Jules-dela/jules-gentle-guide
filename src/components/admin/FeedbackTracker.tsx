@@ -28,7 +28,7 @@ interface Proposal {
   rejection_notes: string | null;
   photos: string[] | null;
   photo_positions: any;
-  photo_titles: string[] | null;
+  photo_titles: any;
   client_visit_questions: string | null;
   listing_status: string;
   created_at: string;

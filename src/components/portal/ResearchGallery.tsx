@@ -18,6 +18,8 @@ import {
 export interface SelectedApartment {
   id: string;
   images: string[];
+  imagePositions?: Record<number, number>;
+  imageTitles?: string[];
   rent: number;
   rooms: number;
   location: string;

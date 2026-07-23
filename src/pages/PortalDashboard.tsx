@@ -187,8 +187,8 @@ function proposalToApartment(proposal: PropertyProposal): SelectedApartment {
     images: proposal.photos.length > 0 
       ? proposal.photos 
       : [],
-    imagePositions: (proposal.photo_positions as Record<number, number> | null) || undefined,
-    imageTitles: (proposal as any).photo_titles || undefined,
+    imagePositions: (proposal.photo_positions as unknown as Record<number, number> | null) || undefined,
+    imageTitles: Array.isArray((proposal as any).photo_titles) ? (proposal as any).photo_titles as string[] : undefined,
     rent: proposal.rent || 0,
     rooms: proposal.rooms || 0,
     location: proposal.address || 'Lausanne',
