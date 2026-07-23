@@ -27,13 +27,14 @@ export function useAdminDashboard() {
   const fetchClients = useCallback(async () => {
     try {
       // Fetch all data in parallel
-      const [profilesRes, casesRes, proposalsRes, docsRes, signaturesRes, intakeRes] = await Promise.all([
+      const [profilesRes, casesRes, proposalsRes, docsRes, signaturesRes, intakeRes, staffNotesRes] = await Promise.all([
         supabase.from('profiles').select('*').order('created_at', { ascending: false }),
         supabase.from('cases').select('*').order('created_at', { ascending: false }),
         supabase.from('property_proposals').select('*').order('created_at', { ascending: false }),
         supabase.from('case_documents').select('*'),
         supabase.from('contract_signatures').select('*'),
         supabase.from('intake_submissions').select('email, deposit_paid, payment_confirmed_at'),
+        supabase.from('case_staff_notes').select('case_id, whatsapp_contacted, whatsapp_contacted_at, managed_by, next_visit_at'),
       ]);
 
       if (profilesRes.error) throw profilesRes.error;
@@ -47,6 +48,13 @@ export function useAdminDashboard() {
       const allDocuments = docsRes.data;
       const allSignatures = signaturesRes.data || [];
       const allIntakes = intakeRes.data || [];
+      const allStaffNotes = (staffNotesRes.data || []) as Array<{
+        case_id: string;
+        whatsapp_contacted: boolean | null;
+        whatsapp_contacted_at: string | null;
+        managed_by: string | null;
+        next_visit_at: string | null;
+      }>;
 
       // Map profiles to clients with case data
       const clientsWithCases: ClientWithCase[] = (profiles || []).map((profile) => {
@@ -55,6 +63,7 @@ export function useAdminDashboard() {
         const contractData = profileCase?.contract_data as unknown as { signed?: boolean; timestamp?: string } | null;
         const signature = allSignatures.find((s: any) => s.case_id === profileCase?.id);
         const intake = allIntakes.find((i: any) => i.email && profile.email && i.email.toLowerCase() === profile.email.toLowerCase());
+        const staffNote = allStaffNotes.find((n) => n.case_id === profileCase?.id);
 
         // Check for rejected proposals
         const clientProposals = proposals?.filter((p) => p.case_id === profileCase?.id) || [];
@@ -142,6 +151,10 @@ export function useAdminDashboard() {
               address: p.address ?? p.neighbourhood ?? null,
               status: p.listing_status || 'research',
             })),
+          whatsapp_contacted: !!staffNote?.whatsapp_contacted,
+          whatsapp_contacted_at: staffNote?.whatsapp_contacted_at || null,
+          managed_by: staffNote?.managed_by || null,
+          next_visit_at: staffNote?.next_visit_at || null,
         };
       });
 
