@@ -542,6 +542,14 @@ export function ApartmentUploader({ caseId, onSave, clientEmail, clientName }: A
                                   <p className="text-[11px] text-muted-foreground">Drag for finer control.</p>
                                 </div>
 
+                                <Input
+                                  value={apt.imageTitles[imgIndex] || ''}
+                                  onChange={(e) => setImageTitle(apt.id, imgIndex, e.target.value)}
+                                  placeholder="Caption (e.g. Living room, Kitchen)"
+                                  className="h-8 text-xs"
+                                  maxLength={60}
+                                />
+
                                 {apt.imagePreviewUrls.length > 1 && (
                                   <div className="flex items-center justify-between gap-1">
                                     <button
