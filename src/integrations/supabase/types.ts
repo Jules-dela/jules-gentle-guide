@@ -123,22 +123,34 @@ export type Database = {
           case_id: string
           created_at: string
           id: string
+          managed_by: string | null
+          next_visit_at: string | null
           notes: string | null
           updated_at: string
+          whatsapp_contacted: boolean
+          whatsapp_contacted_at: string | null
         }
         Insert: {
           case_id: string
           created_at?: string
           id?: string
+          managed_by?: string | null
+          next_visit_at?: string | null
           notes?: string | null
           updated_at?: string
+          whatsapp_contacted?: boolean
+          whatsapp_contacted_at?: string | null
         }
         Update: {
           case_id?: string
           created_at?: string
           id?: string
+          managed_by?: string | null
+          next_visit_at?: string | null
           notes?: string | null
           updated_at?: string
+          whatsapp_contacted?: boolean
+          whatsapp_contacted_at?: string | null
         }
         Relationships: [
           {
@@ -620,6 +632,8 @@ export type Database = {
         Row: {
           address: string | null
           agency_info: string | null
+          archived: boolean
+          archived_at: string | null
           case_id: string
           charges: number | null
           client_status: Database["public"]["Enums"]["proposal_status"] | null
@@ -630,6 +644,7 @@ export type Database = {
           listing_status: Database["public"]["Enums"]["listing_status"]
           neighbourhood: string | null
           photo_positions: Json | null
+          photo_titles: Json
           photos: string[] | null
           property_type: string | null
           rejection_notes: string | null
@@ -646,6 +661,8 @@ export type Database = {
         Insert: {
           address?: string | null
           agency_info?: string | null
+          archived?: boolean
+          archived_at?: string | null
           case_id: string
           charges?: number | null
           client_status?: Database["public"]["Enums"]["proposal_status"] | null
@@ -656,6 +673,7 @@ export type Database = {
           listing_status?: Database["public"]["Enums"]["listing_status"]
           neighbourhood?: string | null
           photo_positions?: Json | null
+          photo_titles?: Json
           photos?: string[] | null
           property_type?: string | null
           rejection_notes?: string | null
@@ -672,6 +690,8 @@ export type Database = {
         Update: {
           address?: string | null
           agency_info?: string | null
+          archived?: boolean
+          archived_at?: string | null
           case_id?: string
           charges?: number | null
           client_status?: Database["public"]["Enums"]["proposal_status"] | null
@@ -682,6 +702,7 @@ export type Database = {
           listing_status?: Database["public"]["Enums"]["listing_status"]
           neighbourhood?: string | null
           photo_positions?: Json | null
+          photo_titles?: Json
           photos?: string[] | null
           property_type?: string | null
           rejection_notes?: string | null

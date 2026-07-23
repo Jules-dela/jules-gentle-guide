@@ -107,6 +107,7 @@ export default function AdminDashboard() {
               onClientClick={setSelectedClient}
               isLoading={loading}
               statFilter={statFilter}
+              onRefresh={refetch}
             />
           </div>
 

@@ -48,6 +48,11 @@ export interface ClientWithCase {
   deposit_paid_at: string | null;
   // Listing statuses for liked proposals
   listing_statuses: { id: string; address: string | null; status: string }[];
+  // Team tracking (case_staff_notes)
+  whatsapp_contacted: boolean;
+  whatsapp_contacted_at: string | null;
+  managed_by: string | null;
+  next_visit_at: string | null;
 }
 
 export interface ClientInteraction {

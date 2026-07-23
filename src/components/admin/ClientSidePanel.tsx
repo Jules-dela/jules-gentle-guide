@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, Phone, MapPin, CreditCard, Calendar, Home, FileText, ChevronDown, ChevronUp, Loader2, GraduationCap, Users, KeyRound, CheckCircle2, XCircle } from 'lucide-react';
+import { X, Mail, Phone, MapPin, CreditCard, Calendar, Home, FileText, ChevronDown, ChevronUp, Loader2, GraduationCap, Users, KeyRound, CheckCircle2, XCircle, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { ApartmentUploader } from './ApartmentUploader';
 import { PendingProposalsList } from './PendingProposalsList';
 import { FeedbackTracker } from './FeedbackTracker';
@@ -17,6 +18,8 @@ import { ContractClosurePanel } from './ContractClosurePanel';
 import { SignatureViewer, SignedBadge } from './SignatureViewer';
 import { SignedContractViewer } from './SignedContractViewer';
 import { LazySection } from './LazySection';
+import { InternalCasePanel } from './InternalCasePanel';
+import { getVisitStatus } from '@/lib/visitStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { ClientWithCase } from '@/types/admin';
@@ -25,6 +28,80 @@ interface ClientSidePanelProps {
   client: ClientWithCase | null;
   onClose: () => void;
   onStatusChange?: () => void;
+}
+
+function toLocalInput(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function NextVisitCard({ caseId, initialValue, onSaved }: { caseId: string; initialValue: string | null; onSaved: () => void }) {
+  const [value, setValue] = useState<string>(toLocalInput(initialValue));
+  const [saving, setSaving] = useState(false);
+
+  // sync when opening panel for another client
+  useEffect(() => {
+    setValue(toLocalInput(initialValue));
+  }, [caseId, initialValue]);
+
+  const status = getVisitStatus(initialValue);
+
+  const save = useCallback(async (next: string | null) => {
+    setSaving(true);
+    const patch: any = { case_id: caseId, next_visit_at: next };
+    const { error } = await supabase
+      .from('case_staff_notes')
+      .upsert(patch, { onConflict: 'case_id' });
+    setSaving(false);
+    if (error) {
+      toast({ title: 'Error', description: 'Could not save the visit date.', variant: 'destructive' });
+      return;
+    }
+    onSaved();
+  }, [caseId, onSaved]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value;
+    setValue(v);
+    const iso = v ? new Date(v).toISOString() : null;
+    save(iso);
+  };
+
+  const clear = () => {
+    setValue('');
+    save(null);
+  };
+
+  return (
+    <div className="rounded-lg border bg-background p-3 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <CalendarClock className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium text-foreground">Next visit</span>
+        </div>
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${status.className}`}>
+          {status.label}
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <Input
+          type="datetime-local"
+          value={value}
+          onChange={handleChange}
+          disabled={saving}
+          className="text-sm"
+        />
+        {value && (
+          <Button variant="ghost" size="sm" onClick={clear} disabled={saving} className="text-xs">
+            Clear
+          </Button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 const caseStatuses = [
@@ -357,6 +434,20 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
                     </Badge>
                   )}
                 </div>
+
+                {/* Next Visit */}
+                {client.case_id && (
+                  <NextVisitCard
+                    caseId={client.case_id}
+                    initialValue={client.next_visit_at}
+                    onSaved={() => { onStatusChange?.(); handleRefresh(); }}
+                  />
+                )}
+
+                {/* Internal team notes */}
+                {client.case_id && (
+                  <InternalCasePanel caseId={client.case_id} onChange={() => onStatusChange?.()} />
+                )}
 
                 <Separator />
 

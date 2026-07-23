@@ -15,9 +15,13 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { ChevronRight, FileText, Archive, Filter, X, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, FileText, Archive, Filter, X, CheckCircle2, Search, MessageCircle, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { SignedBadge } from './SignatureViewer';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+import { getVisitStatus } from '@/lib/visitStatus';
 import type { ClientWithCase } from '@/types/admin';
 import type { StatFilter } from './StatCards';
 
@@ -58,6 +62,54 @@ function DepositBadge() {
   );
 }
 
+// WhatsApp status badge (clickable, toggles on the row)
+function WhatsAppBadge({ client, onChanged }: { client: ClientWithCase; onChanged: () => void }) {
+  const contacted = !!client.whatsapp_contacted;
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!client.case_id) return;
+    const next = !contacted;
+    const patch: Record<string, unknown> = { case_id: client.case_id, whatsapp_contacted: next };
+    if (next) patch.whatsapp_contacted_at = new Date().toISOString();
+    const { error } = await supabase
+      .from('case_staff_notes')
+      .upsert(patch as any, { onConflict: 'case_id' });
+    if (error) {
+      toast({ title: 'Error', description: 'Could not update WhatsApp status.', variant: 'destructive' });
+      return;
+    }
+    onChanged();
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      title={contacted ? 'WhatsApp sent — click to unmark' : 'Not contacted — click to mark'}
+      className={cn(
+        'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium transition-colors',
+        contacted
+          ? 'bg-green-100 text-green-700 hover:bg-green-200'
+          : 'bg-transparent text-muted-foreground border border-border hover:bg-muted',
+      )}
+    >
+      {contacted ? <Check className="h-3 w-3" /> : <MessageCircle className="h-3 w-3" />}
+      {contacted ? 'WhatsApp sent' : 'Not contacted'}
+    </button>
+  );
+}
+
+// Next-visit badge — reads the shared helper so the panel + table can't disagree.
+function NextVisitBadge({ nextVisitAt }: { nextVisitAt: string | null }) {
+  const status = getVisitStatus(nextVisitAt);
+  return (
+    <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap', status.className)}>
+      {status.label}
+    </span>
+  );
+}
+
 // Listing status badge colors
 const listingStatusColors: Record<string, string> = {
   research: 'bg-blue-100 text-blue-700',
@@ -91,10 +143,11 @@ interface ClientsTableProps {
   onClientClick: (client: ClientWithCase) => void;
   isLoading?: boolean;
   statFilter?: StatFilter;
+  onRefresh?: () => void;
 }
 
 // Mobile Card View
-function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () => void }) {
+function ClientCard({ client, onClick, onRefresh }: { client: ClientWithCase; onClick: () => void; onRefresh: () => void }) {
   const stageInfo = stageConfig[client.case_status] || { label: 'Unknown', color: 'bg-gray-100 text-gray-700' };
   const statusTag = client.case_status === 'closed' 
     ? statusTagConfig.completed 
@@ -136,6 +189,7 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
               {client.name}
               {client.is_contract_signed && <SignedBadge isSigned={true} />}
               {client.deposit_paid && <DepositBadge />}
+              {client.case_id && <WhatsAppBadge client={client} onChanged={onRefresh} />}
               {isArchived && <Archive className="h-3.5 w-3.5 text-muted-foreground" />}
             </p>
             <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -146,6 +200,7 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
             <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium', stageInfo.color)}>
               {stageInfo.label}
             </span>
+            <NextVisitBadge nextVisitAt={client.next_visit_at} />
             <Badge variant={statusTag.variant} className="text-xs">
               {statusTag.label}
             </Badge>
@@ -178,8 +233,9 @@ function ClientCard({ client, onClick }: { client: ClientWithCase; onClick: () =
   );
 }
 
-export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: ClientsTableProps) {
+export function ClientsTable({ clients, onClientClick, isLoading, statFilter, onRefresh }: ClientsTableProps) {
   const [filter, setFilter] = useState<'active' | 'archived'>('active');
+  const [search, setSearch] = useState('');
   const [budgetFilter, setBudgetFilter] = useState<string>('all');
   const [areaFilter, setAreaFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -258,9 +314,16 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
         if (sharingFilter === 'sharing' && !isSharing) return false;
         if (sharingFilter === 'not_sharing' && isSharing) return false;
       }
+      if (search.trim()) {
+        const q = search.trim().toLowerCase();
+        const hay = `${c.name || ''} ${c.email || ''}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
       return true;
     });
-  }, [baseClients, budgetFilter, areaFilter, typeFilter, roomsFilter, sharingFilter, statFilter]);
+  }, [baseClients, budgetFilter, areaFilter, typeFilter, roomsFilter, sharingFilter, statFilter, search]);
+
+  const refresh = onRefresh || (() => {});
 
   if (isLoading) {
     return (
@@ -302,6 +365,17 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
           </TabsTrigger>
         </TabsList>
       </Tabs>
+
+      {/* Search */}
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by name or email…"
+          className="pl-9 h-9"
+        />
+      </div>
 
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center gap-2">
@@ -376,7 +450,9 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
       {displayedClients.length === 0 ? (
         <div className="bg-background rounded-xl border">
           <div className="p-8 text-center text-muted-foreground">
-            {filter === 'active' ? 'No active clients' : 'No archived clients'}
+            {search.trim()
+              ? `No clients match "${search.trim()}"`
+              : filter === 'active' ? 'No active clients' : 'No archived clients'}
           </div>
         </div>
       ) : (
@@ -388,6 +464,7 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
                 key={client.id}
                 client={client}
                 onClick={() => onClientClick(client)}
+                onRefresh={refresh}
               />
             ))}
           </div>
@@ -405,6 +482,7 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
                       <TableHead className="font-semibold">Stage</TableHead>
                       {filter === 'active' && <TableHead className="font-semibold">Docs</TableHead>}
                       {filter === 'active' && <TableHead className="font-semibold">Listings</TableHead>}
+                      {filter === 'active' && <TableHead className="font-semibold">Next Visit</TableHead>}
                       <TableHead className="font-semibold">Budget</TableHead>
                       <TableHead className="font-semibold">Area</TableHead>
                       <TableHead className="font-semibold">Rooms</TableHead>
@@ -446,6 +524,7 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
                                   {client.name}
                                   {client.is_contract_signed && <SignedBadge isSigned={true} />}
                                   {client.deposit_paid && <DepositBadge />}
+                                  {client.case_id && <WhatsAppBadge client={client} onChanged={refresh} />}
                                   {isArchived && <Archive className="h-3.5 w-3.5 text-muted-foreground" />}
                                 </p>
                                 <p className="text-sm text-muted-foreground">{client.email}</p>
@@ -490,6 +569,11 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter }: 
                               ) : (
                                 <span className="text-sm text-muted-foreground">—</span>
                               )}
+                            </TableCell>
+                          )}
+                          {filter === 'active' && (
+                            <TableCell>
+                              <NextVisitBadge nextVisitAt={client.next_visit_at} />
                             </TableCell>
                           )}
                           <TableCell>
