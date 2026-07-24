@@ -6,7 +6,6 @@ import {
   LayoutDashboard, 
   LogOut,
   Home,
-  Bell,
   Menu,
   X,
   AlertTriangle,
