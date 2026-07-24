@@ -51,7 +51,6 @@ export default function AdminDashboard() {
             <p className="text-sm text-muted-foreground hidden sm:block">Track all student housing searches</p>
           </div>
           <div className="flex items-center gap-2">
-            <NotificationBell interactions={interactions} onMarkAllRead={clearInteractions} />
             <Button
               variant="outline"
               size="sm"
