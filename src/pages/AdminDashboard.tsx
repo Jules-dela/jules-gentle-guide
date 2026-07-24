@@ -8,10 +8,9 @@ import { ConversionFunnel } from '@/components/admin/ConversionFunnel';
 import { ClientsTable } from '@/components/admin/ClientsTable';
 import { NotificationFeed } from '@/components/admin/NotificationFeed';
 import { ClientSidePanel } from '@/components/admin/ClientSidePanel';
-import { NotificationBell } from '@/components/admin/NotificationBell';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Bell } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ClientWithCase } from '@/types/admin';
 
