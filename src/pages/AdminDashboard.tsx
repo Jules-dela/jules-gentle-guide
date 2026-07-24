@@ -93,9 +93,7 @@ export default function AdminDashboard() {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowNotifications(true)}
-                  className="gap-2"
                 >
-                  <Bell className="h-4 w-4" />
                   <span className="hidden sm:inline">Show Feed</span>
                 </Button>
               )}
