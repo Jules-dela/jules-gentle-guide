@@ -6,11 +6,9 @@ import {
   LayoutDashboard, 
   LogOut,
   Home,
-  Building2,
   Bell,
   Menu,
   X,
-  CreditCard,
   AlertTriangle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,9 +21,6 @@ interface AdminLayoutProps {
 
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
-  { to: '/admin/apartments', icon: Building2, label: 'Apartments', end: false },
-  { to: '/admin/waitlist', icon: Bell, label: 'Waitlist', end: false },
-  { to: '/admin/payment-logs', icon: CreditCard, label: 'Payment Logs', end: false },
   { to: '/admin/rejections', icon: AlertTriangle, label: 'Rejections', end: false },
 ];
 
