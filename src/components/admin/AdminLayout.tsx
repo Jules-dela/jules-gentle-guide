@@ -6,7 +6,6 @@ import {
   LayoutDashboard, 
   LogOut,
   Home,
-  Bell,
   Menu,
   X,
   AlertTriangle,
@@ -130,12 +129,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             <h1 className="text-base sm:text-lg font-semibold text-foreground">Back Office</h1>
           </div>
           
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center">
-              3
-            </span>
-          </Button>
         </header>
 
         {/* Page Content */}

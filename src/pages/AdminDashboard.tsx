@@ -8,10 +8,9 @@ import { ConversionFunnel } from '@/components/admin/ConversionFunnel';
 import { ClientsTable } from '@/components/admin/ClientsTable';
 import { NotificationFeed } from '@/components/admin/NotificationFeed';
 import { ClientSidePanel } from '@/components/admin/ClientSidePanel';
-import { NotificationBell } from '@/components/admin/NotificationBell';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Bell } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ClientWithCase } from '@/types/admin';
 
@@ -52,7 +51,6 @@ export default function AdminDashboard() {
             <p className="text-sm text-muted-foreground hidden sm:block">Track all student housing searches</p>
           </div>
           <div className="flex items-center gap-2">
-            <NotificationBell interactions={interactions} onMarkAllRead={clearInteractions} />
             <Button
               variant="outline"
               size="sm"
@@ -95,9 +93,7 @@ export default function AdminDashboard() {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowNotifications(true)}
-                  className="gap-2"
                 >
-                  <Bell className="h-4 w-4" />
                   <span className="hidden sm:inline">Show Feed</span>
                 </Button>
               )}
