@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_dismissed_attention_items: {
+        Row: {
+          client_id: string
+          dismissed_at: string
+          id: string
+          reason_type: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          dismissed_at?: string
+          id?: string
+          reason_type: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          dismissed_at?: string
+          id?: string
+          reason_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_dismissed_attention_items_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_dismissed_notifications: {
         Row: {
           dismissed_at: string
@@ -968,6 +1000,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      purge_old_dismissed_attention_items: { Args: never; Returns: undefined }
       purge_old_dismissed_notifications: { Args: never; Returns: undefined }
       sign_contract: {
         Args: { p_case_id: string; p_contract_data: Json }

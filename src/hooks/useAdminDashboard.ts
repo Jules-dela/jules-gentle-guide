@@ -20,12 +20,44 @@ async function persistDismissedIds(ids: string[]) {
     .upsert(rows, { onConflict: 'user_id,interaction_id' });
 }
 
+async function fetchDismissedAttention(): Promise<Set<string>> {
+  const { data, error } = await supabase
+    .from('admin_dismissed_attention_items')
+    .select('client_id, reason_type');
+  if (error) return new Set();
+  return new Set((data || []).map((r) => `${r.client_id}:${r.reason_type}`));
+}
+
+async function persistDismissedAttention(clientId: string, reasonType: string) {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData?.user?.id;
+  if (!userId) return;
+  await supabase
+    .from('admin_dismissed_attention_items')
+    .upsert({ user_id: userId, client_id: clientId, reason_type: reasonType }, { onConflict: 'user_id,client_id,reason_type' });
+}
+
+async function restoreDismissedAttention(clientId: string, reasonType: string) {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData?.user?.id;
+  if (!userId) return;
+  await supabase
+    .from('admin_dismissed_attention_items')
+    .delete()
+    .eq('user_id', userId)
+    .eq('client_id', clientId)
+    .eq('reason_type', reasonType);
+}
+
+
 export function useAdminDashboard() {
   const [clients, setClients] = useState<ClientWithCase[]>([]);
   const [interactions, setInteractions] = useState<ClientInteraction[]>([]);
   const [stats, setStats] = useState<AdminStats>({ completed: 0, inProgress: 0, issues: 0, dossiersReady: 0 });
+  const [dismissedAttention, setDismissedAttention] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
 
   const fetchClients = useCallback(async () => {
     try {
@@ -259,18 +291,21 @@ export function useAdminDashboard() {
 
       // Fire-and-forget purge of rows older than 90 days for the current admin
       supabase.rpc('purge_old_dismissed_notifications').then(() => undefined);
+      supabase.rpc('purge_old_dismissed_attention_items').then(() => undefined);
 
       const dismissed = await fetchDismissedIds();
       const filtered = recentInteractions
         .filter(i => !dismissed.has(i.id))
         .slice(0, 20);
       setInteractions(filtered);
+      setDismissedAttention(await fetchDismissedAttention());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
       setLoading(false);
     }
   }, []);
+
 
   useEffect(() => {
     fetchClients();
@@ -321,6 +356,20 @@ export function useAdminDashboard() {
     await persistDismissedIds(ids);
   }, [interactions]);
 
+  const dismissAttention = useCallback(async (clientId: string, reasonType: string) => {
+    setDismissedAttention((prev) => new Set([...prev, `${clientId}:${reasonType}`]));
+    await persistDismissedAttention(clientId, reasonType);
+  }, []);
+
+  const restoreAttention = useCallback(async (clientId: string, reasonType: string) => {
+    setDismissedAttention((prev) => {
+      const next = new Set(prev);
+      next.delete(`${clientId}:${reasonType}`);
+      return next;
+    });
+    await restoreDismissedAttention(clientId, reasonType);
+  }, []);
+
   return {
     clients,
     interactions,
@@ -329,5 +378,9 @@ export function useAdminDashboard() {
     error,
     refetch: fetchClients,
     clearInteractions,
+    dismissedAttention,
+    dismissAttention,
+    restoreAttention,
   };
 }
+

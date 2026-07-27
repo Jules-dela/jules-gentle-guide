@@ -17,11 +17,23 @@ import type { ClientWithCase } from '@/types/admin';
 
 export default function AdminDashboard() {
   const { user, isAdmin, loading: authLoading } = useAuth();
-  const { clients, interactions, stats, loading, error, refetch, clearInteractions } = useAdminDashboard();
+  const {
+    clients,
+    interactions,
+    stats,
+    loading,
+    error,
+    refetch,
+    clearInteractions,
+    dismissedAttention,
+    dismissAttention,
+    restoreAttention,
+  } = useAdminDashboard();
   const [selectedClient, setSelectedClient] = useState<ClientWithCase | null>(null);
   const [showNotifications, setShowNotifications] = useState(true);
   const [statFilter, setStatFilter] = useState<StatFilter>(null);
   const navigate = useNavigate();
+
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
@@ -76,9 +88,16 @@ export default function AdminDashboard() {
         />
 
         {/* Needs Attention */}
-        <NeedsAttention clients={clients} onClientClick={setSelectedClient} />
+        <NeedsAttention
+          clients={clients}
+          onClientClick={setSelectedClient}
+          dismissedAttention={dismissedAttention}
+          onDismiss={dismissAttention}
+          onRestore={restoreAttention}
+        />
 
         {/* Main Content - Stack on mobile, grid on desktop */}
+
         <div className={cn("grid grid-cols-1 gap-4 sm:gap-6", showNotifications && "lg:grid-cols-3")}>
           {/* Master Table */}
           <div className={cn(showNotifications ? "lg:col-span-2" : "", "order-2 lg:order-1")}>

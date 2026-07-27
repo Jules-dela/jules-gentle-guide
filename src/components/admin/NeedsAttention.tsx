@@ -1,10 +1,13 @@
-import { useMemo } from 'react';
-import { AlertCircle, FileCheck2, Clock, CalendarClock, ChevronRight } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { AlertCircle, FileCheck2, Clock, CalendarClock, ChevronRight, Trash2, RotateCcw, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ClientWithCase } from '@/types/admin';
+import { Button } from '@/components/ui/button';
 
 interface AttentionItem {
   id: string;
+  clientId: string;
+  reasonType: string;
   client: ClientWithCase;
   reason: string;
   days: number;
@@ -16,12 +19,30 @@ interface AttentionItem {
 interface NeedsAttentionProps {
   clients: ClientWithCase[];
   onClientClick: (client: ClientWithCase) => void;
+  dismissedAttention: Set<string>;
+  onDismiss: (clientId: string, reasonType: string) => void;
+  onRestore: (clientId: string, reasonType: string) => void;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-export function NeedsAttention({ clients, onClientClick }: NeedsAttentionProps) {
-  const items = useMemo<AttentionItem[]>(() => {
+const REASON_TYPES = {
+  noProposals: 'no-proposals',
+  docsPending: 'docs-pending',
+  stale: 'stale',
+  visitSoon: 'visit-soon',
+} as const;
+
+export function NeedsAttention({
+  clients,
+  onClientClick,
+  dismissedAttention,
+  onDismiss,
+  onRestore,
+}: NeedsAttentionProps) {
+  const [showDismissed, setShowDismissed] = useState(false);
+
+  const allItems = useMemo<AttentionItem[]>(() => {
     const now = Date.now();
     const list: AttentionItem[] = [];
 
@@ -30,8 +51,6 @@ export function NeedsAttention({ clients, onClientClick }: NeedsAttentionProps) 
 
       // 1) Contract signed >3 days, no proposal
       if (c.is_contract_signed && c.contract_data?.signed_at && c.listing_statuses.length === 0) {
-        // listing_statuses only tracks liked; use last_activity as a proxy for "any proposal"
-        // We treat lack of any listing + no last_activity of type liked/rejected as zero proposals.
         const hasAnyProposalActivity = c.last_activity === 'Liked a flat' || c.last_activity === 'Rejected a flat';
         if (!hasAnyProposalActivity) {
           const signedAt = new Date(c.contract_data.signed_at).getTime();
@@ -39,6 +58,8 @@ export function NeedsAttention({ clients, onClientClick }: NeedsAttentionProps) 
           if (days > 3) {
             list.push({
               id: `no-proposals-${c.id}`,
+              clientId: c.id,
+              reasonType: REASON_TYPES.noProposals,
               client: c,
               reason: 'Contract signed, no proposal sent yet',
               days,
@@ -56,6 +77,8 @@ export function NeedsAttention({ clients, onClientClick }: NeedsAttentionProps) 
         const days = Math.max(0, Math.floor((now - ts) / DAY_MS));
         list.push({
           id: `docs-pending-${c.id}`,
+          clientId: c.id,
+          reasonType: REASON_TYPES.docsPending,
           client: c,
           reason: 'Documents uploaded, awaiting review',
           days,
@@ -73,6 +96,8 @@ export function NeedsAttention({ clients, onClientClick }: NeedsAttentionProps) 
       if (daysSince > 7) {
         list.push({
           id: `stale-${c.id}`,
+          clientId: c.id,
+          reasonType: REASON_TYPES.stale,
           client: c,
           reason: 'No activity on the case',
           days: daysSince,
@@ -89,6 +114,8 @@ export function NeedsAttention({ clients, onClientClick }: NeedsAttentionProps) 
         if (diffHrs >= 0 && diffHrs <= 48) {
           list.push({
             id: `visit-soon-${c.id}`,
+            clientId: c.id,
+            reasonType: REASON_TYPES.visitSoon,
             client: c,
             reason: 'Upcoming visit',
             days: Math.round(diffHrs),
@@ -100,34 +127,60 @@ export function NeedsAttention({ clients, onClientClick }: NeedsAttentionProps) 
       }
     }
 
-    // Oldest first (largest days ago / soonest visit sorts naturally as we mix scales, so sort by timestamp asc)
     list.sort((a, b) => a.timestamp - b.timestamp);
     return list;
   }, [clients]);
 
+  const activeItems = useMemo(
+    () => allItems.filter((item) => !dismissedAttention.has(`${item.clientId}:${item.reasonType}`)),
+    [allItems, dismissedAttention]
+  );
+  const dismissedItems = useMemo(
+    () => allItems.filter((item) => dismissedAttention.has(`${item.clientId}:${item.reasonType}`)),
+    [allItems, dismissedAttention]
+  );
+
+  const displayedItems = showDismissed ? dismissedItems : activeItems;
+  const hasDismissed = dismissedItems.length > 0;
+
   return (
     <div className="bg-background rounded-xl border">
-      <div className="px-4 sm:px-5 py-3 border-b flex items-center justify-between">
+      <div className="px-4 sm:px-5 py-3 border-b flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <AlertCircle className="h-4 w-4 text-amber-600" />
           <h2 className="text-sm sm:text-base font-semibold text-foreground">Needs attention</h2>
         </div>
-        <span className="text-xs text-muted-foreground">
-          {items.length} item{items.length === 1 ? '' : 's'}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            {activeItems.length} active{hasDismissed ? ` · ${dismissedItems.length} dismissed` : ''}
+          </span>
+          {hasDismissed && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowDismissed((v) => !v)}
+              className="h-7 px-2 text-xs gap-1"
+            >
+              {showDismissed ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+              {showDismissed ? 'Show active' : 'Show dismissed'}
+            </Button>
+          )}
+        </div>
       </div>
 
-      {items.length === 0 ? (
+      {displayedItems.length === 0 ? (
         <div className="p-6 text-center text-sm text-muted-foreground">
-          Nothing pressing right now.
+          {showDismissed ? 'No dismissed items.' : 'Nothing pressing right now.'}
         </div>
       ) : (
         <ul className="divide-y">
-          {items.map((item) => {
+          {displayedItems.map((item) => {
             const Icon = item.icon;
+            const isDismissed = showDismissed;
             return (
-              <li key={item.id}>
+              <li key={item.id} className={cn('group', isDismissed && 'opacity-60')}>
                 <button
+
                   type="button"
                   onClick={() => onClientClick(item.client)}
                   className="w-full flex items-center gap-3 px-4 sm:px-5 py-3 text-left hover:bg-muted/40 transition-colors"
@@ -152,6 +205,27 @@ export function NeedsAttention({ clients, onClientClick }: NeedsAttentionProps) 
                     {item.days} {item.suffix}
                   </span>
                   <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div
+                    className="shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isDismissed) {
+                        onRestore(item.clientId, item.reasonType);
+                      } else {
+                        onDismiss(item.clientId, item.reasonType);
+                      }
+                    }}
+                  >
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      title={isDismissed ? 'Restore to active list' : 'Dismiss this item'}
+                    >
+                      {isDismissed ? <RotateCcw className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 </button>
               </li>
             );
