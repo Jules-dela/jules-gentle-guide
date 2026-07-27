@@ -14,10 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        'montserrat': ['Montserrat', 'sans-serif'],
-        'poppins': ['Poppins', 'sans-serif'],
+        'sans': ['"DM Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        'body': ['"DM Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         'display': ['Newsreader', 'ui-serif', 'Georgia', 'serif'],
-        'sans': ['"Schibsted Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         'mono': ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
       },
       colors: {
