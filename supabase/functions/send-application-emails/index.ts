@@ -772,6 +772,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Build welcome email with portal access for applicant
     const portalUrl = `${req.headers.get('origin') || 'https://uni-key.ch'}/auth`;
     const emailCtaUrl = emailActionLink || portalUrl;
+    let applicantEmailFailed = false;
     
     const applicantEmailHtml = `
       <!DOCTYPE html>
