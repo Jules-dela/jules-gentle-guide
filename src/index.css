@@ -14,6 +14,15 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'New Icon Serif';
+  src: url('/__l5e/assets-v1/db6697ac-5739-4151-a1a2-f9364f0ea34a/NewIconSerif-Regular.woff2') format('woff2'),
+       url('/__l5e/assets-v1/841febd5-f304-42b9-8f88-88da6adfd675/NewIconSerif-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
