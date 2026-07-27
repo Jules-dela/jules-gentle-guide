@@ -17,11 +17,23 @@ import type { ClientWithCase } from '@/types/admin';
 
 export default function AdminDashboard() {
   const { user, isAdmin, loading: authLoading } = useAuth();
-  const { clients, interactions, stats, loading, error, refetch, clearInteractions } = useAdminDashboard();
+  const {
+    clients,
+    interactions,
+    stats,
+    loading,
+    error,
+    refetch,
+    clearInteractions,
+    dismissedAttention,
+    dismissAttention,
+    restoreAttention,
+  } = useAdminDashboard();
   const [selectedClient, setSelectedClient] = useState<ClientWithCase | null>(null);
   const [showNotifications, setShowNotifications] = useState(true);
   const [statFilter, setStatFilter] = useState<StatFilter>(null);
   const navigate = useNavigate();
+
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
