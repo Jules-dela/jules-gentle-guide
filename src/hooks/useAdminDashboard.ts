@@ -54,8 +54,10 @@ export function useAdminDashboard() {
   const [clients, setClients] = useState<ClientWithCase[]>([]);
   const [interactions, setInteractions] = useState<ClientInteraction[]>([]);
   const [stats, setStats] = useState<AdminStats>({ completed: 0, inProgress: 0, issues: 0, dossiersReady: 0 });
+  const [dismissedAttention, setDismissedAttention] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
 
   const fetchClients = useCallback(async () => {
     try {
