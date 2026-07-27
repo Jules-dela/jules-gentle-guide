@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { ChevronRight, FileText, Archive, Filter, X, CheckCircle2, Search, MessageCircle, Check } from 'lucide-react';
+import { ChevronRight, FileText, Archive, Filter, X, CheckCircle2, Search, MessageCircle, Check, KeyRound, Loader2, AlertOctagon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SignedBadge } from './SignatureViewer';
@@ -59,6 +59,56 @@ function DepositBadge() {
       <CheckCircle2 className="h-3 w-3" />
       Paid
     </span>
+  );
+}
+
+// "Never logged in" badge — visible for clients whose account is >48h old and has never signed in
+function NeverLoggedInBadge({ client }: { client: ClientWithCase }) {
+  if (client.last_sign_in_at) return null;
+  const createdMs = new Date(client.created_at).getTime();
+  if (Date.now() - createdMs < 48 * 60 * 60 * 1000) return null;
+  return (
+    <span
+      title="Account created more than 48h ago and never used"
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-orange-100 text-orange-700"
+    >
+      <AlertOctagon className="h-3 w-3" />
+      Never logged in
+    </span>
+  );
+}
+
+// Resend access email button for a table row
+function ResendAccessButton({ client }: { client: ClientWithCase }) {
+  const [sending, setSending] = useState(false);
+  const handleClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!client.email) return;
+    setSending(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-password-reset', {
+        body: { email: client.email, redirectTo: 'https://uni-key.ch/reset-password' },
+      });
+      if (error) throw error;
+      toast({ title: 'Access email sent', description: `Sent to ${client.email}` });
+    } catch (err) {
+      console.error('Resend access failed:', err);
+      toast({ title: 'Error', description: 'Failed to send access email.', variant: 'destructive' });
+    } finally {
+      setSending(false);
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={sending}
+      title="Resend access email"
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-transparent text-muted-foreground border border-border hover:bg-muted transition-colors disabled:opacity-50"
+    >
+      {sending ? <Loader2 className="h-3 w-3 animate-spin" /> : <KeyRound className="h-3 w-3" />}
+      Resend access
+    </button>
   );
 }
 
@@ -190,11 +240,15 @@ function ClientCard({ client, onClick, onRefresh }: { client: ClientWithCase; on
               {client.is_contract_signed && <SignedBadge isSigned={true} />}
               {client.deposit_paid && <DepositBadge />}
               {client.case_id && <WhatsAppBadge client={client} onChanged={onRefresh} />}
+                  <NeverLoggedInBadge client={client} />
               {isArchived && <Archive className="h-3.5 w-3.5 text-muted-foreground" />}
             </p>
             <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
           </div>
           <p className="text-sm text-muted-foreground truncate mb-2">{client.email}</p>
+              {!client.last_sign_in_at && !isArchived && (
+                <div className="mb-2"><ResendAccessButton client={client} /></div>
+              )}
           
           <div className="flex items-center gap-2 flex-wrap">
             <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium', stageInfo.color)}>
@@ -525,9 +579,13 @@ export function ClientsTable({ clients, onClientClick, isLoading, statFilter, on
                                   {client.is_contract_signed && <SignedBadge isSigned={true} />}
                                   {client.deposit_paid && <DepositBadge />}
                                   {client.case_id && <WhatsAppBadge client={client} onChanged={refresh} />}
+                                  <NeverLoggedInBadge client={client} />
                                   {isArchived && <Archive className="h-3.5 w-3.5 text-muted-foreground" />}
                                 </p>
                                 <p className="text-sm text-muted-foreground">{client.email}</p>
+                                {!client.last_sign_in_at && !isArchived && (
+                                  <div className="mt-1"><ResendAccessButton client={client} /></div>
+                                )}
                               </div>
                             </div>
                           </TableCell>
