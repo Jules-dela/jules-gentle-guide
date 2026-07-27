@@ -8,6 +8,7 @@ import { StatCards, StatFilter } from '@/components/admin/StatCards';
 import { ClientsTable } from '@/components/admin/ClientsTable';
 import { NotificationFeed } from '@/components/admin/NotificationFeed';
 import { ClientSidePanel } from '@/components/admin/ClientSidePanel';
+import { NeedsAttention } from '@/components/admin/NeedsAttention';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
@@ -74,6 +75,8 @@ export default function AdminDashboard() {
           onFilterChange={setStatFilter}
         />
 
+        {/* Needs Attention */}
+        <NeedsAttention clients={clients} onClientClick={setSelectedClient} />
 
         {/* Main Content - Stack on mobile, grid on desktop */}
         <div className={cn("grid grid-cols-1 gap-4 sm:gap-6", showNotifications && "lg:grid-cols-3")}>
