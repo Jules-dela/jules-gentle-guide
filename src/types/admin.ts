@@ -53,6 +53,8 @@ export interface ClientWithCase {
   whatsapp_contacted_at: string | null;
   managed_by: string | null;
   next_visit_at: string | null;
+  // Auth account visibility (populated via admin RPC)
+  last_sign_in_at: string | null;
 }
 
 export interface ClientInteraction {

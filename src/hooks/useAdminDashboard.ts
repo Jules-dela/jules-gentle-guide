@@ -2,19 +2,22 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { ClientWithCase, ClientInteraction, AdminStats } from '@/types/admin';
 
-const DISMISSED_KEY = 'unikey_admin_dismissed_notifications';
-
-function getDismissedIds(): Set<string> {
-  try {
-    const raw = localStorage.getItem(DISMISSED_KEY);
-    return raw ? new Set(JSON.parse(raw)) : new Set();
-  } catch {
-    return new Set();
-  }
+async function fetchDismissedIds(): Promise<Set<string>> {
+  const { data, error } = await supabase
+    .from('admin_dismissed_notifications')
+    .select('interaction_id');
+  if (error) return new Set();
+  return new Set((data || []).map((r) => r.interaction_id as string));
 }
 
-function saveDismissedIds(ids: Set<string>) {
-  localStorage.setItem(DISMISSED_KEY, JSON.stringify([...ids]));
+async function persistDismissedIds(ids: string[]) {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData?.user?.id;
+  if (!userId || ids.length === 0) return;
+  const rows = ids.map((interaction_id) => ({ user_id: userId, interaction_id }));
+  await supabase
+    .from('admin_dismissed_notifications')
+    .upsert(rows, { onConflict: 'user_id,interaction_id' });
 }
 
 export function useAdminDashboard() {
@@ -27,7 +30,7 @@ export function useAdminDashboard() {
   const fetchClients = useCallback(async () => {
     try {
       // Fetch all data in parallel
-      const [profilesRes, casesRes, proposalsRes, docsRes, signaturesRes, intakeRes, staffNotesRes] = await Promise.all([
+      const [profilesRes, casesRes, proposalsRes, docsRes, signaturesRes, intakeRes, staffNotesRes, signInsRes] = await Promise.all([
         supabase.from('profiles').select('*').order('created_at', { ascending: false }),
         supabase.from('cases').select('*').order('created_at', { ascending: false }),
         supabase.from('property_proposals').select('*').order('created_at', { ascending: false }),
@@ -35,6 +38,7 @@ export function useAdminDashboard() {
         supabase.from('contract_signatures').select('*'),
         supabase.from('intake_submissions').select('email, deposit_paid, payment_confirmed_at'),
         supabase.from('case_staff_notes').select('case_id, whatsapp_contacted, whatsapp_contacted_at, managed_by, next_visit_at'),
+        supabase.rpc('get_client_last_sign_ins'),
       ]);
 
       if (profilesRes.error) throw profilesRes.error;
@@ -55,6 +59,9 @@ export function useAdminDashboard() {
         managed_by: string | null;
         next_visit_at: string | null;
       }>;
+      const signInsByUser = new Map<string, string | null>();
+      const signInsRows = (signInsRes.data || []) as Array<{ user_id: string; last_sign_in_at: string | null }>;
+      for (const row of signInsRows) signInsByUser.set(row.user_id, row.last_sign_in_at);
 
       // Map profiles to clients with case data
       const clientsWithCases: ClientWithCase[] = (profiles || []).map((profile) => {
@@ -155,6 +162,7 @@ export function useAdminDashboard() {
           whatsapp_contacted_at: staffNote?.whatsapp_contacted_at || null,
           managed_by: staffNote?.managed_by || null,
           next_visit_at: staffNote?.next_visit_at || null,
+          last_sign_in_at: signInsByUser.get(profile.user_id) ?? null,
         };
       });
 
@@ -249,7 +257,10 @@ export function useAdminDashboard() {
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
 
-      const dismissed = getDismissedIds();
+      // Fire-and-forget purge of rows older than 90 days for the current admin
+      supabase.rpc('purge_old_dismissed_notifications').then(() => undefined);
+
+      const dismissed = await fetchDismissedIds();
       const filtered = recentInteractions
         .filter(i => !dismissed.has(i.id))
         .slice(0, 20);
@@ -304,11 +315,10 @@ export function useAdminDashboard() {
     };
   }, [fetchClients]);
 
-  const clearInteractions = useCallback(() => {
-    const dismissed = getDismissedIds();
-    interactions.forEach(i => dismissed.add(i.id));
-    saveDismissedIds(dismissed);
+  const clearInteractions = useCallback(async () => {
+    const ids = interactions.map((i) => i.id);
     setInteractions([]);
+    await persistDismissedIds(ids);
   }, [interactions]);
 
   return {

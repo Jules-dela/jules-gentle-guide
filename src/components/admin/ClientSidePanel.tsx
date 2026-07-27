@@ -384,6 +384,18 @@ export function ClientSidePanel({ client, onClose, onStatusChange }: ClientSideP
                       </a>
                     </div>
                   )}
+                  <div className="flex items-center gap-3 text-sm">
+                    <KeyRound className="h-4 w-4 text-muted-foreground shrink-0" />
+                    {client.last_sign_in_at ? (
+                      <span className="text-muted-foreground">
+                        Last sign-in {new Date(client.last_sign_in_at).toLocaleString('en-GB')}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-orange-100 text-orange-700">
+                        Never logged in
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Contract Signature Status */}

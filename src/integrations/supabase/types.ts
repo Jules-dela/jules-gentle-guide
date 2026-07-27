@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_dismissed_notifications: {
+        Row: {
+          dismissed_at: string
+          id: string
+          interaction_id: string
+          user_id: string
+        }
+        Insert: {
+          dismissed_at?: string
+          id?: string
+          interaction_id: string
+          user_id: string
+        }
+        Update: {
+          dismissed_at?: string
+          id?: string
+          interaction_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       apartments: {
         Row: {
           assigned_client_ids: string[]
@@ -932,6 +953,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      get_client_last_sign_ins: {
+        Args: never
+        Returns: {
+          email_confirmed_at: string
+          last_sign_in_at: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -939,6 +968,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      purge_old_dismissed_notifications: { Args: never; Returns: undefined }
       sign_contract: {
         Args: { p_case_id: string; p_contract_data: Json }
         Returns: undefined
