@@ -291,18 +291,21 @@ export function useAdminDashboard() {
 
       // Fire-and-forget purge of rows older than 90 days for the current admin
       supabase.rpc('purge_old_dismissed_notifications').then(() => undefined);
+      supabase.rpc('purge_old_dismissed_attention_items').then(() => undefined);
 
       const dismissed = await fetchDismissedIds();
       const filtered = recentInteractions
         .filter(i => !dismissed.has(i.id))
         .slice(0, 20);
       setInteractions(filtered);
+      setDismissedAttention(await fetchDismissedAttention());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
       setLoading(false);
     }
   }, []);
+
 
   useEffect(() => {
     fetchClients();
