@@ -442,10 +442,20 @@ async function sendEmail(payload: {
   to: string[];
   subject: string;
   html: string;
-}) {
+}, emailType: string) {
   if (!RESEND_API_KEY) {
     console.error('RESEND_API_KEY is missing, skipping email send');
-    return;
+    try {
+      await supabase.from('email_logs').insert(
+        payload.to.map((r) => ({
+          recipient: r,
+          email_type: emailType,
+          status: 'failed',
+          error_message: 'RESEND_API_KEY missing',
+        }))
+      );
+    } catch (_e) { /* ignore */ }
+    return { ok: false, result: null };
   }
 
   const response = await fetch('https://api.resend.com/emails', {
@@ -463,7 +473,22 @@ async function sendEmail(payload: {
     console.error('Email send failed:', response.status, result);
   }
 
-  return result;
+  try {
+    const providerId = (result as { id?: string } | null)?.id ?? null;
+    await supabase.from('email_logs').insert(
+      payload.to.map((r) => ({
+        recipient: r,
+        email_type: emailType,
+        status: response.ok ? 'sent' : 'failed',
+        provider_id: response.ok ? providerId : null,
+        error_message: response.ok ? null : JSON.stringify(result),
+      }))
+    );
+  } catch (logErr) {
+    console.error('Failed to write email_logs:', logErr);
+  }
+
+  return { ok: response.ok, result };
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -596,6 +621,28 @@ const handler = async (req: Request): Promise<Response> => {
       console.error('Magic link generation error:', linkErr);
     }
 
+    // Generate a SECOND, independent recovery link for the welcome email.
+    // The magiclink above is consumed immediately by the auto-login redirect,
+    // so it would already be "used" by the time the client opens their inbox.
+    // A recovery link forces the user to set a password, which matches the
+    // wording of the email.
+    let emailActionLink: string | null = null;
+    try {
+      const origin = req.headers.get('origin') || 'https://uni-key.ch';
+      const { data: recData, error: recErr } = await supabase.auth.admin.generateLink({
+        type: 'recovery',
+        email: normalizeEmail(data.email),
+        options: { redirectTo: `${origin}/reset-password` },
+      });
+      if (recErr) {
+        console.error('Failed to generate recovery link for email:', recErr.message);
+      } else {
+        emailActionLink = recData?.properties?.action_link ?? null;
+      }
+    } catch (recException) {
+      console.error('Recovery link generation error:', recException);
+    }
+
     const profile = await getOrCreateProfile(userId, data);
     console.log('Resolved profile:', profile.id);
 
@@ -724,6 +771,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Build welcome email with portal access for applicant
     const portalUrl = `${req.headers.get('origin') || 'https://uni-key.ch'}/auth`;
+    const emailCtaUrl = emailActionLink || portalUrl;
+    let applicantEmailFailed = false;
     
     const applicantEmailHtml = `
       <!DOCTYPE html>
@@ -748,24 +797,17 @@ const handler = async (req: Request): Promise<Response> => {
               Thank you for choosing <strong style="color: #1E3A8A;">Unikey</strong>! Your application has been received and your personal housing portal is now ready.
             </p>
             
-            ${isNewUser ? `
             <div style="background: linear-gradient(135deg, #1E3A8A 0%, #3B5998 100%); padding: 28px; border-radius: 12px; margin: 24px 0; color: white;">
               <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">🔐 Your Portal Access</h3>
               <p style="margin: 0 0 8px 0; font-size: 14px; opacity: 0.9;">Email: <strong>${escapeHtml(data.email)}</strong></p>
-              <p style="margin: 0; font-size: 13px; opacity: 0.9;">Use the button below to securely access your portal. We'll ask you to set a password on first sign-in.</p>
+              <p style="margin: 0 0 8px 0; font-size: 13px; opacity: 0.9;">Click the button below to set your password and access your portal.</p>
+              <p style="margin: 0; font-size: 12px; opacity: 0.8;">This link is valid for 24 hours. After that, use "Forgot password" on the sign-in page to receive a new one.</p>
             </div>
-            ` : `
-            <div style="background: #F0F4FF; padding: 20px; border-radius: 12px; margin: 24px 0; border-left: 4px solid #1E3A8A;">
-              <p style="margin: 0; color: #374151; font-size: 14px;">
-                You already have a Unikey account. Use your existing credentials to access the portal.
-              </p>
-            </div>
-            `}
 
             <!-- CTA Button -->
             <div style="text-align: center; margin: 32px 0;">
-              <a href="${portalUrl}" style="display: inline-block; background: #1E3A8A; color: white; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-                Access Your Portal →
+              <a href="${emailCtaUrl}" style="display: inline-block; background: #1E3A8A; color: white; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+                Set Password & Access Portal →
               </a>
             </div>
 
@@ -820,26 +862,35 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     if (!data.skipEmails) {
+      const adminRecipientsRaw = Deno.env.get('ADMIN_NOTIFICATION_EMAILS') || 'contact@uni-key.ch';
+      const adminRecipients = adminRecipientsRaw
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
       try {
         console.log("Sending admin notification email...");
-        const adminResult = await sendEmail({
+        const adminSend = await sendEmail({
           from: "Unikey <contact@uni-key.ch>",
-          to: ["contact@uni-key.ch", "antoinepiras007@gmail.com"],
+          to: adminRecipients,
           subject: `🏠 New Application: ${escapeHtml(data.name)} - Case ${newCase.id.substring(0, 8)}`,
           html: adminEmailHtml,
-        });
-        console.log("Admin email sent:", adminResult && (adminResult as { id?: string }).id ? "success" : "failed");
+        }, "application_admin_notification");
+        console.log("Admin email sent:", adminSend.ok ? "success" : "failed");
 
         console.log("Sending welcome email with portal access...");
-        const applicantResult = await sendEmail({
+        const applicantSend = await sendEmail({
           from: "Unikey <contact@uni-key.ch>",
           to: [normalizeEmail(data.email)],
           subject: "🔑 Your Unikey Portal is Ready!",
           html: applicantEmailHtml,
-        });
-        console.log("Welcome email sent:", applicantResult && (applicantResult as { id?: string }).id ? "success" : "failed");
+        }, "application_welcome");
+        console.log("Welcome email sent:", applicantSend.ok ? "success" : "failed");
+        if (!applicantSend.ok) {
+          applicantEmailFailed = true;
+        }
       } catch (emailError) {
         console.error('Email send step failed after case creation:', emailError);
+        applicantEmailFailed = true;
       }
     }
 
@@ -849,6 +900,7 @@ const handler = async (req: Request): Promise<Response> => {
         caseId: newCase.id,
         isNewUser,
         portalUrl,
+        emailFailed: applicantEmailFailed,
         ...(actionLink ? { actionLink } : {}),
       }),
       {

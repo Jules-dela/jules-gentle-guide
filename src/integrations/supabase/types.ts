@@ -326,6 +326,36 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          created_at: string
+          email_type: string
+          error_message: string | null
+          id: string
+          provider_id: string | null
+          recipient: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email_type: string
+          error_message?: string | null
+          id?: string
+          provider_id?: string | null
+          recipient: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          email_type?: string
+          error_message?: string | null
+          id?: string
+          provider_id?: string | null
+          recipient?: string
+          status?: string
+        }
+        Relationships: []
+      }
       housing_applications: {
         Row: {
           budget: string | null
