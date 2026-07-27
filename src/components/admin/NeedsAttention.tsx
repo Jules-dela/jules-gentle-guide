@@ -178,8 +178,9 @@ export function NeedsAttention({
             const Icon = item.icon;
             const isDismissed = showDismissed;
             return (
-              <li key={item.id} className={cn('group', isDismissed && 'opacity-60')}>}
+              <li key={item.id} className={cn('group', isDismissed && 'opacity-60')}>
                 <button
+
                   type="button"
                   onClick={() => onClientClick(item.client)}
                   className="w-full flex items-center gap-3 px-4 sm:px-5 py-3 text-left hover:bg-muted/40 transition-colors"
