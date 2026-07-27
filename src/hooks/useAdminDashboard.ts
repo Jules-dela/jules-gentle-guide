@@ -20,6 +20,36 @@ async function persistDismissedIds(ids: string[]) {
     .upsert(rows, { onConflict: 'user_id,interaction_id' });
 }
 
+async function fetchDismissedAttention(): Promise<Set<string>> {
+  const { data, error } = await supabase
+    .from('admin_dismissed_attention_items')
+    .select('client_id, reason_type');
+  if (error) return new Set();
+  return new Set((data || []).map((r) => `${r.client_id}:${r.reason_type}`));
+}
+
+async function persistDismissedAttention(clientId: string, reasonType: string) {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData?.user?.id;
+  if (!userId) return;
+  await supabase
+    .from('admin_dismissed_attention_items')
+    .upsert({ user_id: userId, client_id: clientId, reason_type: reasonType }, { onConflict: 'user_id,client_id,reason_type' });
+}
+
+async function restoreDismissedAttention(clientId: string, reasonType: string) {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData?.user?.id;
+  if (!userId) return;
+  await supabase
+    .from('admin_dismissed_attention_items')
+    .delete()
+    .eq('user_id', userId)
+    .eq('client_id', clientId)
+    .eq('reason_type', reasonType);
+}
+
+
 export function useAdminDashboard() {
   const [clients, setClients] = useState<ClientWithCase[]>([]);
   const [interactions, setInteractions] = useState<ClientInteraction[]>([]);
