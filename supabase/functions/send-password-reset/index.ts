@@ -148,39 +148,33 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    // Require an authenticated admin caller. This function generates
-    // password-recovery links and is only meant to be invoked from the
-    // admin client-side panel.
-    const authHeader = req.headers.get("Authorization") || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-    if (!token) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const authClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    // Public endpoint — invoked from the "Forgot password?" flow on /auth.
+    // We defend against abuse via per-IP rate limiting and the redirectTo
+    // allowlist, and we never reveal whether an email exists.
+    const clientIP =
+      req.headers.get("cf-connecting-ip") ||
+      req.headers.get("x-real-ip") ||
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      "unknown";
+    const rateLimitClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
-    const { data: userData, error: userErr } = await authClient.auth.getUser(token);
-    if (userErr || !userData?.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const rateLimitKey = `pwreset:${clientIP}`;
+    const windowStart = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count: rateCount } = await rateLimitClient
+      .from("rate_limit_submissions")
+      .select("*", { count: "exact", head: true })
+      .eq("ip_address", rateLimitKey)
+      .gte("created_at", windowStart);
+    if (rateCount !== null && rateCount >= 3) {
+      console.log(`Password reset rate limit exceeded for IP: ${clientIP.substring(0, 8)}...`);
+      // Still return success to avoid leaking rate-limit state per email.
+      return new Response(
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
-    const { data: roleRow } = await authClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userData.user.id)
-      .eq("role", "admin")
-      .maybeSingle();
-    if (!roleRow) {
-      return new Response(JSON.stringify({ error: "Admin access required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    await rateLimitClient.from("rate_limit_submissions").insert({ ip_address: rateLimitKey });
 
     const { email, redirectTo }: PasswordResetRequest = await req.json();
 
@@ -198,16 +192,16 @@ serve(async (req: Request): Promise<Response> => {
       redirectOrigin = new URL(redirectTo).origin;
     } catch {
       return new Response(
-        JSON.stringify({ error: "Invalid redirectTo URL" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     if (!ALLOWED_REDIRECT_ORIGINS.includes(redirectOrigin)) {
       console.error("Blocked disallowed redirectTo origin:", redirectOrigin);
       return new Response(
-        JSON.stringify({ error: "Invalid redirect URL" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -267,12 +261,25 @@ serve(async (req: Request): Promise<Response> => {
       }),
     });
 
+    const emailResult = await emailResponse.json().catch(() => null);
+    try {
+      await supabaseAdmin.from("email_logs").insert({
+        recipient: email,
+        email_type: "password_reset",
+        status: emailResponse.ok ? "sent" : "failed",
+        provider_id: emailResponse.ok ? (emailResult as { id?: string } | null)?.id ?? null : null,
+        error_message: emailResponse.ok ? null : JSON.stringify(emailResult),
+      });
+    } catch (logErr) {
+      console.error("Failed to write email_logs:", logErr);
+    }
+
     if (!emailResponse.ok) {
-      const errorData = await emailResponse.text();
-      console.error("Error sending email:", errorData);
+      console.error("Error sending email:", emailResult);
+      // Still return success to prevent leaking send-failure state.
       return new Response(
-        JSON.stringify({ error: "Failed to send email" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -284,10 +291,11 @@ serve(async (req: Request): Promise<Response> => {
     );
   } catch (error: unknown) {
     console.error("Error in send-password-reset function:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    // Never leak internal errors — the caller must not learn anything about
+    // whether the email exists or why sending failed.
     return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ success: true }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
