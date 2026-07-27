@@ -541,7 +541,7 @@ function Proof() {
       uni: "MSc student · EHL",
     },
     {
-      name: "Sebastian P",
+      name: "Sebastian P.",
       time: "5d ago",
       msg:
         "The Swiss paperwork alone would've broken me. They handled the entire dossier and I just showed up to sign.",
