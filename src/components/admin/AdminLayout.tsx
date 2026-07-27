@@ -9,6 +9,9 @@ import {
   Menu,
   X,
   AlertTriangle,
+  Building2,
+  ListChecks,
+  CreditCard,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -20,6 +23,9 @@ interface AdminLayoutProps {
 
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
+  { to: '/admin/apartments', icon: Building2, label: 'Apartments', end: false },
+  { to: '/admin/waitlist', icon: ListChecks, label: 'Waitlist', end: false },
+  { to: '/admin/payment-logs', icon: CreditCard, label: 'Payments', end: false },
   { to: '/admin/rejections', icon: AlertTriangle, label: 'Rejections', end: false },
 ];
 
