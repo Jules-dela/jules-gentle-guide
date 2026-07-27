@@ -16,7 +16,7 @@ export default {
       fontFamily: {
         'sans': ['"DM Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         'body': ['"DM Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        'display': ['"New Icon Serif"', 'Newsreader', 'ui-serif', 'Georgia', 'serif'],
+        'display': ['"New Icon Serif"', 'ui-serif', 'Georgia', 'serif'],
         'mono': ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
       },
       colors: {
