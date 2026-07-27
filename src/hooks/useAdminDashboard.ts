@@ -356,6 +356,20 @@ export function useAdminDashboard() {
     await persistDismissedIds(ids);
   }, [interactions]);
 
+  const dismissAttention = useCallback(async (clientId: string, reasonType: string) => {
+    setDismissedAttention((prev) => new Set([...prev, `${clientId}:${reasonType}`]));
+    await persistDismissedAttention(clientId, reasonType);
+  }, []);
+
+  const restoreAttention = useCallback(async (clientId: string, reasonType: string) => {
+    setDismissedAttention((prev) => {
+      const next = new Set(prev);
+      next.delete(`${clientId}:${reasonType}`);
+      return next;
+    });
+    await restoreDismissedAttention(clientId, reasonType);
+  }, []);
+
   return {
     clients,
     interactions,
@@ -364,5 +378,9 @@ export function useAdminDashboard() {
     error,
     refetch: fetchClients,
     clearInteractions,
+    dismissedAttention,
+    dismissAttention,
+    restoreAttention,
   };
 }
+
