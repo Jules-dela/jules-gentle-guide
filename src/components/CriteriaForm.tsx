@@ -554,6 +554,15 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
       setSubmittedName(data.name);
       setSubmittedCaseId(result?.caseId || null);
 
+      if (result?.emailFailed) {
+        toast({
+          title: "Application received",
+          description:
+            "Your application is safely registered, but the confirmation email could not be sent. Please contact contact@uni-key.ch.",
+          variant: "destructive",
+        });
+      }
+
       // For new users we receive a one-time magic link instead of a password.
       // Redirect immediately so the user lands authenticated in the portal.
       if (result?.isNewUser && result?.actionLink) {
