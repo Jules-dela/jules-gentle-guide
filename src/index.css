@@ -1,3 +1,19 @@
+@font-face {
+  font-family: 'DM Sans';
+  src: url('/__l5e/assets-v1/b821a56a-d6d1-4d26-aa25-797ff9b9f680/DMSans-VariableFont_opsz,wght.ttf') format('truetype');
+  font-weight: 100 1000;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  src: url('/__l5e/assets-v1/7f039ff7-5387-430e-9796-eca95f8da799/DMSans-Italic-VariableFont_opsz,wght.ttf') format('truetype');
+  font-weight: 100 1000;
+  font-style: italic;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
