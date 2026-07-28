@@ -276,18 +276,18 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
         body: { mode: "email", email },
       });
       if (error) throw error;
-      if (!data?.found) {
-        setVerifyEmailError("No payment found for this email. Please contact us at contact@uni-key.ch.");
-        setVerifyCooldownUntil(Date.now() + 3000);
-        return;
-      }
-      applyRestoredRow(data.row);
-      setPaymentVerified(true);
-      setPaymentBannerVisible(false);
-      setCurrentStep(4);
+      // For privacy, the server never returns application data here — it
+      // emails a portal access link to the address on file if a paid
+      // submission exists. The response is identical for known/unknown
+      // emails to prevent enumeration.
       setVerifyEmailOpen(false);
       setVerifyEmailInput("");
-      toast({ title: "Payment confirmed", description: "Your application has been restored." });
+      setVerifyCooldownUntil(Date.now() + 10000);
+      toast({
+        title: "Check your email",
+        description:
+          "If a paid application exists for this address, we've sent a portal access link. Follow it to continue.",
+      });
     } catch (e: any) {
       setVerifyEmailError(e?.message || "Could not verify. Please try again.");
       setVerifyCooldownUntil(Date.now() + 3000);
@@ -1503,19 +1503,11 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                           { body: { mode: "check_existing", email: emailLower } },
                                         );
                                         if (existing?.exists) {
-                                          if (existing.deposit_paid) {
-                                            toast({
-                                              title: "Payment already on file",
-                                              description:
-                                                "We already have a confirmed payment for this email. Use \"Already paid? Click here to verify\" below to restore your application.",
-                                            });
-                                          } else {
-                                            toast({
-                                              title: "Application already in progress",
-                                              description:
-                                                "An application for this email is already awaiting payment. Please complete the existing one or contact contact@uni-key.ch.",
-                                            });
-                                          }
+                                          toast({
+                                            title: "Application already on file",
+                                            description:
+                                              "An application already exists for this email. Use \"Already paid? Click here to verify\" below, or contact contact@uni-key.ch.",
+                                          });
                                           setIsActivating(false);
                                           return;
                                         }

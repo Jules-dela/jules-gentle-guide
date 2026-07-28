@@ -537,14 +537,18 @@ Deno.serve(async (req) => {
           email,
           message: "Client tried to restore by email but no paid submission was found.",
         });
-        return new Response(JSON.stringify({ found: false }), {
+        // Always respond identically to prevent email enumeration.
+        return new Response(JSON.stringify({ sent: true }), {
           status: 200,
           headers: { ...cors, "Content-Type": "application/json" },
         });
       }
 
-      // Auto-provision portal account on lookup (idempotent backfill).
-      await provisionPortal(row, { sendEmail: false });
+      // Provision portal account (idempotent) AND email a magic link to the
+      // address on file. We never return application data on this
+      // unauthenticated endpoint — the recipient must click the emailed link
+      // to prove ownership before accessing anything.
+      await provisionPortal(row, { sendEmail: true, forceEmail: true });
       await logPaymentEvent({
         event_type: "email_lookup_restored",
         source: "email",
@@ -554,11 +558,11 @@ Deno.serve(async (req) => {
         new_status: row.status ?? null,
         deposit_paid: row.deposit_paid ?? null,
         stripe_session_id: row.stripe_session_id ?? null,
-        message: "Client restored application via email verification.",
+        message: "Portal access link emailed to applicant (email-mode lookup).",
       });
 
       return new Response(
-        JSON.stringify({ found: true, row: safeRow(row) }),
+        JSON.stringify({ sent: true }),
         { status: 200, headers: { ...cors, "Content-Type": "application/json" } },
       );
     }
@@ -652,12 +656,11 @@ Deno.serve(async (req) => {
         : "Pre-payment check: no existing submission for this email.",
     });
 
+    // Only report existence — never leak status/payment details on this
+    // unauthenticated endpoint. The client-side uses this solely to block
+    // duplicate submissions for the same email.
     return new Response(
-      JSON.stringify({
-        exists: !!row,
-        status: row?.status ?? null,
-        deposit_paid: row?.deposit_paid ?? false,
-      }),
+      JSON.stringify({ exists: !!row }),
       { status: 200, headers: { ...cors, "Content-Type": "application/json" } },
     );
   } catch (err: any) {
