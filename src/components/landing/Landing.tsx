@@ -1,17 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Check, ArrowRight, Plus, Search, Video, FileCheck, Key } from "lucide-react";
+import { Menu, X, ArrowRight, Plus, Search, Video, FileCheck, Key } from "lucide-react";
 import logoAsset from "@/assets/unikey-wordmark.png.asset.json";
 import keyMarkAsset from "@/assets/unikey-key-2.png.asset.json";
 import { LandingFooter } from "./LandingFooter";
 
 const applyHref = "/apply";
-
-const formatCHF = (n: number) => {
-  const rounded = Math.round(n);
-  const withSep = rounded.toLocaleString("en-US").replace(/,/g, ",");
-  return `CHF ${withSep}`;
-};
 
 /* ---------------- Nav ---------------- */
 function Nav() {
@@ -25,7 +19,6 @@ function Nav() {
   }, []);
   const links = [
     { href: "#how", label: "How it works" },
-    { href: "#pricing", label: "Pricing" },
     { href: "#proof", label: "Students" },
     { href: "#faq", label: "FAQ" },
   ];
@@ -325,182 +318,6 @@ function How() {
   );
 }
 
-/* ---------------- Pricing calculator ---------------- */
-function Pricing() {
-  const [rent, setRent] = useState(2000);
-  const [people, setPeople] = useState(1);
-
-  const { share, rawFee, fee, capped, floored, total } = useMemo(() => {
-    const share = rent / people;
-    const rawFee = share;
-    let fee = rawFee;
-    let capped = false;
-    let floored = false;
-    if (fee < 600) {
-      fee = 600;
-      floored = true;
-    }
-    if (fee > 2000) {
-      fee = 2000;
-      capped = true;
-    }
-    const total = Math.max(0, fee - 50);
-    return { share, rawFee, fee, capped, floored, total };
-  }, [rent, people]);
-
-  const note = capped
-    ? "Never more than CHF 2,000, whatever the rent. Your exact fee is confirmed on the flat you choose."
-    : floored
-    ? "Our fee starts at CHF 600. Your exact fee is confirmed on the flat you choose."
-    : "Estimate in CHF, based on the rent you enter. Your exact fee is confirmed on the flat you choose.";
-
-  return (
-    <section id="pricing" className="border-t border-uk-hairline bg-white py-20 md:py-28">
-      <div className="mx-auto max-w-6xl px-5 md:px-8 grid md:grid-cols-2 gap-12 md:gap-16 items-start">
-        <div>
-          <h2 className="font-display text-[46px] md:text-[64px] leading-[1] tracking-[-0.02em] text-uk-ink">
-            From CHF 600.
-          </h2>
-          <p className="mt-5 text-[17px] leading-relaxed text-uk-muted max-w-md">
-            Our fee is one month of your share of the rent, and it's capped so it's
-            never a surprise.
-          </p>
-          <ul className="mt-8 space-y-4">
-            {[
-              "You pay one month of your own share, not the whole flat's rent.",
-              "Sharing with friends? Your fee drops with your share.",
-              "Capped, so your fee is never a nasty surprise, and your CHF 50 deposit comes straight off the total.",
-            ].map((t) => (
-              <li key={t} className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-uk-gold-tint text-uk-gold">
-                  <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
-                </span>
-                <span className="text-[15px] leading-relaxed text-uk-ink">{t}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Calculator */}
-        <div
-          className="rounded-[22px] bg-uk-navy-dark text-white p-6 md:p-8"
-          style={{ boxShadow: "0 24px 60px rgba(12,36,97,.25)" }}
-        >
-          <div className="font-mono text-[11px] tracking-widest uppercase text-uk-gold-light mb-6">
-            Fee calculator
-          </div>
-
-          <div>
-            <div className="flex items-baseline justify-between">
-              <label className="text-[13px] text-white/75">
-                Monthly rent of the flat
-              </label>
-              <div className="font-display text-[22px]">{formatCHF(rent)}</div>
-            </div>
-            <input
-              type="range"
-              min={600}
-              max={6000}
-              step={50}
-              value={rent}
-              onChange={(e) => setRent(parseInt(e.target.value, 10))}
-              className="mt-3 w-full accent-uk-gold"
-            />
-            <div className="mt-1 flex justify-between font-mono text-[10px] text-white/40">
-              <span>CHF 600</span>
-              <span>CHF 6,000</span>
-            </div>
-          </div>
-
-          <div className="mt-8">
-            <div className="text-[13px] text-white/75">
-              How many of you will live there?
-            </div>
-            <div className="mt-3 grid grid-cols-4 gap-2">
-              {[
-                { v: 1, label: "Just me" },
-                { v: 2, label: "2" },
-                { v: 3, label: "3" },
-                { v: 4, label: "4" },
-              ].map((p) => {
-                const active = people === p.v;
-                return (
-                  <button
-                    key={p.v}
-                    type="button"
-                    onClick={() => setPeople(p.v)}
-                    className={`rounded-full py-2.5 text-[13px] font-medium border transition-colors ${
-                      active
-                        ? "bg-uk-gold-soft text-uk-navy-dark border-uk-gold-soft"
-                        : "border-white/15 text-white/85 hover:border-white/40"
-                    }`}
-                  >
-                    {p.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mt-8 space-y-3 border-t border-white/10 pt-6">
-            <Row label="Your share of the rent" value={formatCHF(share)} />
-            <Row
-              label="UniKey fee (from CHF 600)"
-              value={
-                <>
-                  {formatCHF(fee)}
-                  {capped && (
-                    <span className="ml-1 text-uk-gold-light font-mono text-[11px]">
-                      (max)
-                    </span>
-                  )}
-                  {floored && (
-                    <span className="ml-1 text-uk-gold-light font-mono text-[11px]">
-                      (min)
-                    </span>
-                  )}
-                </>
-              }
-            />
-            <Row label="Less your deposit" value={`- ${formatCHF(50)}`} muted />
-          </div>
-
-          <div className="mt-6 flex items-baseline justify-between border-t border-white/10 pt-6">
-            <div className="text-[13px] text-white/75">Due when you sign</div>
-            <div className="font-display text-[36px] leading-none">
-              {formatCHF(total)}
-            </div>
-          </div>
-
-          <p className="mt-5 text-[12px] leading-relaxed text-white/55">{note}</p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Row({
-  label,
-  value,
-  muted,
-}: {
-  label: string;
-  value: React.ReactNode;
-  muted?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className={`text-[13.5px] ${muted ? "text-white/55" : "text-white/80"}`}>
-        {label}
-      </span>
-      <span
-        className={`font-mono text-[14px] ${muted ? "text-white/55" : "text-white"}`}
-      >
-        {value}
-      </span>
-    </div>
-  );
-}
 
 /* ---------------- Referral band ---------------- */
 function Referral() {
@@ -679,7 +496,6 @@ export default function Landing() {
         <Hero />
         <Market />
         <How />
-        <Pricing />
         <Referral />
         <Proof />
         <FAQ />
