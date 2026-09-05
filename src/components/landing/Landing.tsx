@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Check, ArrowRight, Plus, Search, Video, FileCheck, Key } from "lucide-react";
+import { Menu, X, ArrowRight, Plus, Search, Video, FileCheck, Key } from "lucide-react";
 import logoAsset from "@/assets/unikey-wordmark.png.asset.json";
 import keyMarkAsset from "@/assets/unikey-key-2.png.asset.json";
 import { LandingFooter } from "./LandingFooter";
