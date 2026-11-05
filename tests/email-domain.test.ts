@@ -1,6 +1,6 @@
 import { describe, test, expect } from "bun:test";
 import { z } from "zod";
-import { hasRecognizedEmailDomain } from "../../supabase/functions/_shared/email-domain";
+import { hasRecognizedEmailDomain } from "../supabase/functions/_shared/email-domain";
 
 const emailSchema = z.string().trim().email().max(255).refine(hasRecognizedEmailDomain);
 
