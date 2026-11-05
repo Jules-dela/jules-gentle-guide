@@ -1464,8 +1464,22 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                   )}
                                 />
 
+                                <FormField
+                                  control={form.control}
+                                  name="whatsappConsent"
+                                  render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 mb-4">
+                                      <FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={(checked) => field.onChange(checked === true)} />
+                                      </FormControl>
+                                      <FormLabel className="text-sm font-normal leading-relaxed">
+                                        I agree that Unikey contacts me on WhatsApp about my application.
+                                      </FormLabel>
+                                    </FormItem>
+                                  )}
+                                />
+
                                 <ServiceAgreement
-                                  // WhatsApp consent is independent of the agreement signature.
                                   clientName={form.watch("name") || ""}
                                   onSign={async (contractData) => {
                                     setPreSubmitContractSigned(true);
@@ -1561,6 +1575,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                             no_smoking: values.noSmoking ?? null,
                                             notes: values.notes || null,
                                             privacy_accepted: values.privacyAccepted ?? null,
+                                            whatsapp_consent: hasWhatsappConsent(values.whatsappConsent),
                                           },
                                           date_of_birth: preSubmitContractData?.client_date_of_birth || null,
                                           nationality: preSubmitContractData?.client_nationality || null,
