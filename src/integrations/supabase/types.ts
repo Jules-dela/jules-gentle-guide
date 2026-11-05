@@ -257,10 +257,15 @@ export type Database = {
           closed_at: string | null
           contract_data: Json | null
           created_at: string
+          followup_case: string | null
+          followup_question: string | null
+          followup_status: string | null
+          followup_updated_at: string | null
           id: string
           initial_criteria: Json | null
           status: Database["public"]["Enums"]["case_status"]
           updated_at: string
+          whatsapp_consent: boolean | null
         }
         Insert: {
           client_id: string
@@ -268,10 +273,15 @@ export type Database = {
           closed_at?: string | null
           contract_data?: Json | null
           created_at?: string
+          followup_case?: string | null
+          followup_question?: string | null
+          followup_status?: string | null
+          followup_updated_at?: string | null
           id?: string
           initial_criteria?: Json | null
           status?: Database["public"]["Enums"]["case_status"]
           updated_at?: string
+          whatsapp_consent?: boolean | null
         }
         Update: {
           client_id?: string
@@ -279,10 +289,15 @@ export type Database = {
           closed_at?: string | null
           contract_data?: Json | null
           created_at?: string
+          followup_case?: string | null
+          followup_question?: string | null
+          followup_status?: string | null
+          followup_updated_at?: string | null
           id?: string
           initial_criteria?: Json | null
           status?: Database["public"]["Enums"]["case_status"]
           updated_at?: string
+          whatsapp_consent?: boolean | null
         }
         Relationships: [
           {
@@ -971,6 +986,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bridge_find_case_by_phone: {
+        Args: { p_phone: string }
+        Returns: {
+          case_id: string
+          followup_question: string
+          followup_status: string
+          name: string
+        }[]
+      }
+      bridge_record_reply: {
+        Args: { p_case_id: string; p_remark: string; p_status: string }
+        Returns: undefined
+      }
       client_update_document_file: {
         Args: { p_document_id: string; p_file_url: string }
         Returns: undefined
