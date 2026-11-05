@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { ChevronRight, ChevronLeft, CheckCircle2, User, Home, Settings, Send, CalendarIcon, FileText, ChevronDown, CreditCard } from "lucide-react";
 import { ServiceAgreement } from "@/components/portal/ServiceAgreement";
 import { hasRecognizedEmailDomain, emailDomainError } from "../../supabase/functions/_shared/email-domain";
+import { hasWhatsappConsent } from "../../supabase/functions/_shared/whatsapp-consent";
 
 const COUNTRY_CODES = [
   { code: "+213", flag: "🇩🇿", label: "DZ", min: 9, max: 9 },
@@ -117,6 +118,7 @@ const criteriaSchema = z.object({
   pets: z.boolean().default(false),
   noSmoking: z.boolean().default(false),
   notes: z.string().trim().max(1000).optional().or(z.literal("")),
+  whatsappConsent: z.boolean().default(false),
   privacyAccepted: z.boolean().refine((val) => val === true, {
     message: "You must accept the Privacy Policy to submit the form",
   }),
@@ -192,6 +194,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
       noSmoking: false,
       notes: "",
       privacyAccepted: false,
+      whatsappConsent: false,
       website: "",
     },
   });
@@ -233,6 +236,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
       noSmoking: prefs.no_smoking ?? false,
       notes: prefs.notes || "",
       privacyAccepted: prefs.privacy_accepted ?? true,
+      whatsappConsent: hasWhatsappConsent(prefs.whatsapp_consent),
       website: "",
     });
     if (data.phone) {
@@ -520,6 +524,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
           smokingAllowed: data.noSmoking,
           notes: data.notes,
           privacyAccepted: data.privacyAccepted,
+          whatsappConsent: data.whatsappConsent,
           // Pass contract data for server-side signing (no auth race condition)
           contractData: preSubmitContractData || null,
         },
@@ -1459,6 +1464,21 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                   )}
                                 />
 
+                                <FormField
+                                  control={form.control}
+                                  name="whatsappConsent"
+                                  render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 mb-4">
+                                      <FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={(checked) => field.onChange(checked === true)} />
+                                      </FormControl>
+                                      <FormLabel className="text-sm font-normal leading-relaxed">
+                                        I agree that Unikey contacts me on WhatsApp about my application.
+                                      </FormLabel>
+                                    </FormItem>
+                                  )}
+                                />
+
                                 <ServiceAgreement
                                   clientName={form.watch("name") || ""}
                                   onSign={async (contractData) => {
@@ -1555,6 +1575,7 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                             no_smoking: values.noSmoking ?? null,
                                             notes: values.notes || null,
                                             privacy_accepted: values.privacyAccepted ?? null,
+                                            whatsapp_consent: hasWhatsappConsent(values.whatsappConsent),
                                           },
                                           date_of_birth: preSubmitContractData?.client_date_of_birth || null,
                                           nationality: preSubmitContractData?.client_nationality || null,

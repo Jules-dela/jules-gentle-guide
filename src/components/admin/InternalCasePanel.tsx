@@ -29,13 +29,14 @@ export function InternalCasePanel({ caseId, onChange }: Props) {
   const [loading, setLoading] = useState(true);
   const [savedFlash, setSavedFlash] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [followup, setFollowup] = useState<{ followup_status: string | null; followup_question: string | null } | null>(null);
   const notesDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [own, all] = await Promise.all([
+      const [own, all, caseFollowup] = await Promise.all([
         supabase
           .from('case_staff_notes')
           .select('notes, managed_by, whatsapp_contacted, whatsapp_contacted_at')
@@ -45,8 +46,10 @@ export function InternalCasePanel({ caseId, onChange }: Props) {
           .from('case_staff_notes')
           .select('managed_by')
           .not('managed_by', 'is', null),
+        supabase.from('cases').select('followup_status, followup_question').eq('id', caseId).maybeSingle(),
       ]);
       if (cancelled) return;
+      setFollowup(caseFollowup.data ?? null);
       if (own.data) {
         setRow({
           notes: (own.data as any).notes ?? '',
@@ -144,6 +147,20 @@ export function InternalCasePanel({ caseId, onChange }: Props) {
           className="text-sm resize-y min-h-[100px]"
         />
       </div>
+
+      {followup?.followup_status && (
+        <div className="text-sm space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <MessageCircle className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium text-foreground">WhatsApp follow up</span>
+            <Badge variant={followup.followup_status === 'needs_human' ? 'destructive' : 'secondary'}>
+              {followup.followup_status === 'question_sent' ? 'Question sent'
+                : followup.followup_status === 'answered' ? 'Answered' : 'Needs your reply'}
+            </Badge>
+          </div>
+          {followup.followup_question && <p className="text-muted-foreground whitespace-pre-line break-words">{followup.followup_question}</p>}
+        </div>
+      )}
 
       <div>
         <label className="text-xs font-medium text-foreground block mb-1">Managed by</label>

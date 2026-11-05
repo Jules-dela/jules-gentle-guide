@@ -2,6 +2,9 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { hasRecognizedEmailDomain, emailDomainError } from "../_shared/email-domain.ts";
+import { hasWhatsappConsent } from "../_shared/whatsapp-consent.ts";
+
+declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -198,6 +201,7 @@ const applicationSchema = z.object({
   skipEmails: z.boolean().optional(),
   contractData: contractDataSchema,
   privacyAccepted: z.boolean().optional().nullable(),
+  whatsappConsent: z.boolean().default(false),
 });
 
 type ApplicationData = z.infer<typeof applicationSchema>;
@@ -340,7 +344,11 @@ async function getOrCreateCase(profileId: string, data: ApplicationData) {
   const existingCase = existingCases?.find(c => c.contract_data != null) ?? existingCases?.[0];
 
   if (existingCase) {
-    return existingCase;
+    const { error } = await supabase.from('cases').update({
+      whatsapp_consent: hasWhatsappConsent(data.whatsappConsent),
+    }).eq('id', existingCase.id);
+    if (error) throw error;
+    return { ...existingCase, created: false };
   }
 
   const { data: createdCase, error: caseError } = await supabase
@@ -349,6 +357,7 @@ async function getOrCreateCase(profileId: string, data: ApplicationData) {
       client_id: profileId,
       status: 'request_received',
       initial_criteria: buildInitialCriteria(data),
+      whatsapp_consent: hasWhatsappConsent(data.whatsappConsent),
     })
     .select('id, contract_data')
     .single();
@@ -365,13 +374,13 @@ async function getOrCreateCase(profileId: string, data: ApplicationData) {
       .maybeSingle();
 
     if (recoveredCase) {
-      return recoveredCase;
+      return { ...recoveredCase, created: false };
     }
 
     throw new Error('Failed to create case');
   }
 
-  return createdCase;
+  return { ...createdCase, created: true };
 }
 
 // Sign the contract server-side using service role (bypasses RLS/auth)
@@ -892,6 +901,33 @@ const handler = async (req: Request): Promise<Response> => {
       } catch (emailError) {
         console.error('Email send step failed after case creation:', emailError);
         applicantEmailFailed = true;
+      }
+    }
+
+    // Best-effort side effect: no webhook latency or failure can affect submission.
+    const n8nUrl = Deno.env.get("N8N_WEBHOOK_URL");
+    const n8nSecret = Deno.env.get("N8N_WEBHOOK_SECRET");
+    if (newCase.created && n8nUrl && n8nSecret) {
+      try {
+        const target = new URL(n8nUrl);
+        if (target.protocol !== "https:" || target.username || target.password) throw new Error("Invalid webhook configuration");
+        EdgeRuntime.waitUntil(fetch(target, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Unikey-Secret": n8nSecret },
+          redirect: "error", signal: AbortSignal.timeout(15000),
+          body: JSON.stringify({
+            caseId: newCase.id, name: data.name, email: normalizeEmail(data.email), phone: data.phone,
+            university: data.university, movingDate: data.movingDate, neighbourhood: data.neighbourhood,
+            budget: data.budget, rooms: data.rooms, duration: data.duration, propertyType: data.propertyType,
+            roommatePreference: data.roommatePreference, furnished: data.furnished, nearTransport: data.nearTransport,
+            petsAllowed: data.petsAllowed, smokingAllowed: data.smokingAllowed, notes: data.notes,
+            whatsappConsent: hasWhatsappConsent(data.whatsappConsent),
+          }),
+        }).then(response => {
+          if (!response.ok) console.error("n8n webhook failed", response.status);
+        }).catch(() => console.error("n8n webhook failed")));
+      } catch {
+        console.error("n8n webhook configuration invalid");
       }
     }
 
