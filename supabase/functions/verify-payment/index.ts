@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { z } from "https://esm.sh/zod@3.23.8";
+import { hasRecognizedEmailDomain, emailDomainError } from "../_shared/email-domain.ts";
 
 const ALLOWED_ORIGINS = new Set([
   "https://uni-key.ch",
@@ -355,15 +356,15 @@ const BodySchema = z.discriminatedUnion("mode", [
   }),
   z.object({
     mode: z.literal("email"),
-    email: z.string().trim().toLowerCase().email().max(255),
+    email: z.string().trim().toLowerCase().email().max(255).refine(hasRecognizedEmailDomain, emailDomainError),
   }),
   z.object({
     mode: z.literal("check_existing"),
-    email: z.string().trim().toLowerCase().email().max(255),
+    email: z.string().trim().toLowerCase().email().max(255).refine(hasRecognizedEmailDomain, emailDomainError),
   }),
   z.object({
     mode: z.literal("provision"),
-    email: z.string().trim().toLowerCase().email().max(255),
+    email: z.string().trim().toLowerCase().email().max(255).refine(hasRecognizedEmailDomain, emailDomainError),
   }),
 ]);
 

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { hasRecognizedEmailDomain, emailDomainError } from "../_shared/email-domain.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -178,7 +179,7 @@ const contractDataSchema = z.object({
 // Server-side validation schema
 const applicationSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name too long"),
-  email: z.string().trim().email("Invalid email").max(255, "Email too long"),
+  email: z.string().trim().email("Invalid email").max(255, "Email too long").refine(hasRecognizedEmailDomain, emailDomainError),
   phone: z.string().trim().min(1, "Phone is required").max(20, "Phone too long"),
   university: z.string().trim().max(100, "University name too long").optional().nullable(),
   neighbourhood: z.string().max(100, "Neighbourhood too long").optional().nullable(),
