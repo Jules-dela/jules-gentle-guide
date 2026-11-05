@@ -14,6 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { useToast } from "@/hooks/use-toast";
 import { useScrollAnimation } from "@/hooks/use-scroll-animation";
 import { supabase } from "@/integrations/supabase/client";
+import { hasRecognizedEmailDomain, emailDomainError } from "../../supabase/functions/_shared/email-domain";
 
 // Validation schema with security best practices
 const applicationSchema = z.object({
@@ -24,7 +25,8 @@ const applicationSchema = z.object({
   email: z.string()
     .trim()
     .email({ message: "Invalid email address" })
-    .max(255, { message: "Email must be less than 255 characters" }),
+    .max(255, { message: "Email must be less than 255 characters" })
+    .refine(hasRecognizedEmailDomain, { message: emailDomainError }),
   phone: z.string()
     .trim()
     .min(1, { message: "Phone number is required" })

@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { ChevronRight, ChevronLeft, CheckCircle2, User, Home, Settings, Send, CalendarIcon, FileText, ChevronDown, CreditCard } from "lucide-react";
 import { ServiceAgreement } from "@/components/portal/ServiceAgreement";
+import { hasRecognizedEmailDomain, emailDomainError } from "../../supabase/functions/_shared/email-domain";
 
 const COUNTRY_CODES = [
   { code: "+213", flag: "🇩🇿", label: "DZ", min: 9, max: 9 },
@@ -98,7 +99,8 @@ const COUNTRY_CODES = [
 // Validation schema
 const criteriaSchema = z.object({
   name: z.string().trim().min(1, { message: "Full name is required" }).max(100),
-  email: z.string().trim().email({ message: "Invalid email address" }).max(255),
+  email: z.string().trim().email({ message: "Invalid email address" }).max(255)
+    .refine(hasRecognizedEmailDomain, { message: emailDomainError }),
   phone: z.string().trim().min(1, { message: "Phone number is required" }).max(20).regex(/^\+\d{7,15}$/, { message: "Invalid phone number format" }),
   university: z.string().trim().max(100).optional().or(z.literal("")),
   movingDate: z.date({ required_error: "Please select your preferred moving date" }),
@@ -1492,16 +1494,21 @@ export const CriteriaForm = ({ onSubmitSuccess }: CriteriaFormProps = {}) => {
                                   disabled={!preSubmitContractSigned || isActivating}
                                   onClick={async () => {
                                     if (!preSubmitContractSigned || isActivating) return;
+                                    if (!(await form.trigger("email"))) {
+                                      setCurrentStep(1);
+                                      return;
+                                    }
                                     setIsActivating(true);
                                     try {
                                       const values = form.getValues();
                                       // Block reuse of the Stripe Payment Link by the same email.
                                       const emailLower = (values.email || "").trim().toLowerCase();
                                       if (emailLower) {
-                                        const { data: existing } = await supabase.functions.invoke(
+                                        const { data: existing, error: validationError } = await supabase.functions.invoke(
                                           "verify-payment",
                                           { body: { mode: "check_existing", email: emailLower } },
                                         );
+                                        if (validationError) throw new Error("Could not verify your email. Please check it and try again.");
                                         if (existing?.exists) {
                                           toast({
                                             title: "Application already on file",
